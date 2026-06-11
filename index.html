@@ -625,14 +625,18 @@ async function cikisYap(){
   await sb.auth.signOut();
   bildir('Çıkış yapıldı');
 }
-sb.auth.onAuthStateChange(async (_olay, oturum) => {
+sb.auth.onAuthStateChange((_olay, oturum) => {
   const onceki = kullanici?.id;
   kullanici = oturum?.user || null;
   if (kullanici?.id !== onceki){
-    await profilGetir();
-    yonetimRozetiGuncelle();
-    if ($('.gorunum[data-gorunum="profil"]').classList.contains('aktif')) profilCiz();
-    veriYukle(); // kendi bekleyenleri de görünür hale gelsin
+    // ÖNEMLİ: supabase-js, onAuthStateChange içinde doğrudan sorgu beklenirse
+    // kendini kilitler — bu yüzden işler setTimeout ile dışarı ertelenir.
+    setTimeout(async () => {
+      await profilGetir();
+      yonetimRozetiGuncelle();
+      if ($('.gorunum[data-gorunum="profil"]').classList.contains('aktif')) profilCiz();
+      veriYukle(); // kendi bekleyenleri de görünür hale gelsin
+    }, 0);
   }
 });
 
@@ -1224,7 +1228,12 @@ async function profilCiz(){
     return;
   }
   const benimkiler = yerler.filter(y => y.ekleyen_id === kullanici.id);
-  const {data: revlerim} = await sb.from('turbedar_revizyonlar').select('*, yer:turbedar_yerler(baslik)').eq('ekleyen_id', kullanici.id).order('created_at', {ascending:false}).limit(20);
+  k.innerHTML = '<p style="color:var(--soluk);font-size:13.5px;padding:8px">Yükleniyor...</p>';
+  let revlerim = [];
+  try{
+    const {data} = await sb.from('turbedar_revizyonlar').select('*, yer:turbedar_yerler(baslik)').eq('ekleyen_id', kullanici.id).order('created_at', {ascending:false}).limit(20);
+    revlerim = data || [];
+  }catch(e){ /* revizyonlar yüklenemese de profil çizilsin */ }
   k.innerHTML = `
     <div class="profil-ust kart">
       <img src="${profil?.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
