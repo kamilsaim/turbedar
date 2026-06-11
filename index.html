@@ -144,6 +144,22 @@ img{display:block}
   background:var(--zumrut)!important;color:var(--altin-acik)!important;font-weight:800;font-family:var(--govde)!important;
 }
 
+/* ziyaret düğmesi */
+.ziyaret-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:13px 0 2px;padding:11px 14px;border-radius:12px;border:1.5px solid var(--altin);background:var(--altin-soluk);color:var(--zumrut);font-weight:700;font-size:14px;transition:background .15s}
+.ziyaret-btn.aktif{background:var(--zumrut);border-color:var(--zumrut-koyu);color:#fff}
+.ziyaret-btn .sayi{font-weight:600;font-size:12px;opacity:.8}
+.ziyaret-btn:disabled{opacity:.6}
+
+/* harita önizleme kartı */
+.turbedar-popup .leaflet-popup-content-wrapper{background:var(--kart);border-radius:14px;border-top:2px solid var(--altin);box-shadow:var(--golge-buyuk);padding:0;overflow:hidden}
+.turbedar-popup .leaflet-popup-content{margin:0;width:220px!important;font-family:var(--govde);line-height:1.3}
+.turbedar-popup .leaflet-popup-tip{background:var(--kart)}
+.pop-kart img{width:100%;height:118px;object-fit:cover}
+.pop-govde{padding:10px 12px 12px;display:flex;flex-direction:column;gap:2px}
+.pop-govde b{font-family:var(--display);font-size:17.5px;font-weight:700;color:var(--zumrut);line-height:1.12}
+.pop-govde span{font-size:11.5px;color:var(--soluk);font-weight:600}
+.pop-govde .rozet{align-self:flex-start;margin-bottom:3px}
+
 /* ---------- Alt gezinme ---------- */
 #altnav{
   position:fixed;bottom:0;left:0;right:0;z-index:650;height:calc(var(--nav-h) + env(safe-area-inset-bottom));
@@ -248,7 +264,8 @@ img{display:block}
 .bos-durum b{display:block;font-family:var(--display);font-size:20px;color:var(--zumrut);margin-bottom:4px}
 
 /* ---------- İstatistik ---------- */
-.ozet-izgara{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.ozet-izgara{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+@media(min-width:560px){.ozet-izgara{grid-template-columns:repeat(4,1fr)}}
 .ozet-kart{padding:14px 10px;text-align:center}
 .ozet-kart .sayi{font-family:var(--display);font-weight:700;font-size:30px;color:var(--zumrut);line-height:1}
 .ozet-kart .etiket{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--soluk);margin-top:5px}
@@ -544,6 +561,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
+const SURUM = '1.2.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -557,6 +575,7 @@ let yerler = [];                 // yüklü tüm görünür kayıtlar
 let istatistik = [];
 let harita, kume, sihirbazHarita, sihirbazPin;
 let suzgec = {arama:'', il:'', ilce:'', kategori:''};
+let benimZiyaretlerim = new Set();   // giriş yapan kullanıcının ziyaret ettiği yer id'leri
 let taslak = null;               // sihirbaz taslağı
 let acikYerId = null;
 
@@ -566,6 +585,7 @@ const $$ = s => [...document.querySelectorAll(s)];
 const kacir = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const trKucuk = s => String(s||'').toLocaleLowerCase('tr').replace(/[çğıöşü]/g, c => ({'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u'}[c]));
 const fotoUrl = yol => `${SUPA_URL}/storage/v1/object/public/${BUCKET}/${yol}`;
+const ziyaretSayisi = y => y.ziyaretler?.[0]?.count || 0;
 const tarihYaz = t => new Date(t).toLocaleDateString('tr-TR', {day:'numeric', month:'long', year:'numeric'});
 const yonetici = () => profil && profil.rol === 'yonetici';
 
@@ -649,7 +669,8 @@ async function veriYukle(){
       .select(`*,
         fotograflar:turbedar_fotograflar(id,yol,ekleyen_id),
         kisiler:turbedar_kisiler(id,ad,unvan,vefat,biyografi),
-        ekleyen:turbedar_profiller!turbedar_yerler_ekleyen_id_fkey(id,ad,avatar_url)`)
+        ekleyen:turbedar_profiller!turbedar_yerler_ekleyen_id_fkey(id,ad,avatar_url),
+        ziyaretler:turbedar_ziyaretler(count)`)
       .order('created_at', {ascending:false})
       .range(bas, bas + boy - 1);
     if (error){ bildir('Kayıtlar yüklenemedi: ' + error.message, true); break; }
@@ -658,6 +679,11 @@ async function veriYukle(){
     bas += boy;
   }
   yerler = tum;
+  benimZiyaretlerim = new Set();
+  if (kullanici){
+    const {data: zv} = await sb.from('turbedar_ziyaretler').select('yer_id').eq('kullanici_id', kullanici.id);
+    (zv || []).forEach(z => benimZiyaretlerim.add(z.yer_id));
+  }
   const {data: ist} = await sb.from('turbedar_istatistik').select('*');
   istatistik = ist || [];
   haritaCiz(); kesfetCiz(); istatistikCiz(); suzgecleriDoldur();
@@ -713,7 +739,22 @@ function haritaCiz(){
   kume.clearLayers();
   yerler.filter(y => y.durum !== 'reddedildi').forEach(y => {
     const m = L.marker([y.lat, y.lng], {icon: pinIkon(y)});
-    m.on('click', () => detayAc(y.id));
+    const f = (y.fotograflar||[])[0];
+    m.bindPopup(`<div class="pop-kart">
+      ${f ? `<img src="${fotoUrl(f.yol)}" alt="" loading="lazy">` : ''}
+      <div class="pop-govde">
+        ${y.durum === 'beklemede' ? '<span class="rozet rozet-beklemede">Onay Bekliyor</span>' : ''}
+        <b>${kacir(y.baslik)}</b>
+        <span>${KATEGORILER[y.kategori]||''}${(y.ilce||y.il) ? ' • ' + kacir([y.ilce, y.il].filter(Boolean).join(' / ')) : ''}</span>
+        ${(y.kisiler||[]).length ? `<span>${kacir(y.kisiler.slice(0,2).map(k=>k.ad).join(', '))}${y.kisiler.length>2?'…':''}</span>` : ''}
+        ${ziyaretSayisi(y) ? `<span>🕌 ${ziyaretSayisi(y)} ziyaretçi</span>` : ''}
+        <button class="btn btn-kucuk btn-tam" data-detay style="margin-top:9px">Detayları Gör</button>
+      </div></div>`,
+      {className:'turbedar-popup', closeButton:false, maxWidth:240, minWidth:220});
+    m.on('popupopen', e => {
+      const b = e.popup.getElement().querySelector('[data-detay]');
+      if (b) b.addEventListener('click', () => { m.closePopup(); detayAc(y.id); });
+    });
     kume.addLayer(m);
   });
 }
@@ -788,10 +829,12 @@ function istatistikCiz(){
   const toplamYer = istatistik.reduce((t,s) => t + s.adet, 0);
   const ilSayisi = new Set(istatistik.map(s => s.il).filter(Boolean)).size;
   const kisiSayisi = yerler.filter(y=>y.durum==='onaylandi').reduce((t,y) => t + (y.kisiler||[]).length, 0);
+  const toplamZiyaret = yerler.filter(y=>y.durum==='onaylandi').reduce((t,y) => t + ziyaretSayisi(y), 0);
   $('#ozet-izgara').innerHTML = `
     <div class="ozet-kart kart"><div class="sayi">${toplamYer}</div><div class="etiket">Kayıtlı Yer</div></div>
     <div class="ozet-kart kart"><div class="sayi">${ilSayisi}</div><div class="etiket">İl</div></div>
-    <div class="ozet-kart kart"><div class="sayi">${kisiSayisi}</div><div class="etiket">Yatan Kişi</div></div>`;
+    <div class="ozet-kart kart"><div class="sayi">${kisiSayisi}</div><div class="etiket">Yatan Kişi</div></div>
+    <div class="ozet-kart kart"><div class="sayi">${toplamZiyaret}</div><div class="etiket">Ziyaret</div></div>`;
   // il bazlı
   const ilMap = {};
   istatistik.forEach(s => { const il = s.il || 'Belirtilmemiş'; ilMap[il] = (ilMap[il]||0) + s.adet; });
@@ -847,6 +890,11 @@ async function detayAc(id){
       ${kacir([y.ilce, y.il].filter(Boolean).join(' / ') || 'Konum belirtilmemiş')}
     </div>
     ${y.durum === 'reddedildi' && y.red_nedeni ? `<p style="margin-top:8px;font-size:13px;color:var(--kirmizi)"><b>Red nedeni:</b> ${kacir(y.red_nedeni)}</p>` : ''}
+    ${y.durum === 'onaylandi' ? `<button class="ziyaret-btn ${benimZiyaretlerim.has(y.id) ? 'aktif' : ''}" id="d-ziyaret">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
+      <b id="d-ziyaret-metin">${benimZiyaretlerim.has(y.id) ? 'Ziyaret Ettim' : 'Ziyaret Ettim İşaretle'}</b>
+      <span class="sayi" id="d-ziyaret-sayi">${ziyaretSayisi(y) ? ziyaretSayisi(y) + ' ziyaretçi' : 'İlk ziyaretçi sen ol'}</span>
+    </button>` : ''}
     ${y.aciklama ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div><p class="detay-aciklama">${kacir(y.aciklama)}</p>` : ''}
     ${y.kaynak ? `<p class="detay-kaynak">Kaynak: ${kacir(y.kaynak)}</p>` : ''}
     ${(y.kisiler||[]).length ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
@@ -881,6 +929,28 @@ async function detayAc(id){
     const url = location.origin + location.pathname + '#yer=' + y.id;
     if (navigator.share){ try{ await navigator.share({title: y.baslik, url}); }catch(e){} }
     else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
+  });
+  const zbtn = $('#d-ziyaret');
+  if (zbtn) zbtn.addEventListener('click', async () => {
+    if (!kullanici) return girisIste();
+    zbtn.disabled = true;
+    const vardi = benimZiyaretlerim.has(y.id);
+    let hata;
+    if (vardi){
+      ({error: hata} = await sb.from('turbedar_ziyaretler').delete().eq('yer_id', y.id).eq('kullanici_id', kullanici.id));
+    } else {
+      ({error: hata} = await sb.from('turbedar_ziyaretler').insert({yer_id: y.id, kullanici_id: kullanici.id}));
+    }
+    zbtn.disabled = false;
+    if (hata) return bildir('İşaretlenemedi: ' + hata.message, true);
+    vardi ? benimZiyaretlerim.delete(y.id) : benimZiyaretlerim.add(y.id);
+    const kayit = yerler.find(x => x.id === y.id);
+    const yeniSayi = Math.max(0, ziyaretSayisi(kayit || y) + (vardi ? -1 : 1));
+    if (kayit) kayit.ziyaretler = [{count: yeniSayi}];
+    zbtn.classList.toggle('aktif', !vardi);
+    $('#d-ziyaret-metin').textContent = !vardi ? 'Ziyaret Ettim' : 'Ziyaret Ettim İşaretle';
+    $('#d-ziyaret-sayi').textContent = yeniSayi ? yeniSayi + ' ziyaretçi' : 'İlk ziyaretçi sen ol';
+    if (!vardi) bildir('🕌 Ziyaret listene eklendi');
   });
   if ($('#d-duzenle')) $('#d-duzenle').addEventListener('click', () => { sayfaKapat(); sihirbazAc(y); });
   if ($('#d-sil')) $('#d-sil').addEventListener('click', async () => {
@@ -942,8 +1012,17 @@ async function fotoSikistir(dosya){
   const tuval = document.createElement('canvas'); tuval.width = g; tuval.height = y;
   tuval.getContext('2d').drawImage(img, 0, 0, g, y);
   URL.revokeObjectURL(img.src);
-  const blob = await new Promise(c => tuval.toBlob(c, 'image/webp', 0.8));
-  return blob || await new Promise(c => tuval.toBlob(c, 'image/jpeg', 0.82));
+  // Safari webp desteklemez ve sessizce PNG üretir (2MB sınırını aşar) — tip kontrolü şart
+  let blob = await new Promise(c => tuval.toBlob(c, 'image/webp', 0.8));
+  if (!blob || blob.type !== 'image/webp'){
+    blob = await new Promise(c => tuval.toBlob(c, 'image/jpeg', 0.82));
+  }
+  let kalite = 0.7;
+  while (blob && blob.size > 1900000 && kalite >= 0.4){
+    blob = await new Promise(c => tuval.toBlob(c, 'image/jpeg', kalite));
+    kalite -= 0.15;
+  }
+  return blob;
 }
 
 /* ====================== TERS GEOKODLAMA ====================== */
@@ -1205,7 +1284,9 @@ async function fotolariYukle(yerId){
   for (let i = 0; i < taslak.yeniFotolar.length; i++){
     yukleniyor(true, `Fotoğraf yükleniyor (${i+1}/${taslak.yeniFotolar.length})...`);
     const blob = await fotoSikistir(taslak.yeniFotolar[i].dosya);
-    const yol = `${yerId}/${crypto.randomUUID()}.webp`;
+    if (!blob) throw new Error('Fotoğraf işlenemedi');
+    const uzanti = blob.type === 'image/webp' ? 'webp' : 'jpg';
+    const yol = `${yerId}/${crypto.randomUUID()}.${uzanti}`;
     const {error: ye} = await sb.storage.from(BUCKET).upload(yol, blob, {contentType: blob.type});
     if (ye) throw ye;
     const {error: se} = await sb.from('turbedar_fotograflar').insert({yer_id: yerId, yol, ekleyen_id: kullanici.id});
@@ -1262,6 +1343,13 @@ async function profilCiz(){
         ${y.durum==='reddedildi' && y.red_nedeni ? `<p style="font-size:12px;color:var(--kirmizi);margin:-4px 0 6px 4px">↳ ${kacir(y.red_nedeni)}</p>` : ''}`).join('')
       : '<p style="color:var(--soluk);font-size:13.5px">Henüz kayıt eklememişsin. Alttaki EKLE düğmesiyle başla.</p>'}
     </div>
+    ${benimZiyaretlerim.size ? `<div class="kart" style="padding:16px;margin-top:12px">
+      <div class="bolum-baslik" style="margin-bottom:8px">Ziyaret Ettiklerim (${benimZiyaretlerim.size})</div>
+      ${yerler.filter(y => benimZiyaretlerim.has(y.id)).map(y => `
+        <div class="il-satir" data-yer="${y.id}" style="gap:8px">
+          <b style="width:auto;flex:1">${kacir(y.baslik)}</b>
+          <span style="width:auto;font-size:12px;color:var(--soluk);font-weight:600">${kacir(y.il||'')}</span>
+        </div>`).join('')}</div>` : ''}
     ${revlerim?.length ? `<div class="kart" style="padding:16px;margin-top:12px">
       <div class="bolum-baslik" style="margin-bottom:8px">Düzenleme Önerilerim</div>
       ${revlerim.map(r => `<div class="il-satir" style="gap:8px;cursor:default">
@@ -1269,7 +1357,8 @@ async function profilCiz(){
         <span class="rozet rozet-${r.durum}" style="width:auto">${r.durum==='beklemede'?'Bekliyor':r.durum==='onaylandi'?'Onaylandı':'Reddedildi'}</span>
       </div>`).join('')}</div>` : ''}
     <button class="btn-ghost btn btn-tam" id="btn-cikis" style="margin-top:14px;color:var(--kirmizi)">Çıkış Yap</button>
-    <p style="text-align:center;font-size:11px;color:var(--soluk);margin-top:14px;letter-spacing:.14em">EMANET • HİZMET • SADAKAT</p>`;
+    <p style="text-align:center;font-size:11px;color:var(--soluk);margin-top:14px;letter-spacing:.14em">EMANET • HİZMET • SADAKAT</p>
+    <p style="text-align:center;font-size:10.5px;color:var(--soluk);margin-top:4px">Türbedar v${SURUM}</p>`;
   $('#profil-kaydet').addEventListener('click', async () => {
     const ad = $('#profil-ad').value.trim();
     if (ad.length < 2) return bildir('Ad çok kısa', true);
