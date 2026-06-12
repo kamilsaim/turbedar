@@ -287,7 +287,7 @@ img{display:block}
 .foto-hucre button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(20,40,30,.75);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center}
 .foto-ekle-hucre{aspect-ratio:1;border:2px dashed var(--altin-acik);border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--altin);font-size:11.5px;font-weight:800;background:var(--altin-soluk)}
 #sihirbaz-harita{height:300px;border-radius:14px;border:1px solid var(--cizgi);z-index:1}
-.konum-kaynak{font-size:12.5px;font-weight:700;margin:8px 0;display:flex;align-items:center;gap:6px;color:var(--zumrut)}
+.konum-kaynak{font-size:12.5px;font-weight:700;margin:8px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:var(--zumrut)}
 .kisi-form-satir{border:1px solid var(--cizgi);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--kart);position:relative}
 .kisi-form-satir .sil-kisi{position:absolute;top:8px;right:8px;color:var(--kirmizi);font-weight:800;font-size:12px}
 .sihirbaz-alt{display:flex;gap:10px;margin-top:18px}
@@ -588,7 +588,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.4.1';
+const SURUM = '1.4.2';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1105,6 +1105,7 @@ function sihirbazAc(yer = null){
     lat: yer ? yer.lat : null, lng: yer ? yer.lng : null,
     konumKaynak: yer ? 'Kayıtlı konum' : null,
     exifIsleri: [],
+    exifSonuc: null,
   };
   $('#sihirbaz-baslik').textContent = yer ? 'Kaydı Düzenle' : 'Yeni Kayıt';
   $('#girdi-baslik').value = yer?.baslik || '';
@@ -1151,6 +1152,7 @@ $('#adim1-ileri').addEventListener('click', async () => {
     taslak.exifIsleri = [];
     yukleniyor(false);
   }
+  if (taslak.yeniFotolar.length && taslak.exifSonuc !== 'bulundu') taslak.exifSonuc = 'yok';
   adimaGit(2);
 });
 $('#adim2-geri').addEventListener('click', () => adimaGit(1));
@@ -1236,13 +1238,16 @@ $('#foto-girdi').addEventListener('change', e => {
     taslak.exifIsleri.push((async () => {
       try{
         const gps = await exifr.gps(d);
-        if (gps && gps.latitude && (!taslak.lat || taslak.konumKaynak === KAYNAK_CIHAZ)){
-          taslak.lat = gps.latitude; taslak.lng = gps.longitude; taslak.konumKaynak = KAYNAK_EXIF;
-          if (sihirbazHarita){
-            pinKoy(gps.latitude, gps.longitude, KAYNAK_EXIF);
-            sihirbazHarita.setView([gps.latitude, gps.longitude], 16);
+        if (gps && gps.latitude){
+          taslak.exifSonuc = 'bulundu';
+          if (!taslak.lat || taslak.konumKaynak === KAYNAK_CIHAZ){
+            taslak.lat = gps.latitude; taslak.lng = gps.longitude; taslak.konumKaynak = KAYNAK_EXIF;
+            if (sihirbazHarita){
+              pinKoy(gps.latitude, gps.longitude, KAYNAK_EXIF);
+              sihirbazHarita.setView([gps.latitude, gps.longitude], 16);
+            }
+            bildir('📷 Konum fotoğraftan otomatik bulundu');
           }
-          bildir('📷 Konum fotoğraftan otomatik bulundu');
         }
       }catch(err){ /* fotoğrafta GPS yok */ }
     })());
@@ -1283,9 +1288,13 @@ function pinKoy(lat, lng, kaynak, geokodla = true){
   if (geokodla) ilIlceBul(lat, lng);
 }
 function konumKaynakYaz(){
-  $('#konum-kaynak').innerHTML = taslak.lat
+  const ana = taslak.lat
     ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> ${kacir(taslak.konumKaynak||'Konum seçildi')}`
     : '⚠️ Henüz konum yok — haritaya dokun veya cihaz konumunu kullan';
+  const uyari = taslak.exifSonuc === 'yok'
+    ? `<div style="flex-basis:100%;color:var(--amber);font-weight:600;font-size:12px;line-height:1.5;margin-top:2px">⚠️ Seçilen fotoğrafta konum bilgisi bulunamadı. Not: iPhone'lar gizlilik gereği fotoğrafın konumunu tarayıcıya vermez — iğneyi haritada elle doğru yere taşıyabilirsin.</div>`
+    : '';
+  $('#konum-kaynak').innerHTML = ana + uyari;
 }
 $('#btn-cihaz-konum').addEventListener('click', () => {
   if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
