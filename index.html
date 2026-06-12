@@ -588,7 +588,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.4.0';
+const SURUM = '1.4.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1104,6 +1104,7 @@ function sihirbazAc(yer = null){
     silinecek: [],
     lat: yer ? yer.lat : null, lng: yer ? yer.lng : null,
     konumKaynak: yer ? 'Kayıtlı konum' : null,
+    exifIsleri: [],
   };
   $('#sihirbaz-baslik').textContent = yer ? 'Kaydı Düzenle' : 'Yeni Kayıt';
   $('#girdi-baslik').value = yer?.baslik || '';
@@ -1143,7 +1144,15 @@ function adimaGit(n){
   if (n === 2) setTimeout(sihirbazHaritaHazirla, 80);
   $('#sihirbaz-sayfa .sayfa-icerik').scrollTop = 0;
 }
-$('#adim1-ileri').addEventListener('click', () => adimaGit(2));
+$('#adim1-ileri').addEventListener('click', async () => {
+  if (taslak.exifIsleri.length){
+    yukleniyor(true, 'Fotoğraf konumu okunuyor...');
+    await Promise.allSettled(taslak.exifIsleri);
+    taslak.exifIsleri = [];
+    yukleniyor(false);
+  }
+  adimaGit(2);
+});
 $('#adim2-geri').addEventListener('click', () => adimaGit(1));
 $('#adim2-ileri').addEventListener('click', () => {
   if (!taslak.lat){ bildir('Önce haritada konum belirle', true); return; }
@@ -1215,21 +1224,28 @@ function fotoIzgaraCiz(){
     taslak.yeniFotolar.splice(+b.dataset.yeni, 1); fotoIzgaraCiz();
   }));
 }
-$('#foto-girdi').addEventListener('change', async e => {
+/* Konum öncelik sırası: Elle > Fotoğraf GPS (EXIF) > Cihaz konumu */
+const KAYNAK_EXIF = 'Fotoğrafın GPS verisinden bulundu';
+const KAYNAK_CIHAZ = 'Cihaz konumundan alındı';
+$('#foto-girdi').addEventListener('change', e => {
   const dosyalar = [...e.target.files]; e.target.value = '';
   for (const d of dosyalar){
     if (taslak.mevcutFotolar.length + taslak.yeniFotolar.length >= FOTO_LIMIT){ bildir(`En fazla ${FOTO_LIMIT} fotoğraf`, true); break; }
     taslak.yeniFotolar.push({dosya: d, onizleme: URL.createObjectURL(d)});
-    // ilk fotoğraftan EXIF GPS dene
-    if (!taslak.lat){
+    // EXIF GPS arka planda okunur; cihaz konumundan her zaman önceliklidir
+    taslak.exifIsleri.push((async () => {
       try{
         const gps = await exifr.gps(d);
-        if (gps && gps.latitude){
-          taslak.lat = gps.latitude; taslak.lng = gps.longitude; taslak.konumKaynak = 'Fotoğrafın GPS verisinden bulundu';
+        if (gps && gps.latitude && (!taslak.lat || taslak.konumKaynak === KAYNAK_CIHAZ)){
+          taslak.lat = gps.latitude; taslak.lng = gps.longitude; taslak.konumKaynak = KAYNAK_EXIF;
+          if (sihirbazHarita){
+            pinKoy(gps.latitude, gps.longitude, KAYNAK_EXIF);
+            sihirbazHarita.setView([gps.latitude, gps.longitude], 16);
+          }
           bildir('📷 Konum fotoğraftan otomatik bulundu');
         }
-      }catch(err){}
-    }
+      }catch(err){ /* fotoğrafta GPS yok */ }
+    })());
   }
   fotoIzgaraCiz();
 });
@@ -1247,7 +1263,7 @@ function sihirbazHaritaHazirla(){
     sihirbazHarita.setView([39.2, 35.5], 6);
     if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => {
       if (!taslak || taslak.lat) return;
-      pinKoy(p.coords.latitude, p.coords.longitude, 'Cihaz konumundan alındı');
+      pinKoy(p.coords.latitude, p.coords.longitude, KAYNAK_CIHAZ);
       sihirbazHarita.setView([p.coords.latitude, p.coords.longitude], 16);
     }, ()=>{}, {enableHighAccuracy:true, timeout:8000});
   }
@@ -1274,7 +1290,7 @@ function konumKaynakYaz(){
 $('#btn-cihaz-konum').addEventListener('click', () => {
   if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
   navigator.geolocation.getCurrentPosition(p => {
-    pinKoy(p.coords.latitude, p.coords.longitude, 'Cihaz konumundan alındı');
+    pinKoy(p.coords.latitude, p.coords.longitude, KAYNAK_CIHAZ);
     sihirbazHarita.setView([p.coords.latitude, p.coords.longitude], 17);
   }, () => bildir('Konum alınamadı — izin verildiğinden emin ol', true), {enableHighAccuracy:true, timeout:10000});
 });
