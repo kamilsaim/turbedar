@@ -486,8 +486,8 @@ img{display:block}
 
 <!-- ============ KAYIT SİHİRBAZI ============ -->
 <div class="ortulu" id="sihirbaz-ortulu"></div>
-<div class="sayfa" id="sihirbaz-sayfa">
-  <div class="sayfa-tutamak"><i></i></div>
+<div class="sayfa sayfa-orta" id="sihirbaz-sayfa">
+  <button class="sayfa-kapat" id="sihirbaz-kapat" aria-label="Kapat">✕</button>
   <div class="sayfa-icerik">
     <h2 style="font-family:var(--display);font-size:25px;font-weight:700;color:var(--zumrut);text-align:center" id="sihirbaz-baslik">Yeni Kayıt</h2>
     <div class="adim-noktalar"><i class="dolu"></i><i></i><i></i></div>
@@ -513,6 +513,8 @@ img{display:block}
         <div class="alan" style="flex:1"><label>İl</label><input id="girdi-il" placeholder="Otomatik"></div>
         <div class="alan" style="flex:1"><label>İlçe</label><input id="girdi-ilce" placeholder="Otomatik"></div>
       </div>
+      <div class="alan"><label>Mahalle / Köy</label><input id="girdi-mahalle" placeholder="Otomatik (gerekirse elle yaz)"></div>
+      <div id="mukerrer-alan"></div>
       <div class="sihirbaz-alt">
         <button class="btn-ghost btn" id="adim2-geri" style="background:transparent;color:var(--murekkep);border:1px solid var(--cizgi)">← Geri</button>
         <button class="btn" id="adim2-ileri">Devam →</button>
@@ -586,12 +588,12 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.3.0';
+const SURUM = '1.4.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const KATEGORILER = {turbe:'Türbe', kumbet:'Kümbet', mezar:'Mezar', anit_mezar:'Anıt Mezar', sehitlik:'Şehitlik', diger:'Diğer'};
-const ALAN_ADLARI = {baslik:'Başlık', kategori:'Kategori', aciklama:'Açıklama', kaynak:'Kaynak', il:'İl', ilce:'İlçe', lat:'Enlem', lng:'Boylam', kisiler:'Yatan kişiler'};
+const ALAN_ADLARI = {baslik:'Başlık', kategori:'Kategori', aciklama:'Açıklama', kaynak:'Kaynak', mahalle:'Mahalle', il:'İl', ilce:'İlçe', lat:'Enlem', lng:'Boylam', kisiler:'Yatan kişiler'};
 const VARSAYILAN_AVATAR = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#E4EDE6"/><circle cx="20" cy="15" r="7" fill="#1E4D38"/><path d="M6 38c0-8 6-12 14-12s14 4 14 12" fill="#1E4D38"/></svg>');
 
 /* ====================== DURUM ====================== */
@@ -612,6 +614,19 @@ const kacir = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&
 const trKucuk = s => String(s||'').toLocaleLowerCase('tr').replace(/[çğıöşü]/g, c => ({'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u'}[c]));
 const fotoUrl = yol => `${SUPA_URL}/storage/v1/object/public/${BUCKET}/${yol}`;
 const ziyaretSayisi = y => y.ziyaretler?.[0]?.count || 0;
+function mesafeM(lat1, lng1, lat2, lng2){
+  const R = 6371000, rad = Math.PI/180;
+  const dF = (lat2-lat1)*rad, dL = (lng2-lng1)*rad;
+  const a = Math.sin(dF/2)**2 + Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dL/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+function yakinYerler(lat, lng, haricId){
+  return yerler
+    .filter(y => y.durum !== 'reddedildi' && y.id !== haricId)
+    .map(y => ({...y, _mesafe: mesafeM(lat, lng, y.lat, y.lng)}))
+    .filter(y => y._mesafe <= 200)
+    .sort((a,b) => a._mesafe - b._mesafe);
+}
 const tarihYaz = t => new Date(t).toLocaleDateString('tr-TR', {day:'numeric', month:'long', year:'numeric'});
 const yonetici = () => profil && profil.rol === 'yonetici';
 
@@ -776,7 +791,7 @@ function haritaCiz(){
       <div class="pop-govde">
         ${y.durum === 'beklemede' ? '<span class="rozet rozet-beklemede">Onay Bekliyor</span>' : ''}
         <b>${kacir(y.baslik)}</b>
-        <span>${KATEGORILER[y.kategori]||''}${(y.ilce||y.il) ? ' • ' + kacir([y.ilce, y.il].filter(Boolean).join(' / ')) : ''}</span>
+        <span>${KATEGORILER[y.kategori]||''}${(y.ilce||y.il) ? ' • ' + kacir([y.mahalle, y.ilce, y.il].filter(Boolean).join(' / ')) : ''}</span>
         ${(y.kisiler||[]).length ? `<span>${kacir(y.kisiler.slice(0,2).map(k=>k.ad).join(', '))}${y.kisiler.length>2?'…':''}</span>` : ''}
         ${ziyaretSayisi(y) ? `<span>🕌 ${ziyaretSayisi(y)} ziyaretçi</span>` : ''}
         <button class="btn btn-kucuk btn-tam" data-detay style="margin-top:9px">Detayları Gör</button>
@@ -827,7 +842,7 @@ function kesfetCiz(){
     if (suzgec.ilce && y.ilce !== suzgec.ilce) return false;
     if (suzgec.kategori && y.kategori !== suzgec.kategori) return false;
     if (a){
-      const metin = trKucuk([y.baslik, y.il, y.ilce, ...(y.kisiler||[]).map(k => k.ad + ' ' + (k.unvan||''))].join(' '));
+      const metin = trKucuk([y.baslik, y.il, y.ilce, y.mahalle, ...(y.kisiler||[]).map(k => k.ad + ' ' + (k.unvan||''))].join(' '));
       if (!metin.includes(a)) return false;
     }
     return true;
@@ -847,7 +862,7 @@ function kesfetCiz(){
         `<div class="kapak-bos"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2C15 5.5 18 7.5 18 12v8H6v-8c0-4.5 3-6.5 6-10z"/></svg></div>`}
       <div style="flex:1;min-width:0">
         <h3>${kacir(y.baslik)}</h3>
-        <div class="alt">${kacir([y.ilce, y.il].filter(Boolean).join(' / ') || 'Konum belirtilmemiş')}</div>
+        <div class="alt">${kacir([y.mahalle, y.ilce, y.il].filter(Boolean).join(' / ') || 'Konum belirtilmemiş')}</div>
         ${(y.kisiler||[]).length ? `<div class="kisiler">${kacir(y.kisiler.map(k=>k.ad).join(', '))}</div>` : ''}
         <div class="rozetler"><span class="rozet rozet-kategori">${KATEGORILER[y.kategori]||y.kategori}</span></div>
       </div></div>`;
@@ -919,7 +934,7 @@ async function detayAc(id){
     <h1 class="detay-baslik">${kacir(y.baslik)}</h1>
     <div class="detay-konum">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-      ${kacir([y.ilce, y.il].filter(Boolean).join(' / ') || 'Konum belirtilmemiş')}
+      ${kacir([y.mahalle, y.ilce, y.il].filter(Boolean).join(' / ') || 'Konum belirtilmemiş')}
     </div>
     ${y.durum === 'reddedildi' && y.red_nedeni ? `<p style="margin-top:8px;font-size:13px;color:var(--kirmizi)"><b>Red nedeni:</b> ${kacir(y.red_nedeni)}</p>` : ''}
     ${y.durum === 'onaylandi' ? `<button class="ziyaret-btn ${benimZiyaretlerim.has(y.id) ? 'aktif' : ''}" id="d-ziyaret">
@@ -1063,17 +1078,20 @@ function ilIlceBul(lat, lng){
   clearTimeout(geoZamanlayici);
   geoZamanlayici = setTimeout(async () => {
     try{
-      const c = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=tr&zoom=12`).then(r => r.json());
+      const c = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=tr&zoom=16`).then(r => r.json());
       const a = c.address || {};
       const il = a.province || a.state || a.city || '';
       const ilce = a.county || a.district || a.town || a.city_district || '';
+      const mahalle = a.neighbourhood || a.suburb || a.quarter || a.village || a.hamlet || '';
       if (il && !$('#girdi-il').dataset.elle) $('#girdi-il').value = il;
       if (ilce && !$('#girdi-ilce').dataset.elle) $('#girdi-ilce').value = ilce.replace(/ merkez$/i,'');
+      if (mahalle && !$('#girdi-mahalle').dataset.elle) $('#girdi-mahalle').value = mahalle.replace(/ (mahallesi|mah\.?)$/i,'');
     }catch(e){ /* sessiz */ }
   }, 700);
 }
 $('#girdi-il').addEventListener('input', e => e.target.dataset.elle = '1');
 $('#girdi-ilce').addEventListener('input', e => e.target.dataset.elle = '1');
+$('#girdi-mahalle').addEventListener('input', e => e.target.dataset.elle = '1');
 
 /* ====================== KAYIT SİHİRBAZI ====================== */
 function sihirbazAc(yer = null){
@@ -1093,8 +1111,11 @@ function sihirbazAc(yer = null){
   $('#girdi-aciklama').value = yer?.aciklama || '';
   $('#girdi-kaynak').value = yer?.kaynak || '';
   $('#girdi-il').value = yer?.il || ''; $('#girdi-ilce').value = yer?.ilce || '';
-  delete $('#girdi-il').dataset.elle; delete $('#girdi-ilce').dataset.elle;
-  if (yer){ $('#girdi-il').dataset.elle='1'; $('#girdi-ilce').dataset.elle='1'; }
+  $('#girdi-mahalle').value = yer?.mahalle || '';
+  delete $('#girdi-il').dataset.elle; delete $('#girdi-ilce').dataset.elle; delete $('#girdi-mahalle').dataset.elle;
+  if (yer){ $('#girdi-il').dataset.elle='1'; $('#girdi-ilce').dataset.elle='1'; $('#girdi-mahalle').dataset.elle='1'; }
+  taslak.mukerrerOnay = false;
+  $('#mukerrer-alan').innerHTML = '';
   $('#rev-aciklama-alan').style.display = taslak.revizyonMu ? 'block' : 'none';
   $('#girdi-rev-aciklama').value = '';
   $('#kisi-formlari').innerHTML = '';
@@ -1113,6 +1134,7 @@ $('#sihirbaz-ortulu').addEventListener('click', async () => {
   if (onay) sihirbazKapat();
 });
 $('#sihirbaz-vazgec1').addEventListener('click', () => $('#sihirbaz-ortulu').click());
+$('#sihirbaz-kapat').addEventListener('click', () => $('#sihirbaz-ortulu').click());
 $('#btn-ekle').addEventListener('click', () => sihirbazAc());
 
 function adimaGit(n){
@@ -1125,8 +1147,52 @@ $('#adim1-ileri').addEventListener('click', () => adimaGit(2));
 $('#adim2-geri').addEventListener('click', () => adimaGit(1));
 $('#adim2-ileri').addEventListener('click', () => {
   if (!taslak.lat){ bildir('Önce haritada konum belirle', true); return; }
+  if (!taslak.duzenlenen && !taslak.mukerrerOnay){
+    const yakin = yakinYerler(taslak.lat, taslak.lng);
+    if (yakin.length){ mukerrerGoster(yakin); return; }
+  }
   adimaGit(3);
 });
+function mukerrerGoster(yakin){
+  const k = $('#mukerrer-alan');
+  k.innerHTML = `<div class="kart" style="padding:12px;border-color:var(--altin-acik);background:var(--amber-zemin);margin-bottom:8px">
+    <b style="font-size:13.5px;color:var(--amber)">⚠️ Bu konumun yakınında kayıtlı yer var</b>
+    ${yakin.slice(0,3).map(y => `<div class="il-satir" style="cursor:default;gap:8px">
+      <b style="width:auto;flex:1;font-size:13.5px">${kacir(y.baslik)} <span style="font-weight:600;color:var(--soluk);font-size:11.5px">${Math.round(y._mesafe)} m</span></b>
+      <button class="btn btn-kucuk" data-foto-aktar="${y.id}">📷 Fotoğraf Ekle</button>
+    </div>`).join('')}
+    <p style="font-size:12px;color:#6e5a2d;margin:7px 0 9px;line-height:1.5">Aynı yeri yeniden eklemek yerine seçtiğin fotoğrafları mevcut kayda ekleyebilirsin — yer mükerrer olmaz, fotoğraflar zenginleşir.</p>
+    <button class="btn-ghost btn btn-kucuk btn-tam" id="mukerrer-devam">Hayır, burası farklı bir yer — devam et</button>
+  </div>`;
+  k.scrollIntoView({behavior:'smooth', block:'nearest'});
+  $('#mukerrer-devam').addEventListener('click', () => { taslak.mukerrerOnay = true; k.innerHTML = ''; adimaGit(3); });
+  k.querySelectorAll('[data-foto-aktar]').forEach(b => b.addEventListener('click', () => fotoAktarMevcutYere(b.dataset.fotoAktar)));
+}
+async function fotoAktarMevcutYere(yerId){
+  const hedef = yerler.find(x => x.id === yerId);
+  if (!hedef) return;
+  if (!taslak.yeniFotolar.length){
+    sihirbazKapat(); detayAc(yerId);
+    bildir('Fotoğraf seçmemiştin — kaydın detayını açtım');
+    return;
+  }
+  const kalan = FOTO_LIMIT - (hedef.fotograflar||[]).length;
+  if (kalan <= 0) return bildir('Bu yerin fotoğraf limiti (5) dolu', true);
+  if (taslak.yeniFotolar.length > kalan){
+    taslak.yeniFotolar = taslak.yeniFotolar.slice(0, kalan);
+    bildir(`Limit nedeniyle ilk ${kalan} fotoğraf eklenecek`);
+  }
+  try{
+    yukleniyor(true, 'Fotoğraflar mevcut kayda ekleniyor...');
+    taslak.silinecek = [];
+    await fotolariYukle(yerId);
+    yukleniyor(false);
+    bildir('🕌 Fotoğrafların mevcut kayda eklendi — Allah razı olsun');
+    sihirbazKapat();
+    await veriYukle();
+    detayAc(yerId);
+  }catch(err){ yukleniyor(false); bildir('Eklenemedi: ' + (err.message || err), true); }
+}
 $('#adim3-geri').addEventListener('click', () => adimaGit(2));
 
 /* Adım 1: fotoğraflar */
@@ -1250,6 +1316,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
     kaynak: $('#girdi-kaynak').value.trim() || null,
     il: $('#girdi-il').value.trim() || null,
     ilce: $('#girdi-ilce').value.trim() || null,
+    mahalle: $('#girdi-mahalle').value.trim() || null,
     lat: taslak.lat, lng: taslak.lng,
   };
   const kisiler = kisileriOku();
@@ -1435,11 +1502,16 @@ async function yonetimCiz(){
     if (!bekleyen.length){ k.innerHTML = '<div class="bos-durum"><b>Bekleyen kayıt yok</b>Tüm kayıtlar incelendi.</div>'; return; }
     k.innerHTML = bekleyen.map(y => `<div class="onay-kart kart">
       <div class="ust"><div><h3>${kacir(y.baslik)}</h3>
-        <div class="meta">${KATEGORILER[y.kategori]} • ${kacir([y.ilce,y.il].filter(Boolean).join(' / ')||'Konumsuz')} • ${kacir(y.ekleyen?.ad||'?')} • ${tarihYaz(y.created_at)}</div></div>
+        <div class="meta">${KATEGORILER[y.kategori]} • ${kacir([y.mahalle,y.ilce,y.il].filter(Boolean).join(' / ')||'Konumsuz')} • ${kacir(y.ekleyen?.ad||'?')} • ${tarihYaz(y.created_at)}</div></div>
         <span class="rozet rozet-beklemede">Bekliyor</span></div>
       ${(y.fotograflar||[]).length ? `<div class="onay-foto">${y.fotograflar.map(f=>`<img loading="lazy" src="${fotoUrl(f.yol)}">`).join('')}</div>` : ''}
       ${y.aciklama ? `<p style="font-size:13px;color:#4a564d;line-height:1.5">${kacir(y.aciklama.slice(0,260))}${y.aciklama.length>260?'…':''}</p>` : ''}
       ${(y.kisiler||[]).length ? `<p style="font-size:12.5px;margin-top:6px"><b>Yatanlar:</b> ${kacir(y.kisiler.map(x=>x.ad).join(', '))}</p>` : ''}
+      ${(() => { const m = yakinYerler(y.lat, y.lng, y.id).filter(x => x.durum === 'onaylandi'); return m.length ? `
+        <div style="background:var(--amber-zemin);border:1px solid var(--altin-acik);border-radius:10px;padding:9px 11px;margin-top:8px;font-size:12.5px">
+          ⚠️ <b>${Math.round(m[0]._mesafe)} m yakında onaylı kayıt var:</b> ${kacir(m[0].baslik)}
+          <button class="btn-altin btn btn-kucuk btn-tam" style="margin-top:7px" data-birlestir="${y.id}" data-hedef="${m[0].id}">Fotoğrafları oraya aktar + bu kaydı mükerrer olarak reddet</button>
+        </div>` : ''; })()}
       <div class="onay-butonlar">
         <button class="btn-ghost btn btn-kucuk" data-incele="${y.id}">İncele</button>
         <button class="btn-tehlike btn btn-kucuk" data-reddet="${y.id}">Reddet</button>
@@ -1457,6 +1529,33 @@ async function yonetimCiz(){
       const {error} = await sb.from('turbedar_yerler').update({durum:'reddedildi', onaylayan_id: kullanici.id, red_nedeni: neden}).eq('id', b.dataset.reddet);
       if (error) return bildir('Hata: ' + error.message, true);
       bildir('Kayıt reddedildi'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
+    }));
+    k.querySelectorAll('[data-birlestir]').forEach(b => b.addEventListener('click', async () => {
+      const kaynak = yerler.find(x => x.id === b.dataset.birlestir);
+      const hedef = yerler.find(x => x.id === b.dataset.hedef);
+      if (!kaynak || !hedef) return;
+      const fotoSay = (kaynak.fotograflar||[]).length;
+      const onay = await sor('Mükerrer Birleştir',
+        `"${kaynak.baslik}" kaydındaki ${fotoSay} fotoğraf "${hedef.baslik}" kaydına aktarılacak ve bu kayıt mükerrer olarak reddedilecek. Ekleyen kişi red nedenini görecek.`,
+        {evetMetin:'Aktar ve Reddet', tehlike:true});
+      if (!onay) return;
+      try{
+        yukleniyor(true, 'Birleştiriliyor...');
+        const kalan = Math.max(0, FOTO_LIMIT - (hedef.fotograflar||[]).length);
+        const tasinacak = (kaynak.fotograflar||[]).slice(0, kalan);
+        for (const f of tasinacak){
+          const {error} = await sb.from('turbedar_fotograflar').update({yer_id: hedef.id}).eq('id', f.id);
+          if (error) throw error;
+        }
+        const {error: re} = await sb.from('turbedar_yerler').update({
+          durum:'reddedildi', onaylayan_id: kullanici.id,
+          red_nedeni: `Mükerrer kayıt — fotoğrafların "${hedef.baslik}" kaydına aktarıldı, katkın için teşekkürler`
+        }).eq('id', kaynak.id);
+        if (re) throw re;
+        yukleniyor(false);
+        bildir(`✅ ${tasinacak.length} fotoğraf aktarıldı, mükerrer kayıt kapatıldı`);
+        await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
+      }catch(err){ yukleniyor(false); bildir('Birleştirilemedi: ' + (err.message || err), true); }
     }));
   }
   else if (aktifSekme === 'revizyon'){
