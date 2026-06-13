@@ -134,6 +134,12 @@ img{display:block}
 .yuvarlak-btn.aktif{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
 .sihirbaz-uydu-btn{position:absolute;top:10px;right:10px;z-index:500;background:var(--kart);border:1px solid var(--cizgi);border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:800;color:var(--zumrut);box-shadow:var(--golge)}
 .sihirbaz-uydu-btn.aktif{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
+
+/* konumum mavi noktası */
+.konum-nokta{position:relative}
+.konum-iz{position:absolute;top:50%;left:50%;width:14px;height:14px;transform:translate(-50%,-50%);background:#2563EB;border:2.5px solid #fff;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,.4);z-index:2}
+.konum-halka{position:absolute;top:50%;left:50%;width:14px;height:14px;transform:translate(-50%,-50%);background:rgba(37,99,235,.4);border-radius:50%;animation:konumNabiz 1.8s ease-out infinite}
+@keyframes konumNabiz{0%{width:14px;height:14px;opacity:.7}100%{width:46px;height:46px;opacity:0}}
 .bildirim-sayi{
   position:absolute;top:-4px;right:-4px;background:var(--kirmizi);color:#fff;
   font-size:10.5px;font-weight:800;min-width:18px;height:18px;border-radius:99px;
@@ -597,7 +603,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.5.0';
+const SURUM = '1.5.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -823,12 +829,28 @@ function haritaCiz(){
     kume.addLayer(m);
   });
 }
+let konumKatman = null;
 $('#btn-konumum').addEventListener('click', () => {
   if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
+  bildir('Konumun bulunuyor...');
   navigator.geolocation.getCurrentPosition(
-    p => harita.setView([p.coords.latitude, p.coords.longitude], 14),
+    p => {
+      const {latitude: lat, longitude: lng, accuracy: dgr} = p.coords;
+      if (konumKatman) harita.removeLayer(konumKatman);
+      konumKatman = L.layerGroup().addTo(harita);
+      // doğruluk halkası (metre cinsinden gerçek yarıçap)
+      L.circle([lat, lng], {radius: Math.min(dgr || 50, 120), color:'#1E4D38', weight:1, fillColor:'#2E6B4E', fillOpacity:.15}).addTo(konumKatman);
+      // mavi konum noktası
+      L.marker([lat, lng], {icon: L.divIcon({
+        className:'konum-nokta', iconSize:[20,20], iconAnchor:[10,10],
+        html:'<span class="konum-halka"></span><span class="konum-iz"></span>'
+      }), interactive:false}).addTo(konumKatman);
+      // hassasiyete göre yakınlık: iyi sinyalde sokak seviyesi (18), zayıfsa biraz uzak
+      const z = (dgr && dgr > 80) ? 16 : 18;
+      harita.setView([lat, lng], z, {animate:true});
+    },
     () => bildir('Konum alınamadı — izin verildiğinden emin ol', true),
-    {enableHighAccuracy:true, timeout:10000}
+    {enableHighAccuracy:true, timeout:10000, maximumAge:0}
   );
 });
 
