@@ -131,6 +131,9 @@ img{display:block}
   display:flex;align-items:center;justify-content:center;box-shadow:var(--golge);position:relative;color:var(--zumrut);
 }
 .yuvarlak-btn img{width:30px;height:30px;border-radius:50%;object-fit:cover}
+.yuvarlak-btn.aktif{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
+.sihirbaz-uydu-btn{position:absolute;top:10px;right:10px;z-index:500;background:var(--kart);border:1px solid var(--cizgi);border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:800;color:var(--zumrut);box-shadow:var(--golge)}
+.sihirbaz-uydu-btn.aktif{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
 .bildirim-sayi{
   position:absolute;top:-4px;right:-4px;background:var(--kirmizi);color:#fff;
   font-size:10.5px;font-weight:800;min-width:18px;height:18px;border-radius:99px;
@@ -392,6 +395,9 @@ img{display:block}
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span class="bildirim-sayi" id="onay-sayisi" style="display:none">0</span>
       </button>
+      <button class="yuvarlak-btn" id="btn-uydu" title="Uydu görünümü">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12a10 10 0 0 1 10-10M2 12a10 10 0 0 0 10 10M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+      </button>
       <button class="yuvarlak-btn" id="btn-konumum" title="Konumum">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
       </button>
@@ -506,7 +512,10 @@ img{display:block}
     <!-- ADIM 2: KONUM -->
     <div class="sihirbaz-adim" data-adim="2">
       <div class="konum-kaynak" id="konum-kaynak"></div>
-      <div id="sihirbaz-harita"></div>
+      <div style="position:relative">
+        <div id="sihirbaz-harita"></div>
+        <button type="button" class="sihirbaz-uydu-btn" id="sihirbaz-uydu">Uydu</button>
+      </div>
       <p class="ipucu" style="font-size:12.5px;color:var(--soluk);margin:8px 0">İğneyi sürükleyerek veya haritaya dokunarak tam yerini ayarlayabilirsin.</p>
       <button class="btn-altin btn btn-kucuk" id="btn-cihaz-konum" style="margin-bottom:12px">📍 Cihaz konumumu kullan</button>
       <div style="display:flex;gap:10px">
@@ -588,7 +597,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.4.2';
+const SURUM = '1.5.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -612,6 +621,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const kacir = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const trKucuk = s => String(s||'').toLocaleLowerCase('tr').replace(/[çğıöşü]/g, c => ({'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u'}[c]));
+const trBasHarf = s => String(s||'').replace(/(^|[\s\-\.\/\(])([\p{L}])/gu, (m, on, h) => on + h.toLocaleUpperCase('tr'));
 const fotoUrl = yol => `${SUPA_URL}/storage/v1/object/public/${BUCKET}/${yol}`;
 const ziyaretSayisi = y => y.ziyaretler?.[0]?.count || 0;
 function mesafeM(lat1, lng1, lat2, lng2){
@@ -775,7 +785,16 @@ function pinIkon(yer){
 }
 function haritaBaslat(){
   harita = L.map('harita', {zoomControl:false, attributionControl:true}).setView([39.2, 35.5], 6);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(harita);
+  const sokak = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'});
+  const uydu = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, attribution: 'Tiles © Esri'});
+  sokak.addTo(harita);
+  harita.uyduAcik = false;
+  $('#btn-uydu').addEventListener('click', () => {
+    harita.uyduAcik = !harita.uyduAcik;
+    if (harita.uyduAcik){ harita.removeLayer(sokak); uydu.addTo(harita); }
+    else { harita.removeLayer(uydu); sokak.addTo(harita); }
+    $('#btn-uydu').classList.toggle('aktif', harita.uyduAcik);
+  });
   L.control.zoom({position:'bottomright'}).addTo(harita);
   kume = L.markerClusterGroup({showCoverageOnHover:false, maxClusterRadius:46});
   harita.addLayer(kume);
@@ -1138,6 +1157,7 @@ $('#sihirbaz-ortulu').addEventListener('click', async () => {
 $('#sihirbaz-vazgec1').addEventListener('click', () => $('#sihirbaz-ortulu').click());
 $('#sihirbaz-kapat').addEventListener('click', () => $('#sihirbaz-ortulu').click());
 $('#btn-ekle').addEventListener('click', () => sihirbazAc());
+$('#girdi-baslik').addEventListener('blur', e => { e.target.value = trBasHarf(e.target.value.trim()); });
 
 function adimaGit(n){
   $$('.sihirbaz-adim').forEach(a => a.classList.toggle('aktif', +a.dataset.adim === n));
@@ -1259,7 +1279,17 @@ $('#foto-girdi').addEventListener('change', e => {
 function sihirbazHaritaHazirla(){
   if (!sihirbazHarita){
     sihirbazHarita = L.map('sihirbaz-harita', {zoomControl:true});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(sihirbazHarita);
+    const sSokak = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'});
+    const sUydu = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:19, attribution:'Tiles © Esri'});
+    sSokak.addTo(sihirbazHarita);
+    sihirbazHarita.uyduAcik = false;
+    $('#sihirbaz-uydu').addEventListener('click', () => {
+      sihirbazHarita.uyduAcik = !sihirbazHarita.uyduAcik;
+      if (sihirbazHarita.uyduAcik){ sihirbazHarita.removeLayer(sSokak); sUydu.addTo(sihirbazHarita); }
+      else { sihirbazHarita.removeLayer(sUydu); sSokak.addTo(sihirbazHarita); }
+      $('#sihirbaz-uydu').classList.toggle('aktif', sihirbazHarita.uyduAcik);
+      $('#sihirbaz-uydu').textContent = sihirbazHarita.uyduAcik ? 'Sokak' : 'Uydu';
+    });
     sihirbazHarita.on('click', e => pinKoy(e.latlng.lat, e.latlng.lng, 'Haritadan seçildi'));
   }
   sihirbazHarita.invalidateSize();
@@ -1317,6 +1347,8 @@ function kisiFormuEkle(k = {}){
     </div>
     <div class="alan" style="margin-bottom:0"><label>Kısa Biyografi</label><textarea class="k-bio" style="min-height:56px">${kacir(k.biyografi||'')}</textarea></div>`;
   d.querySelector('.sil-kisi').addEventListener('click', () => d.remove());
+  const adGirisi = d.querySelector('.k-ad');
+  adGirisi.addEventListener('blur', () => { adGirisi.value = trBasHarf(adGirisi.value.trim()); });
   $('#kisi-formlari').appendChild(d);
 }
 $('#btn-kisi-ekle').addEventListener('click', () => kisiFormuEkle());
