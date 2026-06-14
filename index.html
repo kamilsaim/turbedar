@@ -224,6 +224,17 @@ img{display:block}
 .detay-konum{font-size:13.5px;font-weight:700;color:var(--altin);display:flex;align-items:center;gap:4px}
 .detay-aciklama{font-size:14.5px;line-height:1.65;color:#3d4a41;white-space:pre-wrap}
 .detay-kaynak{font-size:12.5px;color:var(--soluk);margin-top:8px;font-style:italic}
+
+/* video bağlantı düğmeleri */
+.video-liste{display:flex;flex-direction:column;gap:8px}
+.video-dugme{display:flex;align-items:center;gap:9px;padding:11px 13px;border:1.5px solid var(--cizgi);border-radius:12px;background:var(--kart);color:var(--murekkep);text-decoration:none;transition:border .15s,background .15s}
+.video-dugme:hover{border-color:var(--altin);background:var(--altin-soluk)}
+.video-dugme>svg{flex:none;color:var(--zumrut)}
+.video-nokta{width:9px;height:9px;border-radius:50%;flex:none}
+.video-etiket{flex:1;min-width:0;font-weight:700;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.video-platform{flex:none;font-size:11px;font-weight:800;color:var(--soluk);background:var(--kart-koyu);padding:3px 8px;border-radius:99px}
+.yorum-video-girdi{width:100%;margin-top:7px;border:1.5px solid var(--cizgi);border-radius:10px;padding:9px 12px;background:var(--kart);outline:none;font-size:13px}
+.yorum-video-girdi:focus{border-color:var(--altin)}
 .detay-butonlar{display:flex;gap:8px;margin:16px 0 8px;flex-wrap:wrap}
 .detay-butonlar .btn,.detay-butonlar .btn-altin,.detay-butonlar .btn-ghost{flex:1;min-width:130px}
 
@@ -548,7 +559,11 @@ img{display:block}
       </div>
       <div class="alan"><label>Açıklama</label><textarea id="girdi-aciklama" placeholder="Yerin tarihi, mimarisi, önemi..."></textarea></div>
       <div class="alan"><label>Kaynak</label><input id="girdi-kaynak" placeholder="Kitabe, kitap, vakıf kaydı, sözlü kaynak..."><div class="ipucu">Bilginin dayanağı — envanterin güvenilirliği için önemli.</div></div>
-      <div class="bolum-baslik">Yatan Kişiler</div>
+      <div class="bolum-baslik">Videolar</div>
+      <p class="ipucu" style="margin:-2px 0 6px">YouTube, Instagram, X, TikTok veya Facebook video bağlantısı ekleyebilirsin.</p>
+      <div id="video-formlari"></div>
+      <button class="btn-altin btn btn-kucuk" id="btn-video-ekle">+ Video Linki Ekle</button>
+      <div class="bolum-baslik" style="margin-top:14px">Yatan Kişiler</div>
       <div id="kisi-formlari"></div>
       <button class="btn-altin btn btn-kucuk" id="btn-kisi-ekle">+ Kişi Ekle</button>
       <div class="alan" id="rev-aciklama-alan" style="display:none;margin-top:14px">
@@ -603,12 +618,12 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.5.1';
+const SURUM = '1.6.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const KATEGORILER = {turbe:'Türbe', kumbet:'Kümbet', mezar:'Mezar', anit_mezar:'Anıt Mezar', sehitlik:'Şehitlik', diger:'Diğer'};
-const ALAN_ADLARI = {baslik:'Başlık', kategori:'Kategori', aciklama:'Açıklama', kaynak:'Kaynak', mahalle:'Mahalle', il:'İl', ilce:'İlçe', lat:'Enlem', lng:'Boylam', kisiler:'Yatan kişiler'};
+const ALAN_ADLARI = {baslik:'Başlık', kategori:'Kategori', aciklama:'Açıklama', kaynak:'Kaynak', mahalle:'Mahalle', il:'İl', ilce:'İlçe', lat:'Enlem', lng:'Boylam', videolar:'Videolar', kisiler:'Yatan kişiler'};
 const VARSAYILAN_AVATAR = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#E4EDE6"/><circle cx="20" cy="15" r="7" fill="#1E4D38"/><path d="M6 38c0-8 6-12 14-12s14 4 14 12" fill="#1E4D38"/></svg>');
 
 /* ====================== DURUM ====================== */
@@ -630,6 +645,36 @@ const trKucuk = s => String(s||'').toLocaleLowerCase('tr').replace(/[çğıöş�
 const trBasHarf = s => String(s||'').replace(/(^|[\s\-\.\/\(])([\p{L}])/gu, (m, on, h) => on + h.toLocaleUpperCase('tr'));
 const fotoUrl = yol => `${SUPA_URL}/storage/v1/object/public/${BUCKET}/${yol}`;
 const ziyaretSayisi = y => y.ziyaretler?.[0]?.count || 0;
+
+/* ---- Video linkleri ---- */
+function videoBilgi(url){
+  let u; try{ u = new URL(url.trim()); }catch(e){ return null; }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+  const h = u.hostname.replace(/^www\./,'').toLowerCase();
+  if (h === 'youtube.com' || h === 'm.youtube.com' || h === 'youtu.be' || h === 'youtube-nocookie.com')
+    return {platform:'YouTube', renk:'#FF0000', url:url.trim()};
+  if (h === 'instagram.com' || h.endsWith('.instagram.com'))
+    return {platform:'Instagram', renk:'#C13584', url:url.trim()};
+  if (h === 'x.com' || h === 'twitter.com' || h === 'mobile.x.com')
+    return {platform:'X', renk:'#111', url:url.trim()};
+  if (h === 'tiktok.com' || h.endsWith('.tiktok.com'))
+    return {platform:'TikTok', renk:'#111', url:url.trim()};
+  if (h === 'facebook.com' || h.endsWith('.facebook.com') || h === 'fb.watch')
+    return {platform:'Facebook', renk:'#1877F2', url:url.trim()};
+  if (h === 'vimeo.com' || h.endsWith('.vimeo.com'))
+    return {platform:'Vimeo', renk:'#1AB7EA', url:url.trim()};
+  // bilinmeyen ama geçerli http(s) — yine de izin ver
+  return {platform:'Video', renk:'var(--zumrut)', url:url.trim()};
+}
+function videoDugmesi(v){
+  const b = videoBilgi(v.url); if (!b) return '';
+  const etiket = v.baslik ? kacir(v.baslik) : (b.platform + '’da izle');
+  return `<a class="video-dugme" href="${kacir(b.url)}" target="_blank" rel="noopener noreferrer">
+    <span class="video-nokta" style="background:${b.renk}"></span>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    <span class="video-etiket">${etiket}</span>
+    <span class="video-platform">${b.platform}</span></a>`;
+}
 function mesafeM(lat1, lng1, lat2, lng2){
   const R = 6371000, rad = Math.PI/180;
   const dF = (lat2-lat1)*rad, dL = (lng2-lng1)*rad;
@@ -985,6 +1030,9 @@ async function detayAc(id){
     </button>` : ''}
     ${y.aciklama ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div><p class="detay-aciklama">${kacir(y.aciklama)}</p>` : ''}
     ${y.kaynak ? `<p class="detay-kaynak">Kaynak: ${kacir(y.kaynak)}</p>` : ''}
+    ${(y.videolar||[]).length ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
+      <div class="bolum-baslik">Videolar</div>
+      <div class="video-liste">${y.videolar.map(videoDugmesi).join('')}</div>` : ''}
     ${(y.kisiler||[]).length ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
       <div class="bolum-baslik">Burada Yatanlar</div>
       ${y.kisiler.map(p => `<div class="kisi-kart">
@@ -1007,7 +1055,8 @@ async function detayAc(id){
       <div class="yorum-yaz">
         <input id="yorum-girdi" maxlength="1000" placeholder="${kullanici ? 'Bir yorum yaz...' : 'Yorum yapmak için giriş yap'}">
         <button class="btn btn-kucuk" id="yorum-gonder">Gönder</button>
-      </div>` : ''}`;
+      </div>
+      <input id="yorum-video" class="yorum-video-girdi" inputmode="url" placeholder="🎬 İsteğe bağlı: video linki (YouTube, Instagram, X...)">` : ''}`;
   // olaylar
   k.querySelectorAll('[data-buyuk]').forEach(img => img.addEventListener('click', () => {
     $('#buyuk-foto-img').src = img.dataset.buyuk; $('#buyuk-foto').classList.add('acik');
@@ -1071,7 +1120,8 @@ async function yorumlariYukle(yerId){
   kutu.innerHTML = data.map(yo => `<div class="yorum">
     <img src="${yo.yazan?.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
     <div style="flex:1;min-width:0"><div class="y-bas">${kacir(yo.yazan?.ad || 'Üye')}<time>${tarihYaz(yo.created_at)}</time></div>
-    <p>${kacir(yo.icerik)}</p></div>
+    <p>${kacir(yo.icerik)}</p>
+    ${yo.video_url ? `<div class="video-liste" style="margin-top:6px">${videoDugmesi({url: yo.video_url})}</div>` : ''}</div>
     ${kullanici && (yo.yazan_id === kullanici.id || yonetici()) ? `<button data-yorum-sil="${yo.id}" style="color:var(--kirmizi);font-size:12px;font-weight:800;align-self:flex-start">Sil</button>` : ''}
   </div>`).join('');
   kutu.querySelectorAll('[data-yorum-sil]').forEach(b => b.addEventListener('click', async () => {
@@ -1083,9 +1133,16 @@ async function yorumGonder(yerId){
   if (!kullanici) return girisIste();
   const g = $('#yorum-girdi'); const icerik = g.value.trim();
   if (!icerik) return;
-  const {error} = await sb.from('turbedar_yorumlar').insert({yer_id: yerId, yazan_id: kullanici.id, icerik});
+  const vg = $('#yorum-video'); const ham = vg ? vg.value.trim() : '';
+  let video_url = null;
+  if (ham){
+    const b = videoBilgi(ham);
+    if (!b) return bildir('Video bağlantısı geçersiz (http/https olmalı)', true);
+    video_url = b.url;
+  }
+  const {error} = await sb.from('turbedar_yorumlar').insert({yer_id: yerId, yazan_id: kullanici.id, icerik, video_url});
   if (error) return bildir('Yorum gönderilemedi: ' + error.message, true);
-  g.value = ''; yorumlariYukle(yerId);
+  g.value = ''; if (vg) vg.value = ''; yorumlariYukle(yerId);
 }
 
 /* ====================== FOTOĞRAF SIKIŞTIRMA ====================== */
@@ -1163,6 +1220,8 @@ function sihirbazAc(yer = null){
   $('#girdi-rev-aciklama').value = '';
   $('#kisi-formlari').innerHTML = '';
   (yer?.kisiler?.length ? yer.kisiler : []).forEach(k => kisiFormuEkle(k));
+  $('#video-formlari').innerHTML = '';
+  (yer?.videolar?.length ? yer.videolar : []).forEach(v => videoFormuEkle(v));
   fotoIzgaraCiz();
   adimaGit(1);
   $('#sihirbaz-sayfa').classList.add('acik'); $('#sihirbaz-ortulu').classList.add('acik');
@@ -1375,6 +1434,36 @@ function kisiFormuEkle(k = {}){
 }
 $('#btn-kisi-ekle').addEventListener('click', () => kisiFormuEkle());
 
+/* Video form satırları */
+function videoFormuEkle(v = {}){
+  const d = document.createElement('div');
+  d.className = 'kisi-form-satir';
+  d.innerHTML = `
+    <button class="sil-kisi" type="button">Kaldır</button>
+    <div class="alan" style="margin-bottom:8px"><label>Video Bağlantısı</label><input class="v-url" value="${kacir(v.url||'')}" placeholder="https://youtube.com/..." inputmode="url"></div>
+    <div class="alan" style="margin-bottom:0"><label>Başlık (isteğe bağlı)</label><input class="v-baslik" value="${kacir(v.baslik||'')}" placeholder="örn. Türbenin tarihi belgeseli"></div>
+    <div class="v-onizleme" style="margin-top:8px"></div>`;
+  d.querySelector('.sil-kisi').addEventListener('click', () => d.remove());
+  const urlGiris = d.querySelector('.v-url'), onizleme = d.querySelector('.v-onizleme');
+  const tazele = () => {
+    const b = videoBilgi(urlGiris.value);
+    onizleme.innerHTML = urlGiris.value.trim()
+      ? (b ? `<span style="font-size:12px;font-weight:700;color:${b.renk}">✓ ${b.platform} bağlantısı</span>`
+           : '<span style="font-size:12px;color:var(--kirmizi)">⚠️ Geçersiz bağlantı (http/https olmalı)</span>')
+      : '';
+  };
+  urlGiris.addEventListener('input', tazele); tazele();
+  $('#video-formlari').appendChild(d);
+}
+$('#btn-video-ekle').addEventListener('click', () => videoFormuEkle());
+function videolariOku(){
+  return $$('#video-formlari .kisi-form-satir').map(s => {
+    const url = s.querySelector('.v-url').value.trim();
+    const b = videoBilgi(url);
+    return b ? {url: b.url, baslik: s.querySelector('.v-baslik').value.trim() || null} : null;
+  }).filter(Boolean);
+}
+
 function kisileriOku(){
   return $$('#kisi-formlari .kisi-form-satir').map(s => ({
     ad: s.querySelector('.k-ad').value.trim(),
@@ -1397,6 +1486,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
     ilce: $('#girdi-ilce').value.trim() || null,
     mahalle: $('#girdi-mahalle').value.trim() || null,
     lat: taslak.lat, lng: taslak.lng,
+    videolar: videolariOku(),
   };
   const kisiler = kisileriOku();
   try{
@@ -1424,6 +1514,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
       }
       const eskiK = (eski.kisiler||[]).map(({ad,unvan,vefat,biyografi}) => ({ad, unvan: unvan||null, vefat: vefat||null, biyografi: biyografi||null}));
       if (JSON.stringify(eskiK) !== JSON.stringify(kisiler)) fark.kisiler = kisiler;
+      if (JSON.stringify(eski.videolar||[]) !== JSON.stringify(alanlar.videolar)) fark.videolar = alanlar.videolar;
       // fotoğraflar doğrudan işlenir (onay gerekmez)
       await fotolariYukle(eski.id);
       if (!Object.keys(fark).length){
@@ -1639,7 +1730,7 @@ async function yonetimCiz(){
   }
   else if (aktifSekme === 'revizyon'){
     const {data: revler, error} = await sb.from('turbedar_revizyonlar')
-      .select('*, yer:turbedar_yerler(id,baslik,kategori,aciklama,kaynak,il,ilce,lat,lng,kisiler:turbedar_kisiler(ad,unvan,vefat,biyografi)), ekleyen:turbedar_profiller!turbedar_revizyonlar_ekleyen_id_fkey(ad)')
+      .select('*, yer:turbedar_yerler(id,baslik,kategori,aciklama,kaynak,mahalle,il,ilce,lat,lng,videolar,kisiler:turbedar_kisiler(ad,unvan,vefat,biyografi)), ekleyen:turbedar_profiller!turbedar_revizyonlar_ekleyen_id_fkey(ad)')
       .eq('durum','beklemede').order('created_at');
     if (error){ k.innerHTML = `<p style="color:var(--kirmizi)">${kacir(error.message)}</p>`; return; }
     if (!revler.length){ k.innerHTML = '<div class="bos-durum"><b>Bekleyen revizyon yok</b>Düzenleme önerisi geldiğinde burada görünür.</div>'; return; }
@@ -1647,8 +1738,12 @@ async function yonetimCiz(){
       const farklar = Object.entries(r.degisiklikler).map(([alan, yeni]) => {
         const eski = alan === 'kisiler'
           ? (r.yer?.kisiler||[]).map(x=>x.ad).join(', ') || '(boş)'
+          : alan === 'videolar'
+          ? ((r.yer?.videolar||[]).length + ' video')
           : (r.yer?.[alan] ?? '(boş)');
-        const yeniYazi = alan === 'kisiler' ? (yeni||[]).map(x=>x.ad).join(', ') || '(boş)' : (yeni ?? '(boş)');
+        const yeniYazi = alan === 'kisiler' ? (yeni||[]).map(x=>x.ad).join(', ') || '(boş)'
+          : alan === 'videolar' ? ((yeni||[]).length + ' video')
+          : (yeni ?? '(boş)');
         return `<div class="fark-satir"><b>${ALAN_ADLARI[alan]||alan}</b><div><div class="fark-eski">${kacir(String(eski))}</div><div class="fark-yeni">${kacir(String(yeniYazi))}</div></div></div>`;
       }).join('');
       return `<div class="onay-kart kart">
