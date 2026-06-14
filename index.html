@@ -295,6 +295,17 @@ img{display:block}
 .il-cubuk i{display:block;height:100%;background:linear-gradient(90deg,var(--zumrut-acik),var(--zumrut));border-radius:99px}
 .il-satir span{width:38px;text-align:right;font-weight:800;font-size:13.5px;color:var(--altin)}
 
+/* katkı sıralaması */
+.katki-satir{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px dashed var(--cizgi)}
+.katki-satir:last-child{border-bottom:none}
+.katki-sira{width:24px;flex:none;text-align:center;font-size:17px}
+.katki-satir img{width:34px;height:34px;border-radius:50%;flex:none;object-fit:cover}
+.katki-ad{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.katki-ad b{font-weight:700}
+.katki-cubuk{width:64px;flex:none;height:8px;border-radius:99px;background:var(--kart-koyu);overflow:hidden}
+.katki-cubuk i{display:block;height:100%;background:linear-gradient(90deg,var(--altin-acik),var(--altin));border-radius:99px}
+.katki-deger{width:30px;flex:none;text-align:right;font-weight:800;font-size:14px;color:var(--zumrut)}
+
 /* ---------- Sihirbaz (kayıt ekleme) ---------- */
 .sihirbaz-adim{display:none}
 .sihirbaz-adim.aktif{display:block}
@@ -372,6 +383,18 @@ img{display:block}
 .buyuk-foto{position:fixed;inset:0;z-index:950;background:rgba(15,25,18,.93);display:none;align-items:center;justify-content:center}
 .buyuk-foto.acik{display:flex}
 .buyuk-foto img{max-width:96vw;max-height:92dvh;border-radius:8px}
+
+/* güncelleme şeridi */
+#guncelleme-serit{position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));z-index:840;display:flex;justify-content:center;padding:0 10px;transform:translateY(140%);transition:transform .3s cubic-bezier(.32,.72,.33,1)}
+#guncelleme-serit.acik{transform:translateY(0)}
+.guncelleme-ic{display:flex;align-items:center;gap:11px;background:var(--zumrut);color:#F3EDDD;border:1px solid var(--zumrut-koyu);border-top:2px solid var(--altin);border-radius:14px;padding:11px 13px;box-shadow:var(--golge-buyuk);width:min(100%,560px)}
+.guncelleme-ic>svg{flex:none;color:var(--altin-acik)}
+.guncelleme-yazi{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.guncelleme-yazi b{font-size:14px;font-weight:800}
+.guncelleme-yazi span{font-size:12px;color:#cfe0d2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guncelleme-btn{flex:none;background:var(--altin);color:#fff;font-weight:800;font-size:13.5px;padding:9px 16px;border-radius:10px}
+.guncelleme-btn:active{transform:scale(.96)}
+.guncelleme-kapat{flex:none;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.12);color:#F3EDDD;font-size:13px;display:flex;align-items:center;justify-content:center}
 
 /* ortalanmış detay penceresi */
 .sayfa.sayfa-orta{top:50%;left:50%;right:auto;bottom:auto;width:min(94vw,620px);max-height:86dvh;border-radius:22px;border:1px solid var(--cizgi);border-top:2px solid var(--altin);transform:translate(-50%,-46%);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.32,.72,.33,1),opacity .2s}
@@ -452,6 +475,15 @@ img{display:block}
       <div class="kart" style="padding:16px;margin-top:12px">
         <div class="bolum-baslik" style="margin-bottom:8px">Kategorilere Göre</div>
         <div id="kategori-istatistik"></div>
+      </div>
+      <div class="kart" style="padding:16px;margin-top:12px">
+        <div class="bolum-baslik" style="margin-bottom:4px">Katkı Sıralaması</div>
+        <p style="font-size:12px;color:var(--soluk);margin-bottom:8px">En çok yer ekleyen ve ziyaret eden gönüllüler</p>
+        <div class="sekmeler" style="margin-bottom:10px">
+          <button class="sekme aktif" data-katki="ekleme">Eklemeye Göre</button>
+          <button class="sekme" data-katki="ziyaret">Ziyarete Göre</button>
+        </div>
+        <div id="katki-istatistik"></div>
       </div>
     </div>
   </section>
@@ -618,7 +650,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.6.0';
+const SURUM = '1.8.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -634,6 +666,8 @@ let harita, kume, sihirbazHarita, sihirbazPin;
 let suzgec = {arama:'', il:'', ilce:'', kategori:''};
 let benimZiyaretlerim = new Set();   // giriş yapan kullanıcının ziyaret ettiği yer id'leri
 let bilgiler = [];                   // "bilinmesi gerekenler" maddeleri
+let katkilar = [];                   // kullanıcı katkı/ziyaret istatistikleri
+let katkiOlcut = 'ekleme';
 let taslak = null;               // sihirbaz taslağı
 let acikYerId = null;
 
@@ -645,6 +679,65 @@ const trKucuk = s => String(s||'').toLocaleLowerCase('tr').replace(/[çğıöş�
 const trBasHarf = s => String(s||'').replace(/(^|[\s\-\.\/\(])([\p{L}])/gu, (m, on, h) => on + h.toLocaleUpperCase('tr'));
 const fotoUrl = yol => `${SUPA_URL}/storage/v1/object/public/${BUCKET}/${yol}`;
 const ziyaretSayisi = y => y.ziyaretler?.[0]?.count || 0;
+
+/* ---- Güncelleme kontrolü ---- */
+function surumKarsilastir(a, b){
+  // a > b ise 1, a < b ise -1, eşit ise 0
+  const pa = String(a).split('.').map(n => parseInt(n) || 0);
+  const pb = String(b).split('.').map(n => parseInt(n) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++){
+    const x = pa[i] || 0, y = pb[i] || 0;
+    if (x > y) return 1;
+    if (x < y) return -1;
+  }
+  return 0;
+}
+async function guncellemeKontrol(){
+  try{
+    // önbelleği aşmak için zaman damgası eklenir
+    const r = await fetch('surum.json?t=' + Date.now(), {cache: 'no-store'});
+    if (!r.ok) return;
+    const m = await r.json();
+    if (m.surum && surumKarsilastir(m.surum, SURUM) > 0){
+      guncellemeBildir(m);
+    }
+  }catch(e){ /* çevrimdışı veya dosya yok — sessiz geç */ }
+}
+function guncellemeBildir(m){
+  if ($('#guncelleme-serit')) return;
+  const d = document.createElement('div');
+  d.id = 'guncelleme-serit';
+  d.innerHTML = `
+    <div class="guncelleme-ic">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+      <div class="guncelleme-yazi"><b>Yeni sürüm hazır (v${kacir(m.surum)})</b>${m.not ? `<span>${kacir(m.not)}</span>` : '<span>Uygulamayı güncelle</span>'}</div>
+      <button class="guncelleme-btn" id="guncelle-evet">Güncelle</button>
+      ${m.zorunlu ? '' : '<button class="guncelleme-kapat" id="guncelle-sonra" aria-label="Kapat">✕</button>'}
+    </div>`;
+  document.body.appendChild(d);
+  requestAnimationFrame(() => d.classList.add('acik'));
+  $('#guncelle-evet').addEventListener('click', uygulamayiYenile);
+  if ($('#guncelle-sonra')) $('#guncelle-sonra').addEventListener('click', () => { d.classList.remove('acik'); setTimeout(() => d.remove(), 300); });
+}
+async function uygulamayiYenile(){
+  yukleniyor(true, 'Güncelleniyor...');
+  try{
+    // tüm önbellekleri temizle (PWA/WebView eski dosyayı tutmasın)
+    if ('caches' in window){
+      const adlar = await caches.keys();
+      await Promise.all(adlar.map(a => caches.delete(a)));
+    }
+    if ('serviceWorker' in navigator){
+      const kayitlar = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(kayitlar.map(k => k.unregister()));
+    }
+  }catch(e){}
+  // önbelleği kesin aşmak için sürüm parametresiyle yeniden yükle
+  const u = new URL(location.href);
+  u.searchParams.set('v', Date.now());
+  u.hash = '';
+  location.replace(u.toString());
+}
 
 /* ---- Video linkleri ---- */
 function videoBilgi(url){
@@ -789,6 +882,8 @@ async function veriYukle(){
   const {data: ist} = await sb.from('turbedar_istatistik').select('*');
   istatistik = ist || [];
   await bilgileriYukle();
+  const {data: kt} = await sb.from('turbedar_katki_istatistik').select('*');
+  katkilar = kt || [];
   haritaCiz(); kesfetCiz(); istatistikCiz(); suzgecleriDoldur();
 }
 async function bilgileriYukle(){
@@ -821,6 +916,10 @@ function gorunumAc(ad){
 }
 $$('.nav-oge').forEach(n => n.addEventListener('click', () => gorunumAc(n.dataset.hedef)));
 $('#btn-yonetim').addEventListener('click', () => gorunumAc('yonetim'));
+document.addEventListener('click', e => {
+  const s = e.target.closest('[data-katki]');
+  if (s){ katkiOlcut = s.dataset.katki; katkiCiz(); }
+});
 
 /* ====================== HARİTA ====================== */
 function pinIkon(yer){
@@ -986,6 +1085,28 @@ function istatistikCiz(){
   $('#kategori-istatistik').innerHTML = kSirali.length ? kSirali.map(([k, adet]) =>
     `<div class="il-satir"><b>${KATEGORILER[k]||k}</b><div class="il-cubuk"><i style="width:${Math.max(6, adet/(kSirali[0][1])*100)}%"></i></div><span>${adet}</span></div>`
   ).join('') : '<p style="color:var(--soluk);font-size:13.5px">Henüz veri yok.</p>';
+  katkiCiz();
+}
+function katkiCiz(){
+  const kutu = $('#katki-istatistik'); if (!kutu) return;
+  const liste = [...katkilar]
+    .filter(k => (katkiOlcut === 'ekleme' ? k.ekleme : k.ziyaret) > 0)
+    .sort((a,b) => (b[katkiOlcut] - a[katkiOlcut]) || (b.ekleme - a.ekleme))
+    .slice(0, 20);
+  $$('[data-katki]').forEach(s => s.classList.toggle('aktif', s.dataset.katki === katkiOlcut));
+  if (!liste.length){ kutu.innerHTML = '<p style="color:var(--soluk);font-size:13.5px">Henüz katkı yok — ilk sen ol.</p>'; return; }
+  const enCok = (katkiOlcut === 'ekleme' ? liste[0].ekleme : liste[0].ziyaret) || 1;
+  kutu.innerHTML = liste.map((k, i) => {
+    const deger = katkiOlcut === 'ekleme' ? k.ekleme : k.ziyaret;
+    const madalya = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `<span style="color:var(--soluk);font-weight:800;font-size:12px">${i+1}.</span>`;
+    return `<div class="katki-satir">
+      <span class="katki-sira">${madalya}</span>
+      <img src="${k.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
+      <div class="katki-ad"><b>${kacir(k.ad)}</b>${k.kurucu ? '<span class="rozet rozet-kurucu" style="margin-left:5px">Kurucu</span>' : (k.rol === 'yonetici' ? '<span class="rozet rozet-yonetici" style="margin-left:5px">Yönetici</span>' : '')}</div>
+      <div class="katki-cubuk"><i style="width:${Math.max(8, deger/enCok*100)}%"></i></div>
+      <span class="katki-deger">${deger}</span>
+    </div>`;
+  }).join('');
 }
 </script>
 <script>
@@ -1658,6 +1779,7 @@ async function profilCiz(){
 /* ====================== YÖNETİM ====================== */
 let aktifSekme = 'bekleyen';
 let duzenlenenBilgi = null;
+let kullaniciArama = '';
 $$('.sekme').forEach(s => s.addEventListener('click', () => {
   aktifSekme = s.dataset.sekme;
   $$('.sekme').forEach(x => x.classList.toggle('aktif', x === s));
@@ -1835,16 +1957,31 @@ async function yonetimCiz(){
   else if (aktifSekme === 'kullanici'){
     const {data: liste, error} = await sb.from('turbedar_profiller').select('*').order('created_at');
     if (error){ k.innerHTML = `<p style="color:var(--kirmizi)">${kacir(error.message)}</p>`; return; }
-    k.innerHTML = `<div class="kart" style="padding:14px">` + liste.map(p => `
-      <div class="kullanici-satir">
-        <img src="${p.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
-        <div class="pad"><b>${kacir(p.ad)} ${p.kurucu ? '<span class="rozet rozet-kurucu">Kurucu</span>' : ''}</b>
-        <span style="font-size:11.5px;color:var(--soluk)">${tarihYaz(p.created_at)} tarihinde katıldı</span></div>
-        <select data-rol="${p.id}" ${p.kurucu ? 'disabled' : ''}>
-          <option value="uye" ${p.rol==='uye'?'selected':''}>Üye</option>
-          <option value="yonetici" ${p.rol==='yonetici'?'selected':''}>Yönetici</option>
-        </select>
-      </div>`).join('') + `</div>`;
+    const ara = (kullaniciArama || '').trim();
+    const aN = trKucuk(ara);
+    const suzulmus = aN ? liste.filter(p => trKucuk(p.ad).includes(aN)) : liste;
+    k.innerHTML = `
+      <div class="arama-kutu" style="margin-bottom:10px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="kullanici-ara" type="search" placeholder="İsimle kullanıcı ara..." value="${kacir(ara)}">
+      </div>
+      <div class="sonuc-sayi">${suzulmus.length} kullanıcı${aN ? ' (filtreli)' : ''}</div>
+      <div class="kart" style="padding:14px">` + (suzulmus.length ? suzulmus.map(p => `
+        <div class="kullanici-satir">
+          <img src="${p.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
+          <div class="pad"><b>${kacir(p.ad)} ${p.kurucu ? '<span class="rozet rozet-kurucu">Kurucu</span>' : ''}</b>
+          <span style="font-size:11.5px;color:var(--soluk)">${tarihYaz(p.created_at)} tarihinde katıldı</span></div>
+          <select data-rol="${p.id}" ${p.kurucu ? 'disabled' : ''}>
+            <option value="uye" ${p.rol==='uye'?'selected':''}>Üye</option>
+            <option value="yonetici" ${p.rol==='yonetici'?'selected':''}>Yönetici</option>
+          </select>
+        </div>`).join('') : '<p style="color:var(--soluk);font-size:13.5px">Eşleşen kullanıcı yok.</p>') + `</div>`;
+    const araGirisi = $('#kullanici-ara');
+    araGirisi.addEventListener('input', e => {
+      kullaniciArama = e.target.value;
+      clearTimeout(araGirisi._z);
+      araGirisi._z = setTimeout(() => { yonetimCiz(); setTimeout(() => { const el = $('#kullanici-ara'); if (el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 0); }, 250);
+    });
     k.querySelectorAll('[data-rol]').forEach(s => s.addEventListener('change', async () => {
       const yeniRol = s.value;
       const onay = await sor('Rol Değişikliği', yeniRol === 'yonetici'
@@ -1896,6 +2033,8 @@ async function yonetimCiz(){
   // paylaşılan bağlantı (#yer=ID)
   const es = location.hash.match(/#yer=([\w-]+)/);
   if (es) detayAc(es[1]);
+
+  guncellemeKontrol();
 })();
 </script>
 </body>
