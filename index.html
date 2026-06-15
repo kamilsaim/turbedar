@@ -380,9 +380,19 @@ img{display:block}
 @keyframes don{to{transform:rotate(360deg)}}
 #yukleniyor b{font-family:var(--display);font-size:19px;color:var(--zumrut)}
 
-.buyuk-foto{position:fixed;inset:0;z-index:950;background:rgba(15,25,18,.93);display:none;align-items:center;justify-content:center}
+.buyuk-foto{position:fixed;inset:0;z-index:950;background:rgba(15,25,18,.94);display:none;align-items:center;justify-content:center}
 .buyuk-foto.acik{display:flex}
-.buyuk-foto img{max-width:96vw;max-height:92dvh;border-radius:8px}
+.buyuk-foto img{max-width:94vw;max-height:86dvh;border-radius:8px;user-select:none;-webkit-user-drag:none}
+.bf-kapat{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;z-index:3}
+.bf-ok{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:30px;line-height:1;display:flex;align-items:center;justify-content:center;z-index:3;padding-bottom:3px}
+.bf-ok:active{background:rgba(255,255,255,.28)}
+.bf-onceki{left:10px}
+.bf-sonraki{right:10px}
+.bf-ok.gizli{display:none}
+.bf-sayac{position:absolute;top:calc(16px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);color:#fff;font-size:13px;font-weight:700;background:rgba(0,0,0,.35);padding:5px 12px;border-radius:99px;z-index:3}
+.bf-noktalar{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:3}
+.bf-noktalar i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);transition:background .2s,width .2s}
+.bf-noktalar i.aktif{background:var(--altin);width:20px;border-radius:99px}
 
 /* güncelleme şeridi */
 #guncelleme-serit{position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));z-index:840;display:flex;justify-content:center;padding:0 10px;transform:translateY(140%);transition:transform .3s cubic-bezier(.32,.72,.33,1)}
@@ -639,7 +649,14 @@ img{display:block}
 <div id="karsilama"><img id="karsilama-img" alt=""><b>Edeple gelen, lütufla gider</b><span>TÜRBEDAR</span></div>
 <div id="bildirimler"></div>
 <div id="yukleniyor"><div class="hilal-donen"></div><b id="yukleniyor-metin">Yükleniyor...</b></div>
-<div class="buyuk-foto" id="buyuk-foto"><img id="buyuk-foto-img" alt=""></div>
+<div class="buyuk-foto" id="buyuk-foto">
+  <button class="bf-kapat" id="bf-kapat" aria-label="Kapat">✕</button>
+  <button class="bf-ok bf-onceki" id="bf-onceki" aria-label="Önceki">‹</button>
+  <img id="buyuk-foto-img" alt="">
+  <button class="bf-ok bf-sonraki" id="bf-sonraki" aria-label="Sonraki">›</button>
+  <div class="bf-sayac" id="bf-sayac"></div>
+  <div class="bf-noktalar" id="bf-noktalar"></div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
@@ -650,7 +667,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.8.0';
+const SURUM = '1.8.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1179,9 +1196,8 @@ async function detayAc(id){
       </div>
       <input id="yorum-video" class="yorum-video-girdi" inputmode="url" placeholder="🎬 İsteğe bağlı: video linki (YouTube, Instagram, X...)">` : ''}`;
   // olaylar
-  k.querySelectorAll('[data-buyuk]').forEach(img => img.addEventListener('click', () => {
-    $('#buyuk-foto-img').src = img.dataset.buyuk; $('#buyuk-foto').classList.add('acik');
-  }));
+  const fotolar = (y.fotograflar||[]).map(f => fotoUrl(f.yol));
+  k.querySelectorAll('[data-buyuk]').forEach((img, i) => img.addEventListener('click', () => galeriAc(fotolar, i)));
   $('#d-yoltarifi').addEventListener('click', () => window.open(`https://www.google.com/maps/dir/?api=1&destination=${y.lat},${y.lng}`, '_blank'));
   $('#d-paylas').addEventListener('click', async () => {
     const url = location.origin + location.pathname + '#yer=' + y.id;
@@ -1230,7 +1246,55 @@ async function detayAc(id){
   $('#detay-sayfa').classList.add('acik'); $('#detay-ortulu').classList.add('acik');
   $('#detay-sayfa .sayfa-icerik').scrollTop = 0;
 }
-$('#buyuk-foto').addEventListener('click', () => $('#buyuk-foto').classList.remove('acik'));
+/* ---- Fotoğraf galerisi (lightbox) ---- */
+let galeriFotolar = [], galeriIndex = 0;
+function galeriAc(fotolar, index){
+  if (!fotolar || !fotolar.length) return;
+  galeriFotolar = fotolar; galeriIndex = index || 0;
+  galeriGoster();
+  $('#buyuk-foto').classList.add('acik');
+}
+function galeriGoster(){
+  const n = galeriFotolar.length;
+  $('#buyuk-foto-img').src = galeriFotolar[galeriIndex];
+  $('#bf-sayac').textContent = n > 1 ? `${galeriIndex + 1} / ${n}` : '';
+  $('#bf-sayac').style.display = n > 1 ? 'block' : 'none';
+  const tekli = n <= 1;
+  $('#bf-onceki').classList.toggle('gizli', tekli);
+  $('#bf-sonraki').classList.toggle('gizli', tekli);
+  $('#bf-noktalar').innerHTML = n > 1 && n <= 12
+    ? galeriFotolar.map((_, i) => `<i class="${i === galeriIndex ? 'aktif' : ''}"></i>`).join('') : '';
+}
+function galeriGec(yon){
+  const n = galeriFotolar.length; if (n <= 1) return;
+  galeriIndex = (galeriIndex + yon + n) % n;
+  galeriGoster();
+}
+function galeriKapat(){ $('#buyuk-foto').classList.remove('acik'); }
+$('#bf-kapat').addEventListener('click', galeriKapat);
+$('#bf-onceki').addEventListener('click', e => { e.stopPropagation(); galeriGec(-1); });
+$('#bf-sonraki').addEventListener('click', e => { e.stopPropagation(); galeriGec(1); });
+// arka plana (resim/düğme dışına) tıklayınca kapat
+$('#buyuk-foto').addEventListener('click', e => { if (e.target.id === 'buyuk-foto') galeriKapat(); });
+// klavye okları (masaüstü)
+document.addEventListener('keydown', e => {
+  if (!$('#buyuk-foto').classList.contains('acik')) return;
+  if (e.key === 'ArrowLeft') galeriGec(-1);
+  else if (e.key === 'ArrowRight') galeriGec(1);
+  else if (e.key === 'Escape') galeriKapat();
+});
+// dokunmatik kaydırma (swipe)
+let dokunX = null, dokunY = null;
+$('#buyuk-foto').addEventListener('touchstart', e => {
+  dokunX = e.changedTouches[0].clientX; dokunY = e.changedTouches[0].clientY;
+}, {passive: true});
+$('#buyuk-foto').addEventListener('touchend', e => {
+  if (dokunX === null) return;
+  const dx = e.changedTouches[0].clientX - dokunX;
+  const dy = e.changedTouches[0].clientY - dokunY;
+  if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) galeriGec(dx < 0 ? 1 : -1);
+  dokunX = dokunY = null;
+}, {passive: true});
 
 async function yorumlariYukle(yerId){
   const {data} = await sb.from('turbedar_yorumlar')
