@@ -1,5 +1,5 @@
 {
-  "surum": "1.8.1",
+  "surum": "1.9.0",
   "zorunlu": false,
-  "not": "Fotoğraf galerisi: büyütünce diğer fotoğraflara geçiş eklendi."
+  "not": "Çoklu kaynak + bağlantı, onaylı yerlere ek bilgi önerisi, kişi düzenleme önerileri."
 }
