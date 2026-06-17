@@ -250,6 +250,7 @@ img{display:block}
 .kn-bas time{font-size:11px;color:var(--soluk);margin-left:auto}
 .kn-icerik{font-size:13.5px;line-height:1.6;color:#3d4a41;white-space:pre-wrap}
 .kn-sil{margin-top:6px;font-size:12px;font-weight:800;color:var(--kirmizi)}
+.kn-foto{max-height:170px;max-width:100%;border-radius:10px;margin-top:8px;cursor:pointer}
 .detay-butonlar{display:flex;gap:8px;margin:16px 0 8px;flex-wrap:wrap}
 .detay-butonlar .btn,.detay-butonlar .btn-altin,.detay-butonlar .btn-ghost{flex:1;min-width:130px}
 
@@ -638,6 +639,23 @@ img{display:block}
   </div>
 </div>
 
+<!-- ============ EK BİLGİ ÖNERİ KİPİ ============ -->
+<div class="kip" id="kip-not">
+  <div class="kip-kutu">
+    <h3>Ek Bilgi Öner</h3>
+    <p style="margin-bottom:10px">Bu yer hakkında bildiğin bilgiyi yaz. İstersen belgeleyen bir fotoğraf da ekleyebilirsin (kitabe, levha vb.). Yönetici onayından sonra herkese görünür olur.</p>
+    <div class="alan"><textarea id="not-icerik" maxlength="2000" style="min-height:110px" placeholder="örn. Türbe 1996 yılında Vakıflar tarafından restore edilmiştir..."></textarea></div>
+    <div class="alan"><label>Kaynak bağlantısı (isteğe bağlı)</label><input id="not-kaynak" inputmode="url" placeholder="https://..."></div>
+    <input type="file" id="not-foto-girdi" accept="image/*" hidden>
+    <div id="not-foto-onizleme" style="margin-bottom:12px"></div>
+    <button class="btn-altin btn btn-kucuk" id="not-foto-btn" style="margin-bottom:14px">📷 Fotoğraf Ekle</button>
+    <div class="kip-butonlar">
+      <button class="btn-ghost btn" id="not-vazgec" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Vazgeç</button>
+      <button class="btn" id="not-gonder">Gönder</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ GİRİŞ KİPİ ============ -->
 <div class="kip" id="kip-giris">
   <div class="kip-kutu" style="text-align:center">
@@ -685,7 +703,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.9.0';
+const SURUM = '1.10.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1343,24 +1361,76 @@ async function katkiNotlariYukle(yerId){
       <time>${tarihYaz(n.created_at)}</time>
     </div>
     <p class="kn-icerik">${kacir(n.icerik)}</p>
+    ${n.foto_yol ? `<img class="kn-foto" src="${fotoUrl(n.foto_yol)}" data-not-foto="${fotoUrl(n.foto_yol)}" alt="" loading="lazy">` : ''}
     ${n.kaynak_url && gecerliLink(n.kaynak_url) ? `<a class="detay-kaynak-link" href="${kacir(n.kaynak_url)}" target="_blank" rel="noopener noreferrer">🔗 Kaynak</a>` : ''}
     ${kullanici && ((n.ekleyen_id === kullanici.id && n.durum === 'beklemede') || yonetici()) ? `<button class="kn-sil" data-not-sil="${n.id}">Sil</button>` : ''}
   </div>`).join('');
   kutu.querySelectorAll('[data-not-sil]').forEach(b => b.addEventListener('click', async () => {
+    const not = data.find(x => x.id === b.dataset.notSil);
+    if (not?.foto_yol) await sb.storage.from(BUCKET).remove([not.foto_yol]);
     await sb.from('turbedar_katki_notlari').delete().eq('id', b.dataset.notSil);
     katkiNotlariYukle(yerId); yonetimRozetiGuncelle();
   }));
+  kutu.querySelectorAll('[data-not-foto]').forEach(img => img.addEventListener('click', () => galeriAc([img.dataset.notFoto], 0)));
 }
-async function katkiNotuOner(yerId){
+let notTaslakFoto = null;       // {dosya, onizleme}
+let notAcikYerId = null;
+function katkiNotuOner(yerId){
   if (!kullanici) return girisIste();
-  const icerik = await sor('Ek Bilgi Öner', 'Bu yer hakkında bildiğin bilgiyi yaz. Yönetici onayından sonra herkese görünür olur.',
-    {girdi:true, girdiZorunlu:true, girdiYerTutucu:'örn. Türbe 1996 yılında restore edilmiştir...', evetMetin:'Gönder'});
-  if (!icerik) return;
-  const {error} = await sb.from('turbedar_katki_notlari').insert({yer_id: yerId, icerik, ekleyen_id: kullanici.id});
-  if (error) return bildir('Gönderilemedi: ' + error.message, true);
-  bildir('🕌 Ek bilgi önerin yönetici onayına gönderildi');
-  katkiNotlariYukle(yerId); yonetimRozetiGuncelle();
+  notAcikYerId = yerId;
+  notTaslakFoto = null;
+  $('#not-icerik').value = '';
+  $('#not-kaynak').value = '';
+  $('#not-foto-onizleme').innerHTML = '';
+  $('#kip-not').classList.add('acik');
 }
+$('#not-vazgec').addEventListener('click', () => {
+  if (notTaslakFoto) URL.revokeObjectURL(notTaslakFoto.onizleme);
+  notTaslakFoto = null;
+  $('#kip-not').classList.remove('acik');
+});
+$('#not-foto-btn').addEventListener('click', () => $('#not-foto-girdi').click());
+$('#not-foto-girdi').addEventListener('change', e => {
+  const d = e.target.files[0]; e.target.value = '';
+  if (!d) return;
+  if (notTaslakFoto) URL.revokeObjectURL(notTaslakFoto.onizleme);
+  notTaslakFoto = {dosya: d, onizleme: URL.createObjectURL(d)};
+  $('#not-foto-onizleme').innerHTML = `<div class="foto-hucre" style="width:110px;aspect-ratio:1"><img src="${notTaslakFoto.onizleme}"><button type="button" id="not-foto-sil">✕</button></div>`;
+  $('#not-foto-sil').addEventListener('click', () => {
+    URL.revokeObjectURL(notTaslakFoto.onizleme); notTaslakFoto = null; $('#not-foto-onizleme').innerHTML = '';
+  });
+});
+$('#not-gonder').addEventListener('click', async () => {
+  const icerik = $('#not-icerik').value.trim();
+  if (icerik.length < 2) return bildir('Lütfen bir bilgi yaz', true);
+  const ham = $('#not-kaynak').value.trim();
+  let kaynak_url = null;
+  if (ham){
+    if (!gecerliLink(ham)) return bildir('Kaynak bağlantısı geçersiz (http/https olmalı)', true);
+    kaynak_url = ham;
+  }
+  const yerId = notAcikYerId;
+  try{
+    yukleniyor(true, 'Gönderiliyor...');
+    let foto_yol = null;
+    if (notTaslakFoto){
+      yukleniyor(true, 'Fotoğraf yükleniyor...');
+      const blob = await fotoSikistir(notTaslakFoto.dosya);
+      if (!blob) throw new Error('Fotoğraf işlenemedi');
+      const uzanti = blob.type === 'image/webp' ? 'webp' : 'jpg';
+      foto_yol = `notlar/${yerId}/${crypto.randomUUID()}.${uzanti}`;
+      const {error: ye} = await sb.storage.from(BUCKET).upload(foto_yol, blob, {contentType: blob.type});
+      if (ye) throw ye;
+    }
+    const {error} = await sb.from('turbedar_katki_notlari').insert({yer_id: yerId, icerik, kaynak_url, foto_yol, ekleyen_id: kullanici.id});
+    if (error) throw error;
+    yukleniyor(false);
+    if (notTaslakFoto){ URL.revokeObjectURL(notTaslakFoto.onizleme); notTaslakFoto = null; }
+    $('#kip-not').classList.remove('acik');
+    bildir('🕌 Ek bilgi önerin yönetici onayına gönderildi');
+    katkiNotlariYukle(yerId); yonetimRozetiGuncelle();
+  }catch(err){ yukleniyor(false); bildir('Gönderilemedi: ' + (err.message||err), true); }
+});
 async function yorumlariYukle(yerId){
   const {data} = await sb.from('turbedar_yorumlar')
     .select('*, yazan:turbedar_profiller!turbedar_yorumlar_yazan_id_fkey(ad,avatar_url)')
@@ -2039,6 +2109,7 @@ async function yonetimCiz(){
           <div class="meta">Öneren: ${kacir(n.ekleyen?.ad||'?')} • ${tarihYaz(n.created_at)}</div></div>
           <span class="rozet rozet-beklemede">Ek Bilgi</span></div>
         <p style="font-size:13.5px;line-height:1.55;color:#3d4a41;white-space:pre-wrap">${kacir(n.icerik)}</p>
+        ${n.foto_yol ? `<img src="${fotoUrl(n.foto_yol)}" alt="" loading="lazy" style="max-height:160px;border-radius:10px;margin-top:8px">` : ''}
         ${n.kaynak_url && gecerliLink(n.kaynak_url) ? `<a class="detay-kaynak-link" href="${kacir(n.kaynak_url)}" target="_blank" rel="noopener noreferrer">🔗 Kaynak</a>` : ''}
         <div class="onay-butonlar">
           <button class="btn-tehlike btn btn-kucuk" data-not-reddet="${n.id}">Reddet</button>
@@ -2078,6 +2149,8 @@ async function yonetimCiz(){
     k.querySelectorAll('[data-not-reddet]').forEach(b => b.addEventListener('click', async () => {
       const onay = await sor('Ek Bilgiyi Reddet', 'Bu ek bilgi önerisi reddedilecek.', {evetMetin:'Reddet', tehlike:true});
       if (!onay) return;
+      const not = (notlar||[]).find(x => x.id === b.dataset.notReddet);
+      if (not?.foto_yol) await sb.storage.from(BUCKET).remove([not.foto_yol]);
       await sb.from('turbedar_katki_notlari').update({durum:'reddedildi', onaylayan_id: kullanici.id}).eq('id', b.dataset.notReddet);
       bildir('Ek bilgi reddedildi'); yonetimRozetiGuncelle(); yonetimCiz();
     }));

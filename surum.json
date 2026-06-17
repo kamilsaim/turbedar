@@ -1,5 +1,5 @@
 {
-  "surum": "1.9.0",
+  "surum": "1.10.0",
   "zorunlu": false,
-  "not": "Çoklu kaynak + bağlantı, onaylı yerlere ek bilgi önerisi, kişi düzenleme önerileri."
+  "not": "Ek bilgi önerisine fotoğraf ekleme (kitabe, levha vb.)."
 }
