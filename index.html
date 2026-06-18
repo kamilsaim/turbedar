@@ -322,6 +322,14 @@ img{display:block}
 .katki-cubuk i{display:block;height:100%;background:linear-gradient(90deg,var(--altin-acik),var(--altin));border-radius:99px}
 .katki-deger{width:30px;flex:none;text-align:right;font-weight:800;font-size:14px;color:var(--zumrut)}
 
+/* kişisel istatistik açılır listeleri */
+.kisisel-detay{border-top:1px solid var(--cizgi);margin-top:8px}
+.kisisel-detay summary{font-weight:800;font-size:13.5px;color:var(--zumrut);padding:10px 0 6px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.kisisel-detay summary::-webkit-details-marker{display:none}
+.kisisel-detay summary::after{content:'+';color:var(--altin);font-size:18px;font-weight:600}
+.kisisel-detay[open] summary::after{content:'–'}
+.kisisel-liste{padding-bottom:6px}
+
 /* ---------- Sihirbaz (kayıt ekleme) ---------- */
 .sihirbaz-adim{display:none}
 .sihirbaz-adim.aktif{display:block}
@@ -494,6 +502,7 @@ img{display:block}
       <h2 style="font-family:var(--display);font-size:26px;font-weight:700;color:var(--zumrut);text-align:center;margin-bottom:4px">Envanter Durumu</h2>
       <p style="text-align:center;color:var(--soluk);font-size:13px;margin-bottom:18px">Onaylanmış kayıtların dağılımı</p>
       <div class="ozet-izgara" id="ozet-izgara"></div>
+      <div id="kisisel-istatistik"></div>
       <div class="kart" style="padding:16px">
         <div class="bolum-baslik" style="margin-bottom:8px">İllere Göre</div>
         <div id="il-istatistik"></div>
@@ -703,7 +712,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.10.0';
+const SURUM = '1.11.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -966,6 +975,7 @@ function gorunumAc(ad){
   $$('.nav-oge').forEach(n => n.classList.toggle('aktif', n.dataset.hedef === ad));
   if (ad === 'harita' && harita) setTimeout(() => harita.invalidateSize(), 60);
   if (ad === 'profil') profilCiz();
+  if (ad === 'istatistik') kisiselIstatistikCiz();
   if (ad === 'yonetim') yonetimCiz();
 }
 $$('.nav-oge').forEach(n => n.addEventListener('click', () => gorunumAc(n.dataset.hedef)));
@@ -1140,6 +1150,44 @@ function istatistikCiz(){
     `<div class="il-satir"><b>${KATEGORILER[k]||k}</b><div class="il-cubuk"><i style="width:${Math.max(6, adet/(kSirali[0][1])*100)}%"></i></div><span>${adet}</span></div>`
   ).join('') : '<p style="color:var(--soluk);font-size:13.5px">Henüz veri yok.</p>';
   katkiCiz();
+  kisiselIstatistikCiz();
+}
+function kisiselIstatistikCiz(){
+  const kutu = $('#kisisel-istatistik'); if (!kutu) return;
+  if (!kullanici){ kutu.innerHTML = ''; return; }
+  const benimkiler = yerler.filter(y => y.ekleyen_id === kullanici.id);
+  const onayli = benimkiler.filter(y => y.durum === 'onaylandi').length;
+  const bekleyen = benimkiler.filter(y => y.durum === 'beklemede').length;
+  const ziyaretSay = benimZiyaretlerim.size;
+  const ziyaretYerleri = yerler.filter(y => benimZiyaretlerim.has(y.id));
+  kutu.innerHTML = `<div class="kart" style="padding:16px;margin-bottom:12px;border-color:var(--altin-acik)">
+    <div class="bolum-baslik" style="margin-bottom:2px">Senin Yolculuğun</div>
+    <p style="font-size:12px;color:var(--soluk);margin-bottom:12px">Envantere katkın ve ziyaretlerin</p>
+    <div class="ozet-izgara" style="margin-bottom:14px">
+      <div class="ozet-kart" style="background:var(--altin-soluk);border:1px solid var(--altin-acik)"><div class="sayi">${benimkiler.length}</div><div class="etiket">Eklediğim</div></div>
+      <div class="ozet-kart" style="background:var(--altin-soluk);border:1px solid var(--altin-acik)"><div class="sayi">${onayli}</div><div class="etiket">Onaylanan</div></div>
+      <div class="ozet-kart" style="background:var(--altin-soluk);border:1px solid var(--altin-acik)"><div class="sayi">${bekleyen}</div><div class="etiket">Bekleyen</div></div>
+      <div class="ozet-kart" style="background:var(--altin-soluk);border:1px solid var(--altin-acik)"><div class="sayi">${ziyaretSay}</div><div class="etiket">Ziyaretim</div></div>
+    </div>
+    ${benimkiler.length ? `<details class="kisisel-detay" open>
+      <summary>Kayıtlarım (${benimkiler.length})</summary>
+      <div class="kisisel-liste">${benimkiler.map(y => `
+        <div class="il-satir" data-yer="${y.id}" style="gap:8px">
+          <b style="width:auto;flex:1">${kacir(y.baslik)}</b>
+          <span class="rozet rozet-${y.durum}" style="width:auto">${y.durum==='beklemede'?'Bekliyor':y.durum==='onaylandi'?'Onaylı':'Reddedildi'}</span>
+        </div>
+        ${y.durum==='reddedildi' && y.red_nedeni ? `<p style="font-size:12px;color:var(--kirmizi);margin:-4px 0 6px 4px">↳ ${kacir(y.red_nedeni)}</p>` : ''}`).join('')}</div>
+    </details>` : '<p style="color:var(--soluk);font-size:13.5px">Henüz kayıt eklememişsin. Alttaki EKLE düğmesiyle başla.</p>'}
+    ${ziyaretYerleri.length ? `<details class="kisisel-detay">
+      <summary>Ziyaret Ettiklerim (${ziyaretYerleri.length})</summary>
+      <div class="kisisel-liste">${ziyaretYerleri.map(y => `
+        <div class="il-satir" data-yer="${y.id}" style="gap:8px">
+          <b style="width:auto;flex:1">${kacir(y.baslik)}</b>
+          <span style="width:auto;font-size:12px;color:var(--soluk);font-weight:600">${kacir(y.il||'')}</span>
+        </div>`).join('')}</div>
+    </details>` : ''}
+  </div>`;
+  kutu.querySelectorAll('[data-yer]').forEach(s => s.addEventListener('click', () => detayAc(s.dataset.yer)));
 }
 function katkiCiz(){
   const kutu = $('#katki-istatistik'); if (!kutu) return;
@@ -1957,7 +2005,6 @@ async function profilCiz(){
     $('#profil-google').addEventListener('click', () => $('#btn-google-giris').click());
     return;
   }
-  const benimkiler = yerler.filter(y => y.ekleyen_id === kullanici.id);
   k.innerHTML = '<p style="color:var(--soluk);font-size:13.5px;padding:8px">Yükleniyor...</p>';
   let revlerim = [];
   try{
@@ -1982,23 +2029,10 @@ async function profilCiz(){
       <div class="alan"><label>Hakkında</label><textarea id="profil-hakkinda" maxlength="500" placeholder="Kendinden kısaca bahset...">${kacir(profil?.hakkinda||'')}</textarea></div>
       <button class="btn btn-kucuk" id="profil-kaydet">Kaydet</button>
     </div>
-    <div class="kart" style="padding:16px;margin-top:12px">
-      <div class="bolum-baslik" style="margin-bottom:8px">Kayıtlarım (${benimkiler.length})</div>
-      ${benimkiler.length ? benimkiler.map(y => `
-        <div class="il-satir" data-yer="${y.id}" style="gap:8px">
-          <b style="width:auto;flex:1">${kacir(y.baslik)}</b>
-          <span class="rozet rozet-${y.durum}" style="width:auto">${y.durum==='beklemede'?'Bekliyor':y.durum==='onaylandi'?'Onaylı':'Reddedildi'}</span>
-        </div>
-        ${y.durum==='reddedildi' && y.red_nedeni ? `<p style="font-size:12px;color:var(--kirmizi);margin:-4px 0 6px 4px">↳ ${kacir(y.red_nedeni)}</p>` : ''}`).join('')
-      : '<p style="color:var(--soluk);font-size:13.5px">Henüz kayıt eklememişsin. Alttaki EKLE düğmesiyle başla.</p>'}
-    </div>
-    ${benimZiyaretlerim.size ? `<div class="kart" style="padding:16px;margin-top:12px">
-      <div class="bolum-baslik" style="margin-bottom:8px">Ziyaret Ettiklerim (${benimZiyaretlerim.size})</div>
-      ${yerler.filter(y => benimZiyaretlerim.has(y.id)).map(y => `
-        <div class="il-satir" data-yer="${y.id}" style="gap:8px">
-          <b style="width:auto;flex:1">${kacir(y.baslik)}</b>
-          <span style="width:auto;font-size:12px;color:var(--soluk);font-weight:600">${kacir(y.il||'')}</span>
-        </div>`).join('')}</div>` : ''}
+    <button class="btn-ghost btn btn-tam" id="profil-istatistik-git" style="margin-top:12px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px"><path d="M3 21h18M7 21V11M12 21V5M17 21v-8"/></svg>
+      Kayıtlarım ve ziyaretlerim
+    </button>
     ${revlerim?.length ? `<div class="kart" style="padding:16px;margin-top:12px">
       <div class="bolum-baslik" style="margin-bottom:8px">Düzenleme Önerilerim</div>
       ${revlerim.map(r => `<div class="il-satir" style="gap:8px;cursor:default">
@@ -2007,6 +2041,7 @@ async function profilCiz(){
       </div>`).join('')}</div>` : ''}
     ${bilgilerHtml()}
     <button class="btn-ghost btn btn-tam" id="btn-cikis" style="margin-top:14px;color:var(--kirmizi)">Çıkış Yap</button>`;
+  $('#profil-istatistik-git').addEventListener('click', () => gorunumAc('istatistik'));
   $('#profil-kaydet').addEventListener('click', async () => {
     const ad = $('#profil-ad').value.trim();
     if (ad.length < 2) return bildir('Ad çok kısa', true);
