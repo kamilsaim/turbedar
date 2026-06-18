@@ -251,6 +251,26 @@ img{display:block}
 .kn-icerik{font-size:13.5px;line-height:1.6;color:#3d4a41;white-space:pre-wrap}
 .kn-sil{margin-top:6px;font-size:12px;font-weight:800;color:var(--kirmizi)}
 .kn-foto{max-height:170px;max-width:100%;border-radius:10px;margin-top:8px;cursor:pointer}
+
+/* kilometre taşı kutlama kipi */
+.kutlama-kutu{text-align:center;border-top:2px solid var(--altin);background:linear-gradient(180deg,var(--altin-soluk),var(--kart))}
+.kutlama-amblem{width:96px;height:96px;margin:4px auto 12px;border-radius:50%;background:var(--kart);border:2px solid var(--altin);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(184,146,62,.3);animation:kutlamaNabiz 1.6s ease-in-out infinite}
+.kutlama-amblem img{width:68px;height:68px;object-fit:contain}
+@keyframes kutlamaNabiz{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+#kutlama-baslik{font-size:25px}
+#kutlama-govde{font-size:15px;line-height:1.6}
+
+/* bildirim zili ve listesi */
+.bildirim-zil-sayi{position:absolute;top:-4px;right:-4px;background:var(--kirmizi);color:#fff;font-size:10.5px;font-weight:800;min-width:18px;height:18px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--krem)}
+.bildirim-kart{display:flex;gap:11px;padding:12px;border-bottom:1px dashed var(--cizgi);cursor:pointer;position:relative}
+.bildirim-kart:last-child{border-bottom:none}
+.bildirim-kart.okunmadi{background:var(--altin-soluk)}
+.bildirim-kart.okunmadi::before{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--altin)}
+.bildirim-ikon{width:38px;height:38px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--zumrut-yumusak);color:var(--zumrut)}
+.bildirim-govde{flex:1;min-width:0}
+.bildirim-govde b{font-size:14px;display:block;margin-bottom:2px}
+.bildirim-govde p{font-size:13px;color:#4a564d;line-height:1.45}
+.bildirim-govde time{font-size:11px;color:var(--soluk)}
 .detay-butonlar{display:flex;gap:8px;margin:16px 0 8px;flex-wrap:wrap}
 .detay-butonlar .btn,.detay-butonlar .btn-altin,.detay-butonlar .btn-ghost{flex:1;min-width:130px}
 
@@ -469,8 +489,15 @@ img{display:block}
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span class="bildirim-sayi" id="onay-sayisi" style="display:none">0</span>
       </button>
+      <button class="yuvarlak-btn" id="btn-bildirim" title="Bildirimler" style="display:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="bildirim-zil-sayi" id="bildirim-zil-sayi" style="display:none">0</span>
+      </button>
       <button class="yuvarlak-btn" id="btn-uydu" title="Uydu görünümü">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12a10 10 0 0 1 10-10M2 12a10 10 0 0 0 10 10M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+      </button>
+      <button class="yuvarlak-btn" id="btn-yakin" title="Yakınımdaki yerler">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
       </button>
       <button class="yuvarlak-btn" id="btn-konumum" title="Konumum">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
@@ -648,6 +675,38 @@ img{display:block}
   </div>
 </div>
 
+<!-- ============ YAKINIMDAKİ YERLER KİPİ ============ -->
+<div class="kip" id="kip-yakin">
+  <div class="kip-kutu" style="max-width:460px">
+    <h3 style="margin-bottom:4px">Yakınımdaki Yerler</h3>
+    <p style="font-size:12.5px;color:var(--soluk);margin-bottom:10px" id="yakin-alt">Konumun alınıyor...</p>
+    <div id="yakin-liste" style="max-height:60vh;overflow-y:auto;margin:0 -8px"></div>
+    <div class="kip-butonlar" style="margin-top:14px"><button class="btn-ghost btn" id="yakin-kapat" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Kapat</button></div>
+  </div>
+</div>
+
+<!-- ============ BİLDİRİMLER KİPİ ============ -->
+<div class="kip" id="kip-bildirimler">
+  <div class="kip-kutu" style="max-width:460px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h3 style="margin:0">Bildirimler</h3>
+      <button id="bildirim-tumunu-oku" style="font-size:12.5px;font-weight:800;color:var(--altin)">Tümünü okundu say</button>
+    </div>
+    <div id="bildirim-liste" style="max-height:60vh;overflow-y:auto;margin:0 -8px"></div>
+    <div class="kip-butonlar" style="margin-top:14px"><button class="btn-ghost btn" id="bildirim-kapat" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Kapat</button></div>
+  </div>
+</div>
+
+<!-- ============ KİLOMETRE TAŞI KUTLAMASI ============ -->
+<div class="kip" id="kip-kutlama">
+  <div class="kip-kutu kutlama-kutu">
+    <div class="kutlama-amblem"><img src="" id="kutlama-img" alt=""></div>
+    <h3 id="kutlama-baslik" style="text-align:center"></h3>
+    <p id="kutlama-govde" style="text-align:center"></p>
+    <button class="btn btn-tam" id="kutlama-kapat">Âmin 🤲</button>
+  </div>
+</div>
+
 <!-- ============ EK BİLGİ ÖNERİ KİPİ ============ -->
 <div class="kip" id="kip-not">
   <div class="kip-kutu">
@@ -712,7 +771,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.11.0';
+const SURUM = '1.12.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -727,6 +786,25 @@ let istatistik = [];
 let harita, kume, sihirbazHarita, sihirbazPin;
 let suzgec = {arama:'', il:'', ilce:'', kategori:''};
 let benimZiyaretlerim = new Set();   // giriş yapan kullanıcının ziyaret ettiği yer id'leri
+let bildirimlerim = [];              // okunmamış/okunmuş bildirimler
+
+/* Kilometre taşı mesajları (sonradan kolayca düzenlenebilir) */
+const KAYIT_KILOMETRE = {
+  1:  {b:'İlk emanetin! 🕌', g:'İlk kaydını envantere kazandırdın. Bu yola gönül verene selam olsun.'},
+  3:  {b:'Üçüncü kaydın', g:'Üçüncü eserin de yerini buldu. Hayrın daim olsun.'},
+  5:  {b:'Beş eser, beş hayır', g:'Emeğin gönüllere ışık olsun. Beş kayda ulaştın.'},
+  10: {b:'Onuncu kaydın! 🌟', g:'Bu toprakların hafızasına on iz bıraktın. Allah razı olsun.'},
+  20: {b:'Yirmi eser!', g:'Sen artık bu envanterin gönüllü bekçilerindensin. Ne mutlu sana.'},
+  30: {b:'Otuz kayıt! 🕌', g:'Türbedarlık bir emanettir; sen bu emaneti hakkıyla taşıyorsun.'},
+  50: {b:'Elli eser!', g:'Bu hizmet defterin nice gönülde dua olup açılsın.'},
+  100:{b:'Yüz kayıt! ⭐', g:'Sen bu diyarın sessiz kahramanlarındansın. Bıraktığın iz silinmeyecek.'},
+};
+const ZIYARET_KILOMETRE = {
+  5:  {b:'Beş ziyaret', g:'Her ziyaret bir Fatiha, her Fatiha bir nur. Beş türbeyi ziyaret ettin.'},
+  10: {b:'On ziyaret! 🌟', g:'Adımların hayra, gönlün huzura ersin.'},
+  25: {b:'Yirmi beş ziyaret', g:'Sen yolların yorulmaz yolcususun. Ne güzel bir gayret.'},
+  50: {b:'Elli ziyaret! ⭐', g:'Nice türbenin eşiğinde dua ettin; bu yolculuk bereketli olsun.'},
+};
 let bilgiler = [];                   // "bilinmesi gerekenler" maddeleri
 let katkilar = [];                   // kullanıcı katkı/ziyaret istatistikleri
 let katkiOlcut = 'ekleme';
@@ -911,11 +989,105 @@ sb.auth.onAuthStateChange((_olay, oturum) => {
     setTimeout(async () => {
       await profilGetir();
       yonetimRozetiGuncelle();
+      bildirimleriYukle();
       if ($('.gorunum[data-gorunum="profil"]').classList.contains('aktif')) profilCiz();
       veriYukle(); // kendi bekleyenleri de görünür hale gelsin
     }, 0);
   }
 });
+
+/* ====================== KİLOMETRE TAŞI ====================== */
+function kutlamaGoster(km){
+  $('#kutlama-img').src = $('.marka img').src;
+  $('#kutlama-baslik').textContent = km.b;
+  $('#kutlama-govde').textContent = km.g;
+  $('#kip-kutlama').classList.add('acik');
+}
+$('#kutlama-kapat').addEventListener('click', () => $('#kip-kutlama').classList.remove('acik'));
+
+/* ====================== BİLDİRİMLER ====================== */
+async function bildirimleriYukle(){
+  const zil = $('#btn-bildirim'), sayi = $('#bildirim-zil-sayi');
+  if (!kullanici){ zil.style.display = 'none'; bildirimlerim = []; return; }
+  const {data} = await sb.from('turbedar_bildirimler').select('*').order('created_at', {ascending:false}).limit(50);
+  bildirimlerim = data || [];
+  const okunmamis = bildirimlerim.filter(b => !b.okundu).length;
+  zil.style.display = 'flex';
+  sayi.style.display = okunmamis ? 'flex' : 'none';
+  sayi.textContent = okunmamis;
+}
+function bildirimListeCiz(){
+  const k = $('#bildirim-liste');
+  if (!bildirimlerim.length){ k.innerHTML = '<p style="color:var(--soluk);font-size:13.5px;padding:16px;text-align:center">Henüz bildirimin yok.</p>'; return; }
+  const ikon = t => t === 'onay' ? '✓' : t === 'red' ? '!' : t === 'kilometre' ? '★' : '•';
+  k.innerHTML = bildirimlerim.map(b => `<div class="bildirim-kart ${b.okundu ? '' : 'okunmadi'}" ${b.yer_id ? `data-bil-yer="${b.yer_id}"` : ''}>
+    <div class="bildirim-ikon">${ikon(b.tur)}</div>
+    <div class="bildirim-govde">
+      <b>${kacir(b.baslik)}</b>
+      ${b.govde ? `<p>${kacir(b.govde)}</p>` : ''}
+      <time>${tarihYaz(b.created_at)}</time>
+    </div>
+  </div>`).join('');
+  k.querySelectorAll('[data-bil-yer]').forEach(el => el.addEventListener('click', () => {
+    $('#kip-bildirimler').classList.remove('acik');
+    detayAc(el.dataset.bilYer);
+  }));
+}
+async function bildirimleriOkunduYap(){
+  const okunmamis = bildirimlerim.filter(b => !b.okundu).map(b => b.id);
+  if (!okunmamis.length) return;
+  bildirimlerim.forEach(b => b.okundu = true);
+  $('#bildirim-zil-sayi').style.display = 'none';
+  bildirimListeCiz();
+  await sb.from('turbedar_bildirimler').update({okundu: true}).in('id', okunmamis);
+}
+$('#btn-bildirim').addEventListener('click', () => {
+  bildirimListeCiz();
+  $('#kip-bildirimler').classList.add('acik');
+  bildirimleriOkunduYap();
+});
+$('#bildirim-kapat').addEventListener('click', () => $('#kip-bildirimler').classList.remove('acik'));
+$('#bildirim-tumunu-oku').addEventListener('click', bildirimleriOkunduYap);
+
+/* ====================== YAKINIMDAKİ YERLER ====================== */
+$('#btn-yakin').addEventListener('click', () => {
+  $('#yakin-alt').textContent = 'Konumun alınıyor...';
+  $('#yakin-liste').innerHTML = '<div style="text-align:center;padding:24px"><div class="hilal-donen" style="margin:0 auto"></div></div>';
+  $('#kip-yakin').classList.add('acik');
+  if (!navigator.geolocation){ $('#yakin-alt').textContent = 'Cihaz konumu desteklenmiyor.'; $('#yakin-liste').innerHTML = ''; return; }
+  navigator.geolocation.getCurrentPosition(
+    p => yakinListele(p.coords.latitude, p.coords.longitude),
+    () => { $('#yakin-alt').textContent = 'Konum alınamadı — izin verildiğinden emin ol.'; $('#yakin-liste').innerHTML = ''; },
+    {enableHighAccuracy:true, timeout:10000, maximumAge:0}
+  );
+});
+$('#yakin-kapat').addEventListener('click', () => $('#kip-yakin').classList.remove('acik'));
+function yakinListele(lat, lng){
+  const liste = yerler
+    .filter(y => y.durum === 'onaylandi')
+    .map(y => ({...y, _m: mesafeM(lat, lng, y.lat, y.lng)}))
+    .sort((a,b) => a._m - b._m)
+    .slice(0, 10);
+  if (!liste.length){ $('#yakin-alt').textContent = 'Henüz onaylı kayıt yok.'; $('#yakin-liste').innerHTML = ''; return; }
+  $('#yakin-alt').textContent = 'Sana en yakın türbe ve mezarlar:';
+  const uzaklik = m => m < 1000 ? Math.round(m) + ' m' : (m/1000).toFixed(1) + ' km';
+  $('#yakin-liste').innerHTML = liste.map(y => {
+    const foto = (y.fotograflar||[])[0];
+    return `<div class="bildirim-kart" data-yakin="${y.id}">
+      ${foto ? `<img src="${fotoUrl(foto.yol)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex:none" alt="">`
+             : `<div class="bildirim-ikon" style="width:48px;height:48px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2C15 5.5 18 7.5 18 12v8H6v-8c0-4.5 3-6.5 6-10z"/></svg></div>`}
+      <div class="bildirim-govde">
+        <b>${kacir(y.baslik)}</b>
+        <p>${kacir([y.mahalle, y.ilce, y.il].filter(Boolean).join(' / ') || KATEGORILER[y.kategori])}</p>
+        <time style="color:var(--altin);font-weight:800">📍 ${uzaklik(y._m)}</time>
+      </div>
+    </div>`;
+  }).join('');
+  $('#yakin-liste').querySelectorAll('[data-yakin]').forEach(el => el.addEventListener('click', () => {
+    $('#kip-yakin').classList.remove('acik');
+    detayAc(el.dataset.yakin);
+  }));
+}
 
 /* ====================== VERİ KATMANI ====================== */
 async function veriYukle(){
@@ -1320,7 +1492,14 @@ async function detayAc(id){
     zbtn.classList.toggle('aktif', !vardi);
     $('#d-ziyaret-metin').textContent = !vardi ? 'Ziyaret Ettim' : 'Ziyaret Ettim İşaretle';
     $('#d-ziyaret-sayi').textContent = yeniSayi ? yeniSayi + ' ziyaretçi' : 'İlk ziyaretçi sen ol';
-    if (!vardi) bildir('🕌 Ziyaret listene eklendi');
+    if (!vardi){
+      bildir('🕌 Ziyaret listene eklendi');
+      const km = ZIYARET_KILOMETRE[benimZiyaretlerim.size];
+      if (km){
+        setTimeout(() => kutlamaGoster(km), 700);
+        sb.from('turbedar_bildirimler').insert({kullanici_id: kullanici.id, tur:'kilometre', baslik: km.b, govde: km.g}).then(()=>{});
+      }
+    }
   });
   if ($('#d-duzenle')) $('#d-duzenle').addEventListener('click', () => { sayfaKapat(); sihirbazAc(y); });
   if ($('#d-sil')) $('#d-sil').addEventListener('click', async () => {
@@ -1912,6 +2091,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
         if (ke) throw ke;
       }
       bildir('🕌 Kayıt onaya gönderildi — yönetici onayından sonra herkes görebilecek');
+      taslak._yeniKayitId = yeni.id;
     } else if (taslak.revizyonMu){
       /* ---- ONAYLI KAYITTA REVİZYON ---- */
       const aciklama = $('#girdi-rev-aciklama').value.trim();
@@ -1948,12 +2128,24 @@ $('#btn-kaydet').addEventListener('click', async () => {
       await fotolariYukle(eski.id);
       bildir('Kayıt güncellendi');
     }
-    yukleniyor(false); sihirbazKapat(); veriYukle(); yonetimRozetiGuncelle();
+    const yeniKayitMi = !taslak.duzenlenen;
+    yukleniyor(false); sihirbazKapat(); await veriYukle(); yonetimRozetiGuncelle();
+    if (yeniKayitMi) kayitKilometreKontrol();
   }catch(err){
     yukleniyor(false);
     bildir('Kaydedilemedi: ' + (err.message || err), true);
   }
 });
+async function kayitKilometreKontrol(){
+  if (!kullanici) return;
+  const {count} = await sb.from('turbedar_yerler').select('id', {count:'exact', head:true}).eq('ekleyen_id', kullanici.id);
+  const km = KAYIT_KILOMETRE[count];
+  if (km){
+    setTimeout(() => kutlamaGoster(km), 600);
+    // kalıcı bildirim olarak da kaydet
+    sb.from('turbedar_bildirimler').insert({kullanici_id: kullanici.id, tur:'kilometre', baslik: km.b, govde: km.g}).then(()=>{});
+  }
+}
 async function fotolariYukle(yerId){
   // silinecekler
   if (taslak.silinecek.length){
@@ -2339,6 +2531,7 @@ async function yonetimCiz(){
   kullanici = session?.user || null;
   await profilGetir();
   yonetimRozetiGuncelle();
+  bildirimleriYukle();
   await veriYukle();
 
   // paylaşılan bağlantı (#yer=ID)
