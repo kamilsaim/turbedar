@@ -1,5 +1,5 @@
 {
-  "surum": "1.17.0",
+  "surum": "1.18.0",
   "zorunlu": false,
-  "not": "Haritada 'buraya ekle' modu: bir noktaya dokunarak yeni kayıt başlatma."
+  "not": "Harita butonları sağ alt köşeye taşındı; yer ekle butonu artı simgeli."
 }

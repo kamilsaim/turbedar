@@ -132,7 +132,16 @@ img{display:block}
 }
 .yuvarlak-btn img{width:30px;height:30px;border-radius:50%;object-fit:cover}
 .yuvarlak-btn.aktif{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
-#ekleme-modu-serit{position:absolute;left:12px;right:12px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:620;display:none;align-items:center;gap:9px;background:var(--zumrut);color:#F3EDDD;border:1px solid var(--zumrut-koyu);border-top:2px solid var(--altin);border-radius:13px;padding:11px 14px;box-shadow:var(--golge-buyuk);max-width:520px;margin:0 auto}
+/* sağ alt dikey buton grubu */
+.harita-sag-alt{
+  position:absolute;right:14px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:610;
+  display:flex;flex-direction:column;gap:11px;transition:opacity .2s;
+}
+.yuvarlak-btn-buyuk{width:50px;height:50px;box-shadow:var(--golge-buyuk)}
+.yer-ekle-btn{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
+.yer-ekle-btn:active{transform:scale(.95)}
+.yer-ekle-btn.aktif{background:var(--altin);color:#fff;border-color:var(--amber)}
+#ekleme-modu-serit{position:absolute;left:12px;right:12px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:620;display:none;align-items:center;gap:9px;background:var(--zumrut);color:#F3EDDD;border:1px solid var(--zumrut-koyu);border-top:2px solid var(--altin);border-radius:13px;padding:11px 14px;box-shadow:var(--golge-buyuk);max-width:420px;margin:0 auto}
 #ekleme-modu-serit.acik{display:flex}
 #ekleme-modu-serit>svg{flex:none;color:var(--altin-acik)}
 #ekleme-modu-serit span{flex:1;font-size:13.5px;font-weight:700}
@@ -513,14 +522,16 @@ img{display:block}
       <button class="yuvarlak-btn" id="btn-uydu" title="Uydu görünümü">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12a10 10 0 0 1 10-10M2 12a10 10 0 0 0 10 10M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
       </button>
-      <button class="yuvarlak-btn" id="btn-yakin" title="Yakınımdaki yerler">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+    </div>
+    <div class="harita-sag-alt">
+      <button class="yuvarlak-btn yuvarlak-btn-buyuk yer-ekle-btn" id="btn-haritadan-ekle" title="Haritaya dokunarak yer ekle">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><path d="M12 7v6M9 10h6"/></svg>
       </button>
-      <button class="yuvarlak-btn" id="btn-haritadan-ekle" title="Haritaya dokunarak yer ekle">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><path d="M12 8v4M10 10h4"/></svg>
+      <button class="yuvarlak-btn yuvarlak-btn-buyuk" id="btn-yakin" title="Yakınımdaki yerler">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
       </button>
-      <button class="yuvarlak-btn" id="btn-konumum" title="Konumum">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+      <button class="yuvarlak-btn yuvarlak-btn-buyuk" id="btn-konumum" title="Konumum">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
       </button>
     </div>
     <div id="ekleme-modu-serit">
@@ -815,7 +826,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.17.0';
+const SURUM = '1.18.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1237,7 +1248,7 @@ function haritaBaslat(){
     else { harita.removeLayer(uydu); sokak.addTo(harita); }
     $('#btn-uydu').classList.toggle('aktif', harita.uyduAcik);
   });
-  L.control.zoom({position:'bottomright'}).addTo(harita);
+  L.control.zoom({position:'bottomleft'}).addTo(harita);
   kume = L.markerClusterGroup({showCoverageOnHover:false, maxClusterRadius:46});
   harita.addLayer(kume);
   // haritaya dokunarak ekleme modu
@@ -1255,12 +1266,16 @@ function eklemeModuAc(){
   eklemeModu = true;
   $('#ekleme-modu-serit').classList.add('acik');
   $('#btn-haritadan-ekle').classList.add('aktif');
+  $('.harita-sag-alt').style.opacity = '0';
+  $('.harita-sag-alt').style.pointerEvents = 'none';
   $('#harita').style.cursor = 'crosshair';
 }
 function eklemeModuKapat(){
   eklemeModu = false;
   $('#ekleme-modu-serit').classList.remove('acik');
   $('#btn-haritadan-ekle').classList.remove('aktif');
+  $('.harita-sag-alt').style.opacity = '';
+  $('.harita-sag-alt').style.pointerEvents = '';
   $('#harita').style.cursor = '';
 }
 $('#btn-haritadan-ekle').addEventListener('click', () => eklemeModu ? eklemeModuKapat() : eklemeModuAc());
