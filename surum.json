@@ -1,5 +1,5 @@
 {
-  "surum": "1.16.0",
+  "surum": "1.17.0",
   "zorunlu": false,
-  "not": "Yurtdışı kayıtlar için ülke bilgisi ve keşfette ülke filtresi eklendi."
+  "not": "Haritada 'buraya ekle' modu: bir noktaya dokunarak yeni kayıt başlatma."
 }

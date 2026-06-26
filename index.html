@@ -132,6 +132,11 @@ img{display:block}
 }
 .yuvarlak-btn img{width:30px;height:30px;border-radius:50%;object-fit:cover}
 .yuvarlak-btn.aktif{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
+#ekleme-modu-serit{position:absolute;left:12px;right:12px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:620;display:none;align-items:center;gap:9px;background:var(--zumrut);color:#F3EDDD;border:1px solid var(--zumrut-koyu);border-top:2px solid var(--altin);border-radius:13px;padding:11px 14px;box-shadow:var(--golge-buyuk);max-width:520px;margin:0 auto}
+#ekleme-modu-serit.acik{display:flex}
+#ekleme-modu-serit>svg{flex:none;color:var(--altin-acik)}
+#ekleme-modu-serit span{flex:1;font-size:13.5px;font-weight:700}
+#ekleme-modu-iptal{flex:none;background:rgba(255,255,255,.14);color:#F3EDDD;font-size:12.5px;font-weight:800;padding:7px 14px;border-radius:9px}
 .sihirbaz-uydu-btn{position:absolute;top:10px;right:10px;z-index:500;background:var(--kart);border:1px solid var(--cizgi);border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:800;color:var(--zumrut);box-shadow:var(--golge)}
 .sihirbaz-uydu-btn.aktif{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
 
@@ -511,9 +516,17 @@ img{display:block}
       <button class="yuvarlak-btn" id="btn-yakin" title="Yakınımdaki yerler">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
       </button>
+      <button class="yuvarlak-btn" id="btn-haritadan-ekle" title="Haritaya dokunarak yer ekle">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><path d="M12 8v4M10 10h4"/></svg>
+      </button>
       <button class="yuvarlak-btn" id="btn-konumum" title="Konumum">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
       </button>
+    </div>
+    <div id="ekleme-modu-serit">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <span>Yeni kaydın yerine haritada dokun</span>
+      <button id="ekleme-modu-iptal">İptal</button>
     </div>
   </section>
 
@@ -802,7 +815,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.16.0';
+const SURUM = '1.17.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1227,7 +1240,31 @@ function haritaBaslat(){
   L.control.zoom({position:'bottomright'}).addTo(harita);
   kume = L.markerClusterGroup({showCoverageOnHover:false, maxClusterRadius:46});
   harita.addLayer(kume);
+  // haritaya dokunarak ekleme modu
+  harita.on('click', e => {
+    if (!eklemeModu) return;
+    eklemeModuKapat();
+    const lat = e.latlng.lat, lng = e.latlng.lng;
+    // mükerrer kontrolü: çok yakında kayıt varsa uyar
+    sihirbazAc(null, {lat, lng});
+  });
 }
+let eklemeModu = false;
+function eklemeModuAc(){
+  if (!kullanici){ girisIste(); return; }
+  eklemeModu = true;
+  $('#ekleme-modu-serit').classList.add('acik');
+  $('#btn-haritadan-ekle').classList.add('aktif');
+  $('#harita').style.cursor = 'crosshair';
+}
+function eklemeModuKapat(){
+  eklemeModu = false;
+  $('#ekleme-modu-serit').classList.remove('acik');
+  $('#btn-haritadan-ekle').classList.remove('aktif');
+  $('#harita').style.cursor = '';
+}
+$('#btn-haritadan-ekle').addEventListener('click', () => eklemeModu ? eklemeModuKapat() : eklemeModuAc());
+$('#ekleme-modu-iptal').addEventListener('click', eklemeModuKapat);
 function haritaCiz(){
   if (!harita) return;
   kume.clearLayers();
@@ -1822,7 +1859,7 @@ $('#girdi-ilce').addEventListener('input', e => e.target.dataset.elle = '1');
 $('#girdi-mahalle').addEventListener('input', e => e.target.dataset.elle = '1');
 
 /* ====================== KAYIT SİHİRBAZI ====================== */
-function sihirbazAc(yer = null){
+function sihirbazAc(yer = null, baslangicKonum = null){
   if (!kullanici) return girisIste();
   taslak = {
     duzenlenen: yer,
@@ -1830,8 +1867,9 @@ function sihirbazAc(yer = null){
     yeniFotolar: [],                         // {dosya, onizleme}
     mevcutFotolar: yer ? [...(yer.fotograflar||[])] : [],
     silinecek: [],
-    lat: yer ? yer.lat : null, lng: yer ? yer.lng : null,
-    konumKaynak: yer ? 'Kayıtlı konum' : null,
+    lat: yer ? yer.lat : (baslangicKonum ? baslangicKonum.lat : null),
+    lng: yer ? yer.lng : (baslangicKonum ? baslangicKonum.lng : null),
+    konumKaynak: yer ? 'Kayıtlı konum' : (baslangicKonum ? 'Haritadan seçildi' : null),
     exifIsleri: [],
     exifSonuc: null,
     kapak: null,
@@ -1862,6 +1900,11 @@ function sihirbazAc(yer = null){
   fotoIzgaraCiz();
   adimaGit(1);
   $('#sihirbaz-sayfa').classList.add('acik'); $('#sihirbaz-ortulu').classList.add('acik');
+  if (!yer && baslangicKonum){
+    // haritadan başlatıldı: konum hazır, il/ilçe/ülkeyi arka planda doldur
+    ilIlceBul(baslangicKonum.lat, baslangicKonum.lng);
+    bildir('📍 Konum haritadan alındı — fotoğraf ekleyip devam et');
+  }
 }
 function sihirbazKapat(){
   $('#sihirbaz-sayfa').classList.remove('acik'); $('#sihirbaz-ortulu').classList.remove('acik');
