@@ -1,5 +1,5 @@
 {
-  "surum": "1.18.0",
+  "surum": "1.18.1",
   "zorunlu": false,
-  "not": "Harita butonları sağ alt köşeye taşındı; yer ekle butonu artı simgeli."
+  "not": "Harita butonları ve ekleme şeridi alt menünün arkasında kalma sorunu giderildi."
 }

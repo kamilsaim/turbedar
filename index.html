@@ -134,14 +134,15 @@ img{display:block}
 .yuvarlak-btn.aktif{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
 /* sağ alt dikey buton grubu */
 .harita-sag-alt{
-  position:absolute;right:14px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:610;
+  position:absolute;right:14px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);z-index:610;
   display:flex;flex-direction:column;gap:11px;transition:opacity .2s;
 }
 .yuvarlak-btn-buyuk{width:50px;height:50px;box-shadow:var(--golge-buyuk)}
 .yer-ekle-btn{background:var(--zumrut);color:var(--altin-acik);border-color:var(--zumrut-koyu)}
 .yer-ekle-btn:active{transform:scale(.95)}
 .yer-ekle-btn.aktif{background:var(--altin);color:#fff;border-color:var(--amber)}
-#ekleme-modu-serit{position:absolute;left:12px;right:12px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:620;display:none;align-items:center;gap:9px;background:var(--zumrut);color:#F3EDDD;border:1px solid var(--zumrut-koyu);border-top:2px solid var(--altin);border-radius:13px;padding:11px 14px;box-shadow:var(--golge-buyuk);max-width:420px;margin:0 auto}
+.leaflet-bottom.leaflet-left{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+#ekleme-modu-serit{position:absolute;left:12px;right:12px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);z-index:620;display:none;align-items:center;gap:9px;background:var(--zumrut);color:#F3EDDD;border:1px solid var(--zumrut-koyu);border-top:2px solid var(--altin);border-radius:13px;padding:11px 14px;box-shadow:var(--golge-buyuk);max-width:420px;margin:0 auto}
 #ekleme-modu-serit.acik{display:flex}
 #ekleme-modu-serit>svg{flex:none;color:var(--altin-acik)}
 #ekleme-modu-serit span{flex:1;font-size:13.5px;font-weight:700}
@@ -826,7 +827,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.18.0';
+const SURUM = '1.18.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
