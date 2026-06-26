@@ -1,5 +1,5 @@
 {
-  "surum": "1.15.0",
+  "surum": "1.16.0",
   "zorunlu": false,
-  "not": "İletişim numarası kurucu profilinden yönetiliyor; WhatsApp düğmesi numara girilince görünür."
+  "not": "Yurtdışı kayıtlar için ülke bilgisi ve keşfette ülke filtresi eklendi."
 }

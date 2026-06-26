@@ -524,6 +524,9 @@ img{display:block}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input id="arama" type="search" placeholder="Türbe, kişi, il veya ilçe ara...">
       </div>
+      <div class="suzgecler" id="ulke-suzgec-satir" style="display:none;margin-bottom:8px">
+        <select id="suzgec-ulke"><option value="">Tüm Ülkeler</option></select>
+      </div>
       <div class="suzgecler">
         <select id="suzgec-il"><option value="">Tüm İller</option></select>
         <select id="suzgec-ilce"><option value="">Tüm İlçeler</option></select>
@@ -642,11 +645,12 @@ img{display:block}
       </div>
       <p class="ipucu" style="font-size:12.5px;color:var(--soluk);margin:8px 0">İğneyi sürükleyerek veya haritaya dokunarak tam yerini ayarlayabilirsin.</p>
       <button class="btn-altin btn btn-kucuk" id="btn-cihaz-konum" style="margin-bottom:12px">📍 Cihaz konumumu kullan</button>
+      <div class="alan" id="ulke-alan" style="display:none"><label>Ülke</label><input id="girdi-ulke" placeholder="Otomatik"><div class="ipucu">Yurtdışı bir kayıt — ülke ve şehir bilgisi yeterli.</div></div>
       <div style="display:flex;gap:10px">
-        <div class="alan" style="flex:1"><label>İl</label><input id="girdi-il" placeholder="Otomatik"></div>
-        <div class="alan" style="flex:1"><label>İlçe</label><input id="girdi-ilce" placeholder="Otomatik"></div>
+        <div class="alan" style="flex:1"><label id="girdi-il-label">İl</label><input id="girdi-il" placeholder="Otomatik"></div>
+        <div class="alan" style="flex:1" id="ilce-alan"><label>İlçe</label><input id="girdi-ilce" placeholder="Otomatik"></div>
       </div>
-      <div class="alan"><label>Mahalle / Köy</label><input id="girdi-mahalle" placeholder="Otomatik (gerekirse elle yaz)"></div>
+      <div class="alan" id="mahalle-alan"><label>Mahalle / Köy</label><input id="girdi-mahalle" placeholder="Otomatik (gerekirse elle yaz)"></div>
       <div id="mukerrer-alan"></div>
       <div class="sihirbaz-alt">
         <button class="btn-ghost btn" id="adim2-geri" style="background:transparent;color:var(--murekkep);border:1px solid var(--cizgi)">← Geri</button>
@@ -798,7 +802,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.15.0';
+const SURUM = '1.16.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -811,7 +815,7 @@ let kullanici = null, profil = null;
 let yerler = [];                 // yüklü tüm görünür kayıtlar
 let istatistik = [];
 let harita, kume, sihirbazHarita, sihirbazPin;
-let suzgec = {arama:'', il:'', ilce:'', kategori:''};
+let suzgec = {arama:'', ulke:'', il:'', ilce:'', kategori:''};
 let benimZiyaretlerim = new Set();   // giriş yapan kullanıcının ziyaret ettiği yer id'leri
 let bildirimlerim = [];              // okunmamış/okunmuş bildirimler
 
@@ -848,6 +852,13 @@ const trBasHarf = s => String(s||'').replace(/(^|[\s\-\.\/\(])([\p{L}])/gu, (m, 
 const fotoUrl = yol => `${SUPA_URL}/storage/v1/object/public/${BUCKET}/${yol}`;
 const ziyaretSayisi = y => y.ziyaretler?.[0]?.count || 0;
 const fotoSirala = arr => (arr||[]).slice().sort((a,b) => (a.sira ?? 0) - (b.sira ?? 0) || new Date(a.created_at||0) - new Date(b.created_at||0));
+function konumYazisi(y, bos){
+  const yurtdisi = y.ulke_kodu && y.ulke_kodu !== 'tr';
+  const parcalar = yurtdisi
+    ? [y.il, y.ulke]                       // Şehir, Ülke
+    : [y.mahalle, y.ilce, y.il];           // Mahalle / İlçe / İl
+  return parcalar.filter(Boolean).join(yurtdisi ? ', ' : ' / ') || (bos || '');
+}
 
 /* ---- Güncelleme kontrolü ---- */
 function surumKarsilastir(a, b){
@@ -1107,7 +1118,7 @@ function yakinListele(lat, lng){
              : `<div class="bildirim-ikon" style="width:48px;height:48px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2C15 5.5 18 7.5 18 12v8H6v-8c0-4.5 3-6.5 6-10z"/></svg></div>`}
       <div class="bildirim-govde">
         <b>${kacir(y.baslik)}</b>
-        <p>${kacir([y.mahalle, y.ilce, y.il].filter(Boolean).join(' / ') || KATEGORILER[y.kategori])}</p>
+        <p>${kacir(konumYazisi(y, KATEGORILER[y.kategori]))}</p>
         <time style="color:var(--altin);font-weight:800">📍 ${uzaklik(y._m)}</time>
       </div>
     </div>`;
@@ -1228,7 +1239,7 @@ function haritaCiz(){
       <div class="pop-govde">
         ${y.durum === 'beklemede' ? '<span class="rozet rozet-beklemede">Onay Bekliyor</span>' : ''}
         <b>${kacir(y.baslik)}</b>
-        <span>${KATEGORILER[y.kategori]||''}${(y.ilce||y.il) ? ' • ' + kacir([y.mahalle, y.ilce, y.il].filter(Boolean).join(' / ')) : ''}</span>
+        <span>${KATEGORILER[y.kategori]||''}${konumYazisi(y) ? ' • ' + kacir(konumYazisi(y)) : ''}</span>
         ${(y.kisiler||[]).length ? `<span>${kacir(y.kisiler.slice(0,2).map(k=>k.ad).join(', '))}${y.kisiler.length>2?'…':''}</span>` : ''}
         ${ziyaretSayisi(y) ? `<span>🕌 ${ziyaretSayisi(y)} ziyaretçi</span>` : ''}
         <button class="btn btn-kucuk btn-tam" data-detay style="margin-top:9px">Detayları Gör</button>
@@ -1269,10 +1280,25 @@ $('#btn-konumum').addEventListener('click', () => {
 /* ====================== KEŞFET ====================== */
 function suzgecleriDoldur(){
   const onayli = yerler.filter(y => y.durum === 'onaylandi');
-  const iller = [...new Set(onayli.map(y => y.il).filter(Boolean))].sort((a,b) => a.localeCompare(b,'tr'));
-  const ilSec = $('#suzgec-il');
-  const onceki = suzgec.il;
-  ilSec.innerHTML = '<option value="">Tüm İller</option>' + iller.map(i => `<option ${i===onceki?'selected':''}>${kacir(i)}</option>`).join('');
+  // ülke filtresi: birden fazla ülke varsa göster
+  const ulkeler = [...new Set(onayli.map(y => y.ulke).filter(Boolean))].sort((a,b) => a.localeCompare(b,'tr'));
+  const ulkeSatir = $('#ulke-suzgec-satir');
+  if (ulkeler.length > 1){
+    ulkeSatir.style.display = 'flex';
+    $('#suzgec-ulke').innerHTML = '<option value="">Tüm Ülkeler</option>' +
+      ulkeler.map(u => `<option ${u===suzgec.ulke?'selected':''}>${kacir(u)}</option>`).join('');
+  } else {
+    ulkeSatir.style.display = 'none';
+    suzgec.ulke = '';
+  }
+  // seçili ülkeye göre il/şehir listesi (ülke seçili değilse hepsi)
+  const ulkeliler = onayli.filter(y => !suzgec.ulke || y.ulke === suzgec.ulke);
+  const turkiyeMi = !suzgec.ulke || suzgec.ulke === 'Türkiye';
+  const iller = [...new Set(ulkeliler.map(y => y.il).filter(Boolean))].sort((a,b) => a.localeCompare(b,'tr'));
+  $('#suzgec-il').innerHTML = `<option value="">${turkiyeMi ? 'Tüm İller' : 'Tüm Şehirler'}</option>` +
+    iller.map(i => `<option ${i===suzgec.il?'selected':''}>${kacir(i)}</option>`).join('');
+  // ilçe sadece Türkiye'de anlamlı
+  $('#suzgec-ilce').style.display = turkiyeMi ? 'block' : 'none';
   ilceDoldur();
   const cipler = $('#kategori-cipler');
   cipler.innerHTML = `<button class="cip ${!suzgec.kategori?'aktif':''}" data-k="">Tümü</button>` +
@@ -1280,9 +1306,10 @@ function suzgecleriDoldur(){
   cipler.querySelectorAll('.cip').forEach(c => c.addEventListener('click', () => { suzgec.kategori = c.dataset.k; suzgecleriDoldur(); kesfetCiz(); }));
 }
 function ilceDoldur(){
-  const ilceler = [...new Set(yerler.filter(y => y.durum==='onaylandi' && (!suzgec.il || y.il===suzgec.il)).map(y => y.ilce).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));
+  const ilceler = [...new Set(yerler.filter(y => y.durum==='onaylandi' && (!suzgec.ulke || y.ulke===suzgec.ulke) && (!suzgec.il || y.il===suzgec.il)).map(y => y.ilce).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));
   $('#suzgec-ilce').innerHTML = '<option value="">Tüm İlçeler</option>' + ilceler.map(i => `<option ${i===suzgec.ilce?'selected':''}>${kacir(i)}</option>`).join('');
 }
+$('#suzgec-ulke').addEventListener('change', e => { suzgec.ulke = e.target.value; suzgec.il=''; suzgec.ilce=''; suzgecleriDoldur(); kesfetCiz(); });
 $('#suzgec-il').addEventListener('change', e => { suzgec.il = e.target.value; suzgec.ilce=''; ilceDoldur(); kesfetCiz(); });
 $('#suzgec-ilce').addEventListener('change', e => { suzgec.ilce = e.target.value; kesfetCiz(); });
 $('#arama').addEventListener('input', e => { suzgec.arama = e.target.value; kesfetCiz(); });
@@ -1291,11 +1318,12 @@ function kesfetCiz(){
   const a = trKucuk(suzgec.arama);
   const liste = yerler.filter(y => {
     if (y.durum !== 'onaylandi') return false;
+    if (suzgec.ulke && y.ulke !== suzgec.ulke) return false;
     if (suzgec.il && y.il !== suzgec.il) return false;
     if (suzgec.ilce && y.ilce !== suzgec.ilce) return false;
     if (suzgec.kategori && y.kategori !== suzgec.kategori) return false;
     if (a){
-      const metin = trKucuk([y.baslik, y.il, y.ilce, y.mahalle, ...(y.kisiler||[]).map(k => k.ad + ' ' + (k.unvan||''))].join(' '));
+      const metin = trKucuk([y.baslik, y.il, y.ilce, y.mahalle, y.ulke, ...(y.kisiler||[]).map(k => k.ad + ' ' + (k.unvan||''))].join(' '));
       if (!metin.includes(a)) return false;
     }
     return true;
@@ -1315,7 +1343,7 @@ function kesfetCiz(){
         `<div class="kapak-bos"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2C15 5.5 18 7.5 18 12v8H6v-8c0-4.5 3-6.5 6-10z"/></svg></div>`}
       <div style="flex:1;min-width:0">
         <h3>${kacir(y.baslik)}</h3>
-        <div class="alt">${kacir([y.mahalle, y.ilce, y.il].filter(Boolean).join(' / ') || 'Konum belirtilmemiş')}</div>
+        <div class="alt">${kacir(konumYazisi(y, 'Konum belirtilmemiş'))}</div>
         ${(y.kisiler||[]).length ? `<div class="kisiler">${kacir(y.kisiler.map(k=>k.ad).join(', '))}</div>` : ''}
         <div class="rozetler"><span class="rozet rozet-kategori">${KATEGORILER[y.kategori]||y.kategori}</span></div>
       </div></div>`;
@@ -1448,7 +1476,7 @@ async function detayAc(id){
     <h1 class="detay-baslik">${kacir(y.baslik)}</h1>
     <div class="detay-konum">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-      ${kacir([y.mahalle, y.ilce, y.il].filter(Boolean).join(' / ') || 'Konum belirtilmemiş')}
+      ${kacir(konumYazisi(y, 'Konum belirtilmemiş'))}
     </div>
     ${y.durum === 'reddedildi' && y.red_nedeni ? `<p style="margin-top:8px;font-size:13px;color:var(--kirmizi)"><b>Red nedeni:</b> ${kacir(y.red_nedeni)}</p>` : ''}
     ${y.durum === 'onaylandi' ? `<button class="ziyaret-btn ${benimZiyaretlerim.has(y.id) ? 'aktif' : ''}" id="d-ziyaret">
@@ -1758,15 +1786,37 @@ function ilIlceBul(lat, lng){
     try{
       const c = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=tr&zoom=16`).then(r => r.json());
       const a = c.address || {};
+      const ulke = a.country || '';
+      const ulkeKodu = (a.country_code || '').toLowerCase();
       const il = a.province || a.state || a.city || '';
       const ilce = a.county || a.district || a.town || a.city_district || '';
       const mahalle = a.neighbourhood || a.suburb || a.quarter || a.village || a.hamlet || '';
-      if (il && !$('#girdi-il').dataset.elle) $('#girdi-il').value = il;
-      if (ilce && !$('#girdi-ilce').dataset.elle) $('#girdi-ilce').value = ilce.replace(/ merkez$/i,'');
-      if (mahalle && !$('#girdi-mahalle').dataset.elle) $('#girdi-mahalle').value = mahalle.replace(/ (mahallesi|mah\.?)$/i,'');
+      // taslağa ülke bilgisini yaz
+      taslak.ulke = ulke || null;
+      taslak.ulkeKodu = ulkeKodu || null;
+      formUlkeyeUyarla(ulkeKodu);
+      if (ulke && !$('#girdi-ulke').dataset.elle) $('#girdi-ulke').value = ulke;
+      if (ulkeKodu === 'tr' || !ulkeKodu){
+        if (il && !$('#girdi-il').dataset.elle) $('#girdi-il').value = il;
+        if (ilce && !$('#girdi-ilce').dataset.elle) $('#girdi-ilce').value = ilce.replace(/ merkez$/i,'');
+        if (mahalle && !$('#girdi-mahalle').dataset.elle) $('#girdi-mahalle').value = mahalle.replace(/ (mahallesi|mah\.?)$/i,'');
+      } else {
+        // yurtdışı: il alanını "şehir" olarak kullan
+        const sehir = a.city || a.town || il || ilce || '';
+        if (sehir && !$('#girdi-il').dataset.elle) $('#girdi-il').value = sehir;
+      }
     }catch(e){ /* sessiz */ }
   }, 700);
 }
+function formUlkeyeUyarla(ulkeKodu){
+  const yurtdisi = ulkeKodu && ulkeKodu !== 'tr';
+  $('#ulke-alan').style.display = yurtdisi ? 'block' : 'none';
+  $('#ilce-alan').style.display = yurtdisi ? 'none' : 'block';
+  $('#mahalle-alan').style.display = yurtdisi ? 'none' : 'block';
+  $('#girdi-il-label').textContent = yurtdisi ? 'Şehir' : 'İl';
+  $('#girdi-il').placeholder = yurtdisi ? 'Şehir' : 'Otomatik';
+}
+$('#girdi-ulke').addEventListener('input', e => e.target.dataset.elle = '1');
 $('#girdi-il').addEventListener('input', e => e.target.dataset.elle = '1');
 $('#girdi-ilce').addEventListener('input', e => e.target.dataset.elle = '1');
 $('#girdi-mahalle').addEventListener('input', e => e.target.dataset.elle = '1');
@@ -1785,6 +1835,8 @@ function sihirbazAc(yer = null){
     exifIsleri: [],
     exifSonuc: null,
     kapak: null,
+    ulke: yer ? (yer.ulke || 'Türkiye') : null,
+    ulkeKodu: yer ? (yer.ulke_kodu || 'tr') : null,
   };
   $('#sihirbaz-baslik').textContent = yer ? 'Kaydı Düzenle' : 'Yeni Kayıt';
   $('#girdi-baslik').value = yer?.baslik || '';
@@ -1793,10 +1845,12 @@ function sihirbazAc(yer = null){
   $('#kaynak-formlari').innerHTML = '';
   const mevcutKaynaklar = (yer?.kaynaklar?.length ? yer.kaynaklar : (yer?.kaynak ? [{baslik: yer.kaynak, url: null}] : []));
   mevcutKaynaklar.forEach(ky => kaynakFormuEkle(ky));
+  $('#girdi-ulke').value = yer?.ulke || '';
   $('#girdi-il').value = yer?.il || ''; $('#girdi-ilce').value = yer?.ilce || '';
   $('#girdi-mahalle').value = yer?.mahalle || '';
-  delete $('#girdi-il').dataset.elle; delete $('#girdi-ilce').dataset.elle; delete $('#girdi-mahalle').dataset.elle;
-  if (yer){ $('#girdi-il').dataset.elle='1'; $('#girdi-ilce').dataset.elle='1'; $('#girdi-mahalle').dataset.elle='1'; }
+  delete $('#girdi-il').dataset.elle; delete $('#girdi-ilce').dataset.elle; delete $('#girdi-mahalle').dataset.elle; delete $('#girdi-ulke').dataset.elle;
+  if (yer){ $('#girdi-il').dataset.elle='1'; $('#girdi-ilce').dataset.elle='1'; $('#girdi-mahalle').dataset.elle='1'; $('#girdi-ulke').dataset.elle='1'; }
+  formUlkeyeUyarla(yer?.ulke_kodu || 'tr');
   taslak.mukerrerOnay = false;
   $('#mukerrer-alan').innerHTML = '';
   $('#rev-aciklama-alan').style.display = taslak.revizyonMu ? 'block' : 'none';
@@ -2131,13 +2185,16 @@ $('#btn-kaydet').addEventListener('click', async () => {
   const baslik = $('#girdi-baslik').value.trim();
   if (baslik.length < 2) return bildir('Yerin adını yaz', true);
   if (!taslak.lat) return bildir('Konum eksik', true);
+  const yurtdisi = taslak.ulkeKodu && taslak.ulkeKodu !== 'tr';
   const alanlar = {
     baslik, kategori: $('#girdi-kategori').value,
     aciklama: $('#girdi-aciklama').value.trim() || null,
     kaynaklar: kaynaklariOku(),
+    ulke: yurtdisi ? ($('#girdi-ulke').value.trim() || taslak.ulke || null) : 'Türkiye',
+    ulke_kodu: taslak.ulkeKodu || 'tr',
     il: $('#girdi-il').value.trim() || null,
-    ilce: $('#girdi-ilce').value.trim() || null,
-    mahalle: $('#girdi-mahalle').value.trim() || null,
+    ilce: yurtdisi ? null : ($('#girdi-ilce').value.trim() || null),
+    mahalle: yurtdisi ? null : ($('#girdi-mahalle').value.trim() || null),
     lat: taslak.lat, lng: taslak.lng,
     videolar: videolariOku(),
   };
@@ -2390,7 +2447,7 @@ async function yonetimCiz(){
     if (!bekleyen.length){ k.innerHTML = '<div class="bos-durum"><b>Bekleyen kayıt yok</b>Tüm kayıtlar incelendi.</div>'; return; }
     k.innerHTML = bekleyen.map(y => `<div class="onay-kart kart">
       <div class="ust"><div><h3>${kacir(y.baslik)}</h3>
-        <div class="meta">${KATEGORILER[y.kategori]} • ${kacir([y.mahalle,y.ilce,y.il].filter(Boolean).join(' / ')||'Konumsuz')} • ${kacir(y.ekleyen?.ad||'?')} • ${tarihYaz(y.created_at)}</div></div>
+        <div class="meta">${KATEGORILER[y.kategori]} • ${kacir(konumYazisi(y, 'Konumsuz'))} • ${kacir(y.ekleyen?.ad||'?')} • ${tarihYaz(y.created_at)}</div></div>
         <span class="rozet rozet-beklemede">Bekliyor</span></div>
       ${(y.fotograflar||[]).length ? `<div class="onay-foto">${y.fotograflar.map(f=>`<img loading="lazy" src="${fotoUrl(f.yol)}">`).join('')}</div>` : ''}
       ${y.aciklama ? `<p style="font-size:13px;color:#4a564d;line-height:1.5">${kacir(y.aciklama.slice(0,260))}${y.aciklama.length>260?'…':''}</p>` : ''}
