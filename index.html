@@ -578,7 +578,7 @@ img{display:block}
         <div class="bolum-baslik" style="margin-bottom:8px">Kategorilere Göre</div>
         <div id="kategori-istatistik"></div>
       </div>
-      <div class="kart" style="padding:16px;margin-top:12px">
+      <div class="kart" style="padding:16px;margin-top:12px" id="katki-bolumu">
         <div class="bolum-baslik" style="margin-bottom:4px">Katkı Sıralaması</div>
         <p style="font-size:12px;color:var(--soluk);margin-bottom:8px">En çok yer ekleyen ve ziyaret eden gönüllüler</p>
         <div class="sekmeler" style="margin-bottom:10px">
@@ -827,7 +827,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.18.1';
+const SURUM = '1.18.3';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1038,8 +1038,23 @@ async function profilGetir(){
 async function girisIste(){ $('#kip-giris').classList.add('acik'); }
 $('#kip-giris-kapat').addEventListener('click', () => $('#kip-giris').classList.remove('acik'));
 $('#btn-google-giris').addEventListener('click', async () => {
-  const {error} = await sb.auth.signInWithOAuth({provider:'google', options:{redirectTo: location.origin + location.pathname}});
-  if (error) bildir('Giriş başlatılamadı: ' + error.message, true);
+  if (window.Capacitor){
+    // APK: WebView'da Google girişi engelli — sistem tarayıcısında aç
+    const redirectTo = 'com.kamilsaim.turbedar://auth-callback';
+    const {data, error} = await sb.auth.signInWithOAuth({
+      provider:'google',
+      options:{ redirectTo, skipBrowserRedirect:true }
+    });
+    if (error) return bildir('Giriş başlatılamadı: ' + error.message, true);
+    if (data?.url){
+      const {Browser} = Capacitor.Plugins;
+      await Browser.open({url: data.url, windowName:'_self'});
+    }
+  } else {
+    // Web: normal akış
+    const {error} = await sb.auth.signInWithOAuth({provider:'google', options:{redirectTo: location.origin + location.pathname}});
+    if (error) bildir('Giriş başlatılamadı: ' + error.message, true);
+  }
 });
 async function cikisYap(){
   await sb.auth.signOut();
@@ -1476,6 +1491,8 @@ function kisiselIstatistikCiz(){
 }
 function katkiCiz(){
   const kutu = $('#katki-istatistik'); if (!kutu) return;
+  const bolum = $('#katki-bolumu'); if (bolum) bolum.style.display = kullanici ? 'block' : 'none';
+  if (!kullanici) return;
   const liste = [...katkilar]
     .filter(k => (katkiOlcut === 'ekleme' ? k.ekleme : k.ziyaret) > 0)
     .sort((a,b) => (b[katkiOlcut] - a[katkiOlcut]) || (b.ekleme - a.ekleme))
@@ -2782,6 +2799,29 @@ async function yonetimCiz(){
   if (es) detayAc(es[1]);
 
   guncellemeKontrol();
+
+  // Capacitor APK: sistem tarayıcısından dönen OAuth callback'i yakala
+  if (window.Capacitor){
+    const {App} = Capacitor.Plugins;
+    const {Browser} = Capacitor.Plugins;
+    App.addListener('appUrlOpen', async ({url}) => {
+      if (url && url.includes('auth-callback')){
+        try{ await Browser.close(); }catch(e){}
+        // URL'deki token'ları çıkar ve oturumu kur
+        const hash = url.split('#')[1];
+        if (hash){
+          const params = new URLSearchParams(hash);
+          const access_token = params.get('access_token');
+          const refresh_token = params.get('refresh_token');
+          if (access_token && refresh_token){
+            const {error} = await sb.auth.setSession({access_token, refresh_token});
+            if (error){ bildir('Giriş tamamlanamadı: ' + error.message, true); }
+            else { bildir('Giriş başarılı — hoş geldin!'); }
+          }
+        }
+      }
+    });
+  }
 })();
 </script>
 </body>

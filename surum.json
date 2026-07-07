@@ -1,5 +1,5 @@
 {
-  "surum": "1.18.1",
+  "surum": "1.18.3",
   "zorunlu": false,
-  "not": "Harita butonları ve ekleme şeridi alt menünün arkasında kalma sorunu giderildi."
+  "not": "Katkı sıralaması ve kişisel istatistikler sadece giriş yapanlara görünür."
 }
