@@ -1,5 +1,5 @@
 {
-  "surum": "1.18.3",
+  "surum": "1.19.0",
   "zorunlu": false,
-  "not": "Katkı sıralaması ve kişisel istatistikler sadece giriş yapanlara görünür."
+  "not": "Tarayıcıdan açanlara ana ekrana ekleme önerisi (Android: gerçek yükleme, iOS: yönlendirme kartı)."
 }
