@@ -49,12 +49,17 @@ Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıt
 
 ## Teknoloji
 
-Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade bir uygulamadır. Arka planda [Supabase](https://supabase.com) (veritabanı, kimlik doğrulama ve dosya depolama) kullanır; harita için [Leaflet](https://leafletjs.com), giriş için Google ile kimlik doğrulama tercih edilmiştir. [GitHub Pages](https://pages.github.com) üzerinden yayınlanır.
+Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade bir uygulamadır. Arka planda [Supabase](https://supabase.com) (veritabanı, kimlik doğrulama ve dosya depolama) kullanır; harita için [Leaflet](https://leafletjs.com), giriş için Google ile kimlik doğrulama tercih edilmiştir. [GitHub Pages](https://pages.github.com) üzerinden yayınlanır. Aynı kod, [Capacitor](https://capacitorjs.com) ile sarılarak Android uygulaması (APK) olarak da dağıtılabilir — web sürümü güncellendiğinde mobil uygulama da otomatik güncellenir.
 
 ## Sürüm Geçmişi
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.18** | Harita butonları sağ alt köşede toplandı, APK'da Google girişi sistem tarayıcısında açılıyor, katkı sıralaması sadece giriş yapana görünür |
+| **1.17** | Haritada "buraya ekle" modu — bir noktaya dokunarak yeni kayıt başlatma |
+| **1.16** | Yurtdışı kayıtlar için ülke bilgisi ve keşfette ülke filtresi |
+| **1.15** | WhatsApp iletişim numarası kurucu profilinden yönetiliyor |
+| **1.14** | Profile "Türbedar Hakkında" sayfası ve iletişim bölümü |
 | **1.13** | Kapak fotoğrafı seçimi — ilk gösterilecek fotoğrafı belirleme |
 | **1.12** | Kilometre taşı kutlamaları, onay bildirimleri, "yakınımdaki yerler" |
 | **1.11** | Kişisel istatistikler İstatistik sekmesine taşındı, profil sadeleşti |
