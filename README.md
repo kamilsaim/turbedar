@@ -55,6 +55,7 @@ Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.22** | Canlı güncelleme yorum ve ek bilgi önerilerine de genişledi; Hakkında sayfasına GitHub linki ve paylaş butonu |
 | **1.21** | Canlı güncelleme: onay/red anında uygulama açıkken bile anlık yansıyor, bildirimler beklemeden düşüyor |
 | **1.20** | Push bildirim altyapısı — cihaz kaydı ve bildirime dokununca ilgili kayda gitme |
 | **1.19** | Tarayıcıdan açanlara "ana ekrana ekle" önerisi (Android gerçek yükleme, iOS yönlendirme) |

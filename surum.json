@@ -1,5 +1,5 @@
 {
-  "surum": "1.21.0",
+  "surum": "1.22.0",
   "zorunlu": false,
-  "not": "Canlı güncelleme: onay/red anında uygulama açıkken bile anlık yansıyor, bildirimler beklemeden düşüyor."
+  "not": "Yorum ve ek bilgi önerileri de anında düşüyor. Hakkında sayfasına GitHub linki ve paylaş butonu eklendi."
 }

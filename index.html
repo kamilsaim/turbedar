@@ -859,7 +859,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.21.0';
+const SURUM = '1.22.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -931,14 +931,11 @@ function surumKarsilastir(a, b){
 }
 async function guncellemeKontrol(){
   try{
-    // önbelleği aşmak için zaman damgası eklenir
-    const r = await fetch('surum.json?t=' + Date.now(), {cache: 'no-store'});
-    if (!r.ok) return;
-    const m = await r.json();
-    if (m.surum && surumKarsilastir(m.surum, SURUM) > 0){
-      guncellemeBildir(m);
+    const {data} = await sb.from('turbedar_surum').select('*').eq('id', 1).maybeSingle();
+    if (data?.surum && surumKarsilastir(data.surum, SURUM) > 0){
+      guncellemeBildir({surum: data.surum, zorunlu: data.zorunlu, not: data.not_metni});
     }
-  }catch(e){ /* çevrimdışı veya dosya yok — sessiz geç */ }
+  }catch(e){ /* çevrimdışı — sessiz geç */ }
 }
 function guncellemeBildir(m){
   if ($('#guncelleme-serit')) return;
@@ -1208,21 +1205,67 @@ function yakinListele(lat, lng){
 
 /* ====================== VERİ KATMANI ====================== */
 /* ====================== CANLI GÜNCELLEME (REALTIME) ====================== */
+
+/* Genel kanal: giriş yapmış/yapmamış HERKES için — yeni kayıt, silme, onay/red
+   anında herkesin haritasına/keşfetine yansısın. Uygulama açılışında bir kez
+   kurulur, oturum durumuna bakmaz. */
+let realtimeGenelKanal = null;
+let realtimeYenilemeZamanlayici = null;
+function realtimeYenile(){
+  // Kısa süre içinde birden fazla değişiklik gelirse tek seferde tazele (arka arkaya yığılmasın)
+  clearTimeout(realtimeYenilemeZamanlayici);
+  realtimeYenilemeZamanlayici = setTimeout(async () => {
+    await veriYukle();
+    yonetimRozetiGuncelle();
+    if ($('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif')) yonetimCiz();
+  }, 300);
+}
+function realtimeGenelBaslat(){
+  if (realtimeGenelKanal) return; // zaten kurulu, tekrar açma
+  realtimeGenelKanal = sb.channel('turbedar-genel')
+    .on('postgres_changes', {event:'*', schema:'public', table:'turbedar_yerler'}, payload => {
+      // Şu an açık olan detay sayfası silinen kayda aitse kapat ve bilgilendir
+      if (payload.eventType === 'DELETE' && acikYerId && payload.old?.id === acikYerId){
+        sayfaKapat();
+        bildir('Bu kayıt kaldırıldı', true);
+      }
+      realtimeYenile();
+    })
+    .on('postgres_changes', {event:'*', schema:'public', table:'turbedar_yorumlar'}, payload => {
+      // Açık detay sayfasına ait bir yorum değiştiyse anında tazele
+      const yerId = payload.new?.yer_id || payload.old?.yer_id;
+      if (acikYerId && yerId === acikYerId) yorumlariYukle(acikYerId);
+    })
+    .on('postgres_changes', {event:'*', schema:'public', table:'turbedar_katki_notlari'}, payload => {
+      const yerId = payload.new?.yer_id || payload.old?.yer_id;
+      // Açık detay sayfasına ait bir ek bilgi değiştiyse anında tazele
+      if (acikYerId && yerId === acikYerId) katkiNotlariYukle(acikYerId);
+      // Yönetici bekleyen sayısı ve Revizyonlar sekmesi canlı güncellensin
+      yonetimRozetiGuncelle();
+      if (yonetici() && $('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif') && aktifSekme === 'revizyon') yonetimCiz();
+    })
+    .on('postgres_changes', {event:'*', schema:'public', table:'turbedar_revizyonlar'}, () => {
+      // Düzenleme önerisi (kişi/kaynak/video değişikliği) canlı yansısın
+      yonetimRozetiGuncelle();
+      if (yonetici() && $('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif') && aktifSekme === 'revizyon') yonetimCiz();
+    })
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'turbedar_surum', filter:'id=eq.1'}, payload => {
+      // Yeni sürüm yayınlandığı an — açık uygulamalarda ANINDA bildirim çıkar
+      const yeni = payload.new;
+      if (yeni?.surum && surumKarsilastir(yeni.surum, SURUM) > 0){
+        guncellemeBildir({surum: yeni.surum, zorunlu: yeni.zorunlu, not: yeni.not_metni});
+      }
+    })
+    .subscribe();
+}
+
+/* Kişisel kanal: sadece giriş yapmış kullanıcı için — anlık bildirim toast'ı ve zil. */
 let realtimeKanal = null;
 function realtimeBaslat(){
   // önceki abonelik varsa temizle (giriş/çıkış tekrarında sızıntı olmasın)
   if (realtimeKanal){ sb.removeChannel(realtimeKanal); realtimeKanal = null; }
   if (!kullanici) return;
-  realtimeKanal = sb.channel('turbedar-canli-' + kullanici.id)
-    // Kendi eklediğim bir kaydın durumu değişince (onay/red) anında tazele
-    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'turbedar_yerler', filter:`ekleyen_id=eq.${kullanici.id}`}, () => {
-      veriYukle();
-      if ($('.gorunum[data-gorunum="istatistik"]').classList.contains('aktif')) kisiselIstatistikCiz();
-    })
-    // Yönetici onayladığı/reddettiği anda bekleyen sayısı canlı azalsın
-    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'turbedar_yerler', filter:`durum=eq.onaylandi`}, () => {
-      if (yonetici()) yonetimRozetiGuncelle();
-    })
+  realtimeKanal = sb.channel('turbedar-kisisel-' + kullanici.id)
     // Bana yeni bir bildirim geldiğinde anında zil güncellensin ve toast çıksın
     .on('postgres_changes', {event:'INSERT', schema:'public', table:'turbedar_bildirimler', filter:`kullanici_id=eq.${kullanici.id}`}, payload => {
       bildirimleriYukle();
@@ -2470,8 +2513,26 @@ function hakkindaAc(){
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.4 1.3 4.9L2 22l5.3-1.4c1.4.8 3 1.2 4.7 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
       WhatsApp ile Yaz
     </a>` : ''}
+    <div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
+    <div class="bolum-baslik" style="margin-bottom:8px">Uygulamayı Paylaş</div>
+    <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-bottom:10px">Bilgisayardan veya iPhone'dan açmak isteyenlerle bağlantıyı paylaş; kaynak kodunu görmek istersen GitHub'a bakabilirsin.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-kucuk" id="hakkinda-paylas" style="flex:1;min-width:140px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>
+        Bağlantıyı Paylaş
+      </button>
+      <a class="btn-ghost btn btn-kucuk" href="https://github.com/kamilsaim/turbedar" target="_blank" rel="noopener noreferrer" style="flex:1;min-width:140px;text-align:center;text-decoration:none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-right:5px;vertical-align:-3px"><path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.55 2.87 8.4 6.84 9.76.5.1.68-.22.68-.5 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.36-3.37-1.36-.45-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.05 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05a9.4 9.4 0 0 1 5 0c1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.92-2.34 4.78-4.57 5.04.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.5A10.02 10.02 0 0 0 22 12.26C22 6.58 17.52 2 12 2z"/></svg>
+        GitHub
+      </a>
+    </div>
     <p style="text-align:center;font-size:11px;color:var(--soluk);margin-top:16px;letter-spacing:.06em">Türbedar v${SURUM} • Edeple gelen, lütufla gider</p>`;
   $('#kip-hakkinda').classList.add('acik');
+  $('#hakkinda-paylas').addEventListener('click', async () => {
+    const url = 'https://kamilsaim.github.io/turbedar/';
+    if (navigator.share){ try{ await navigator.share({title:'Türbedar', text:'Türbedar — türbe ve mezar envanteri', url}); }catch(e){} }
+    else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
+  });
 }
 $('#hakkinda-kapat').addEventListener('click', () => $('#kip-hakkinda').classList.remove('acik'));
 $('#hakkinda-kapat2').addEventListener('click', () => $('#kip-hakkinda').classList.remove('acik'));
@@ -2905,6 +2966,7 @@ function yukleSeridiKapat(tur){
   yonetimRozetiGuncelle();
   bildirimleriYukle();
   await veriYukle();
+  realtimeGenelBaslat();
   realtimeBaslat();
 
   // paylaşılan bağlantı (#yer=ID)
