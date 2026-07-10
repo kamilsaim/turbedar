@@ -859,7 +859,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.19.0';
+const SURUM = '1.20.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1096,12 +1096,16 @@ sb.auth.onAuthStateChange((_olay, oturum) => {
   const onceki = kullanici?.id;
   kullanici = oturum?.user || null;
   if (kullanici?.id !== onceki){
+    // Açık kalmış "giriş yap" penceresi varsa (özellikle APK'da sistem tarayıcısından
+    // dönüşte) oturum başarıyla açıldığında otomatik kapat
+    if (kullanici && $('#kip-giris').classList.contains('acik')) $('#kip-giris').classList.remove('acik');
     // ÖNEMLİ: supabase-js, onAuthStateChange içinde doğrudan sorgu beklenirse
     // kendini kilitler — bu yüzden işler setTimeout ile dışarı ertelenir.
     setTimeout(async () => {
       await profilGetir();
       yonetimRozetiGuncelle();
       bildirimleriYukle();
+      if (pushTokenBekleyen){ pushTokenKaydet(pushTokenBekleyen); pushTokenBekleyen = null; }
       if ($('.gorunum[data-gorunum="profil"]').classList.contains('aktif')) profilCiz();
       veriYukle(); // kendi bekleyenleri de görünür hale gelsin
     }, 0);
@@ -2900,13 +2904,54 @@ function yukleSeridiKapat(tur){
           if (access_token && refresh_token){
             const {error} = await sb.auth.setSession({access_token, refresh_token});
             if (error){ bildir('Giriş tamamlanamadı: ' + error.message, true); }
-            else { bildir('Giriş başarılı — hoş geldin!'); }
+            else {
+              bildir('Giriş başarılı — hoş geldin!');
+              $('#kip-giris').classList.remove('acik');
+            }
           }
         }
       }
     });
+
+    // Push bildirimleri: token al, Supabase'e kaydet, dokununca ilgili kayda git
+    pushBildirimBaslat();
   }
 })();
+
+/* ====================== PUSH BİLDİRİMLERİ (FCM) ====================== */
+async function pushBildirimBaslat(){
+  const {PushNotifications} = Capacitor.Plugins;
+  if (!PushNotifications) return;
+
+  let izin = await PushNotifications.checkPermissions();
+  if (izin.receive === 'prompt') izin = await PushNotifications.requestPermissions();
+  if (izin.receive !== 'granted') return; // kullanıcı reddetti, sessizce geç
+
+  await PushNotifications.register();
+
+  PushNotifications.addListener('registration', async ({value: token}) => {
+    if (kullanici) await pushTokenKaydet(token);
+    else pushTokenBekleyen = token; // henüz giriş yoksa girişten sonra kaydedilir
+  });
+  PushNotifications.addListener('registrationError', err => {
+    console.error('Push kayıt hatası:', err);
+  });
+  // Uygulama açıkken bildirim gelirse: sadece küçük bir bildirim göster (sistem tepsisine düşmez)
+  PushNotifications.addListener('pushNotificationReceived', bildirim => {
+    if (bildirim?.title) bildir('🔔 ' + bildirim.title);
+    bildirimleriYukle();
+  });
+  // Kullanıcı bildirime dokununca (uygulama kapalıyken veya arka plandayken)
+  PushNotifications.addListener('pushNotificationActionPerformed', ({notification}) => {
+    const yerId = notification?.data?.yer_id;
+    if (yerId) setTimeout(() => detayAc(yerId), 400);
+  });
+}
+let pushTokenBekleyen = null;
+async function pushTokenKaydet(token){
+  if (!kullanici || !token) return;
+  await sb.from('turbedar_profiller').update({push_token: token}).eq('id', kullanici.id);
+}
 </script>
 </body>
 </html>

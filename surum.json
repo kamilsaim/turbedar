@@ -1,5 +1,5 @@
 {
-  "surum": "1.19.0",
+  "surum": "1.20.0",
   "zorunlu": false,
-  "not": "Tarayıcıdan açanlara ana ekrana ekleme önerisi (Android: gerçek yükleme, iOS: yönlendirme kartı)."
+  "not": "Push bildirim altyapısı: cihaz kaydı ve bildirime dokununca ilgili kayda gitme (gönderim tarafı ayrıca kurulacak)."
 }
