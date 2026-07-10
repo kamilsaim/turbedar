@@ -1,5 +1,3 @@
 {
-  "surum": "1.22.0",
-  "zorunlu": false,
-  "not": "Yorum ve ek bilgi önerileri de anında düşüyor. Hakkında sayfasına GitHub linki ve paylaş butonu eklendi."
+  "not": "Bu dosya artık kullanılmıyor. Sürüm bilgisi v1.22.1'den itibaren 'turbedar_surum' veritabanı tablosunda tutuluyor (Realtime ile anında bildirim). Bu dosyayı silebilirsiniz."
 }
