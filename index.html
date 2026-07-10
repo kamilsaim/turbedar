@@ -859,7 +859,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.20.0';
+const SURUM = '1.21.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1108,6 +1108,7 @@ sb.auth.onAuthStateChange((_olay, oturum) => {
       if (pushTokenBekleyen){ pushTokenKaydet(pushTokenBekleyen); pushTokenBekleyen = null; }
       if ($('.gorunum[data-gorunum="profil"]').classList.contains('aktif')) profilCiz();
       veriYukle(); // kendi bekleyenleri de görünür hale gelsin
+      realtimeBaslat();
     }, 0);
   }
 });
@@ -1206,6 +1207,30 @@ function yakinListele(lat, lng){
 }
 
 /* ====================== VERİ KATMANI ====================== */
+/* ====================== CANLI GÜNCELLEME (REALTIME) ====================== */
+let realtimeKanal = null;
+function realtimeBaslat(){
+  // önceki abonelik varsa temizle (giriş/çıkış tekrarında sızıntı olmasın)
+  if (realtimeKanal){ sb.removeChannel(realtimeKanal); realtimeKanal = null; }
+  if (!kullanici) return;
+  realtimeKanal = sb.channel('turbedar-canli-' + kullanici.id)
+    // Kendi eklediğim bir kaydın durumu değişince (onay/red) anında tazele
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'turbedar_yerler', filter:`ekleyen_id=eq.${kullanici.id}`}, () => {
+      veriYukle();
+      if ($('.gorunum[data-gorunum="istatistik"]').classList.contains('aktif')) kisiselIstatistikCiz();
+    })
+    // Yönetici onayladığı/reddettiği anda bekleyen sayısı canlı azalsın
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'turbedar_yerler', filter:`durum=eq.onaylandi`}, () => {
+      if (yonetici()) yonetimRozetiGuncelle();
+    })
+    // Bana yeni bir bildirim geldiğinde anında zil güncellensin ve toast çıksın
+    .on('postgres_changes', {event:'INSERT', schema:'public', table:'turbedar_bildirimler', filter:`kullanici_id=eq.${kullanici.id}`}, payload => {
+      bildirimleriYukle();
+      if (payload.new?.baslik) bildir('🔔 ' + payload.new.baslik);
+    })
+    .subscribe();
+}
+
 async function veriYukle(){
   const tum = [];
   let bas = 0; const boy = 1000;
@@ -2880,6 +2905,7 @@ function yukleSeridiKapat(tur){
   yonetimRozetiGuncelle();
   bildirimleriYukle();
   await veriYukle();
+  realtimeBaslat();
 
   // paylaşılan bağlantı (#yer=ID)
   const es = location.hash.match(/#yer=([\w-]+)/);

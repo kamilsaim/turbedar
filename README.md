@@ -42,10 +42,10 @@ Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıt
 - ✅ **Onay ve revizyon sistemi** — Kaliteli ve güvenilir bir envanter için yönetici denetimi
 - 🤝 **Topluluk katkısı** — Fotoğraf, ek bilgi ve düzenleme önerileri
 - 🕌 **Ziyaret takibi** — Gezdiğin yerleri işaretle, kilometre taşlarında manevi mesajlarla
-- 🔔 **Bildirimler** — Kaydın onaylandığında haberin olur
+- 🔔 **Anlık bildirimler** — Kaydın onaylandığı an, telefon kapalı olsa bile haberin olur
 - 📊 **İstatistikler** — Kişisel yolculuğun ve topluluk katkı sıralaması
 - 📿 **Türbe âdâbı** — Ziyaret hakkında bilinmesi gerekenler bölümü
-- 📱 **PWA** — Telefonun ana ekranına eklenip uygulama gibi kullanılabilir
+- 📱 **Uygulama olarak da** — Android'de doğrudan yüklenebilir; tarayıcıdan açanlara ana ekrana ekleme önerilir
 
 ## Teknoloji
 
@@ -55,6 +55,9 @@ Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.21** | Canlı güncelleme: onay/red anında uygulama açıkken bile anlık yansıyor, bildirimler beklemeden düşüyor |
+| **1.20** | Push bildirim altyapısı — cihaz kaydı ve bildirime dokununca ilgili kayda gitme |
+| **1.19** | Tarayıcıdan açanlara "ana ekrana ekle" önerisi (Android gerçek yükleme, iOS yönlendirme) |
 | **1.18** | Harita butonları sağ alt köşede toplandı, APK'da Google girişi sistem tarayıcısında açılıyor, katkı sıralaması sadece giriş yapana görünür |
 | **1.17** | Haritada "buraya ekle" modu — bir noktaya dokunarak yeni kayıt başlatma |
 | **1.16** | Yurtdışı kayıtlar için ülke bilgisi ve keşfette ülke filtresi |
