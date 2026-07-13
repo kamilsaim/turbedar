@@ -268,6 +268,7 @@ img{display:block}
 .kn-icerik{font-size:13.5px;line-height:1.6;color:#3d4a41;white-space:pre-wrap}
 .kn-sil{margin-top:6px;font-size:12px;font-weight:800;color:var(--kirmizi)}
 .kn-foto{max-height:170px;max-width:100%;border-radius:10px;margin-top:8px;cursor:pointer}
+.kn-yonetici-islem{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px dashed var(--cizgi)}
 
 /* hakkında sayfası */
 .hakkinda-adim{display:flex;flex-direction:column;gap:1px;padding:8px 0;border-bottom:1px dashed var(--cizgi)}
@@ -861,7 +862,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.23.0';
+const SURUM = '1.24.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1843,6 +1844,10 @@ async function katkiNotlariYukle(yerId){
     <p class="kn-icerik">${kacir(n.icerik)}</p>
     ${n.foto_yol ? `<img class="kn-foto" src="${fotoUrl(n.foto_yol)}" data-not-foto="${fotoUrl(n.foto_yol)}" alt="" loading="lazy">` : ''}
     ${n.kaynak_url && gecerliLink(n.kaynak_url) ? `<a class="detay-kaynak-link" href="${kacir(n.kaynak_url)}" target="_blank" rel="noopener noreferrer">🔗 Kaynak</a>` : ''}
+    ${n.foto_yol && yonetici() ? `<div class="kn-yonetici-islem">
+      <button class="btn-altin btn btn-kucuk" data-not-galeri="${n.id}">＋ Galeriye Ekle</button>
+      <button class="btn-altin btn btn-kucuk" data-not-kapak="${n.id}">★ Kapak Yap</button>
+    </div>` : ''}
     ${kullanici && ((n.ekleyen_id === kullanici.id && n.durum === 'beklemede') || yonetici()) ? `<button class="kn-sil" data-not-sil="${n.id}">Sil</button>` : ''}
   </div>`).join('');
   kutu.querySelectorAll('[data-not-sil]').forEach(b => b.addEventListener('click', async () => {
@@ -1851,7 +1856,52 @@ async function katkiNotlariYukle(yerId){
     await sb.from('turbedar_katki_notlari').delete().eq('id', b.dataset.notSil);
     katkiNotlariYukle(yerId); yonetimRozetiGuncelle();
   }));
+  kutu.querySelectorAll('[data-not-galeri]').forEach(b => b.addEventListener('click', () =>
+    notFotoGaleriyeAl(data.find(x => x.id === b.dataset.notGaleri), false)));
+  kutu.querySelectorAll('[data-not-kapak]').forEach(b => b.addEventListener('click', () =>
+    notFotoGaleriyeAl(data.find(x => x.id === b.dataset.notKapak), true)));
   kutu.querySelectorAll('[data-not-foto]').forEach(img => img.addEventListener('click', () => galeriAc([img.dataset.notFoto], 0)));
+}
+
+/* Katkı notundaki fotoğrafı ana galeriye al (yönetici).
+   Fotoğraf storage'da kopyalanır — not silinse bile galeri bozulmaz.
+   Künye korunur: fotoğraf, notu ekleyen kişinin adına kaydedilir. */
+async function notFotoGaleriyeAl(not, kapakYap){
+  if (!not?.foto_yol || !yonetici()) return;
+  const onay = await sor(
+    kapakYap ? 'Kapak Fotoğrafı Yap' : 'Galeriye Ekle',
+    kapakYap
+      ? 'Bu fotoğraf ana galeriye eklenip kapak (ilk gösterilen) yapılacak. Katkı sahibinin adı korunur.'
+      : 'Bu fotoğraf ana galeriye eklenecek. Katkı sahibinin adı korunur.',
+    {evetMetin: kapakYap ? 'Kapak Yap' : 'Ekle'});
+  if (!onay) return;
+  try{
+    yukleniyor(true, 'Fotoğraf galeriye alınıyor...');
+    const uzanti = (not.foto_yol.split('.').pop() || 'webp').toLowerCase();
+    const yeniYol = `${not.yer_id}/${crypto.randomUUID()}.${uzanti}`;
+    const {error: ke} = await sb.storage.from(BUCKET).copy(not.foto_yol, yeniYol);
+    if (ke) throw ke;
+    const {data: mevcut} = await sb.from('turbedar_fotograflar').select('id,sira').eq('yer_id', not.yer_id);
+    const enBuyukSira = (mevcut||[]).reduce((e, f) => Math.max(e, f.sira ?? 0), -1);
+    const {error: ie} = await sb.from('turbedar_fotograflar').insert({
+      yer_id: not.yer_id,
+      yol: yeniYol,
+      ekleyen_id: not.ekleyen_id,          // künye: emeği veren kişi
+      sira: kapakYap ? 0 : enBuyukSira + 1,
+    });
+    if (ie){ await sb.storage.from(BUCKET).remove([yeniYol]); throw ie; }  // limit hatası vb. → kopyayı temizle
+    if (kapakYap && (mevcut||[]).length){
+      // eskiler bir sıra kaysın, yeni fotoğraf kapak (0) kalsın
+      for (const f of mevcut) await sb.from('turbedar_fotograflar').update({sira: (f.sira ?? 0) + 1}).eq('id', f.id);
+    }
+    yukleniyor(false);
+    bildir(kapakYap ? '⭐ Kapak fotoğrafı güncellendi' : '📷 Fotoğraf galeriye eklendi');
+    await veriYukle();
+    detayAc(not.yer_id);
+  }catch(err){
+    yukleniyor(false);
+    bildir('Eklenemedi: ' + (err.message || err), true);
+  }
 }
 let notTaslakFoto = null;       // {dosya, onizleme}
 let notAcikYerId = null;
