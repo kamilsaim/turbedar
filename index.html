@@ -862,7 +862,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.24.0';
+const SURUM = '1.24.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1612,6 +1612,13 @@ function kisiselIstatistikCiz(){
   </div>`;
   kutu.querySelectorAll('[data-yer]').forEach(s => s.addEventListener('click', () => detayAc(s.dataset.yer)));
 }
+/* Gizlilik: sıralamada başkalarının tam adı görünmesin — sadece baş harfler.
+   Kendi satırında kendi adını görürsün. */
+function adKisalt(ad){
+  const parcalar = String(ad || '').trim().split(/\s+/).filter(Boolean);
+  if (!parcalar.length) return 'Üye';
+  return parcalar.slice(0, 3).map(p => trBasHarf(p[0]) + '.').join(' ');
+}
 function katkiCiz(){
   const kutu = $('#katki-istatistik'); if (!kutu) return;
   const bolum = $('#katki-bolumu'); if (bolum) bolum.style.display = kullanici ? 'block' : 'none';
@@ -1625,11 +1632,13 @@ function katkiCiz(){
   const enCok = (katkiOlcut === 'ekleme' ? liste[0].ekleme : liste[0].ziyaret) || 1;
   kutu.innerHTML = liste.map((k, i) => {
     const deger = katkiOlcut === 'ekleme' ? k.ekleme : k.ziyaret;
+    const benMiyim = kullanici && k.id === kullanici.id;
+    const gorunenAd = benMiyim ? (k.ad || 'Sen') : adKisalt(k.ad);
     const madalya = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `<span style="color:var(--soluk);font-weight:800;font-size:12px">${i+1}.</span>`;
     return `<div class="katki-satir">
       <span class="katki-sira">${madalya}</span>
-      <img src="${k.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
-      <div class="katki-ad"><b>${kacir(k.ad)}</b>${k.kurucu ? '<span class="rozet rozet-kurucu" style="margin-left:5px">Kurucu</span>' : (k.rol === 'yonetici' ? '<span class="rozet rozet-yonetici" style="margin-left:5px">Yönetici</span>' : '')}</div>
+      <img src="${benMiyim ? (k.avatar_url || VARSAYILAN_AVATAR) : VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
+      <div class="katki-ad"><b>${kacir(gorunenAd)}</b>${benMiyim ? '<span class="rozet rozet-kurucu" style="margin-left:5px;background:var(--zumrut-yumusak);color:var(--zumrut)">Sen</span>' : ''}${k.kurucu ? '<span class="rozet rozet-kurucu" style="margin-left:5px">Kurucu</span>' : (k.rol === 'yonetici' ? '<span class="rozet rozet-yonetici" style="margin-left:5px">Yönetici</span>' : '')}</div>
       <div class="katki-cubuk"><i style="width:${Math.max(8, deger/enCok*100)}%"></i></div>
       <span class="katki-deger">${deger}</span>
     </div>`;
