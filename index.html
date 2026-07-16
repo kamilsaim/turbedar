@@ -269,6 +269,7 @@ img{display:block}
 .kn-sil{margin-top:6px;font-size:12px;font-weight:800;color:var(--kirmizi)}
 .kn-foto{max-height:170px;max-width:100%;border-radius:10px;margin-top:8px;cursor:pointer}
 .kn-yonetici-islem{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px dashed var(--cizgi)}
+.mesaj-kart.okunmadi{border-color:var(--altin);background:var(--altin-soluk)}
 
 /* hakkında sayfası */
 .hakkinda-adim{display:flex;flex-direction:column;gap:1px;padding:8px 0;border-bottom:1px dashed var(--cizgi)}
@@ -621,6 +622,7 @@ img{display:block}
       <div class="sekmeler">
         <button class="sekme aktif" data-sekme="bekleyen">Bekleyen <span id="sk-bekleyen"></span></button>
         <button class="sekme" data-sekme="revizyon">Revizyonlar <span id="sk-revizyon"></span></button>
+        <button class="sekme" data-sekme="mesaj">Mesajlar <span id="sk-mesaj"></span></button>
         <button class="sekme" data-sekme="kullanici">Kullanıcılar</button>
         <button class="sekme" data-sekme="bilgi">Bilgiler</button>
       </div>
@@ -862,7 +864,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.24.1';
+const SURUM = '1.25.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1252,6 +1254,10 @@ function realtimeGenelBaslat(){
       yonetimRozetiGuncelle();
       if (yonetici() && $('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif') && aktifSekme === 'revizyon') yonetimCiz();
     })
+    .on('postgres_changes', {event:'*', schema:'public', table:'turbedar_mesajlar'}, () => {
+      yonetimRozetiGuncelle();
+      if (yonetici() && $('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif') && aktifSekme === 'mesaj') yonetimCiz();
+    })
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'turbedar_surum', filter:'id=eq.1'}, payload => {
       // Yeni sürüm yayınlandığı an — açık uygulamalarda ANINDA bildirim çıkar
       const yeni = payload.new;
@@ -1319,16 +1325,18 @@ async function yonetimRozetiGuncelle(){
   const btn = $('#btn-yonetim'), sayi = $('#onay-sayisi');
   if (!yonetici()){ btn.style.display = 'none'; return; }
   btn.style.display = 'flex';
-  const [{count: bk}, {count: rk}, {count: nk}] = await Promise.all([
+  const [{count: bk}, {count: rk}, {count: nk}, {count: mk}] = await Promise.all([
     sb.from('turbedar_yerler').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
     sb.from('turbedar_revizyonlar').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
     sb.from('turbedar_katki_notlari').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
+    sb.from('turbedar_mesajlar').select('id', {count:'exact', head:true}).eq('okundu', false),
   ]);
-  const toplam = (bk||0) + (rk||0) + (nk||0);
+  const toplam = (bk||0) + (rk||0) + (nk||0) + (mk||0);
   sayi.style.display = toplam ? 'flex' : 'none';
   sayi.textContent = toplam;
   $('#sk-bekleyen').textContent = bk ? `(${bk})` : '';
   $('#sk-revizyon').textContent = (rk||0)+(nk||0) ? `(${(rk||0)+(nk||0)})` : '';
+  $('#sk-mesaj').textContent = mk ? `(${mk})` : '';
 }
 
 /* ====================== GEZİNME ====================== */
@@ -2591,6 +2599,15 @@ function hakkindaAc(){
       WhatsApp ile Yaz
     </a>` : ''}
     <div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
+    <div class="bolum-baslik" style="margin-bottom:8px">Bize Mesaj Gönder</div>
+    <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-bottom:10px">Görüş, öneri veya bildirmek istediğin bir şey varsa doğrudan yöneticilere yazabilirsin.</p>
+    <div id="hakkinda-mesaj-alan">
+      ${kullanici ? `<div class="alan"><input id="mesaj-konu" maxlength="120" placeholder="Konu (isteğe bağlı)"></div>
+      <div class="alan"><textarea id="mesaj-icerik" maxlength="2000" style="min-height:90px" placeholder="Mesajın..."></textarea></div>
+      <button class="btn btn-tam" id="mesaj-gonder-btn">Gönder</button>`
+      : `<button class="btn btn-tam" id="mesaj-giris-btn">Mesaj göndermek için giriş yap</button>`}
+    </div>
+    <div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
     <div class="bolum-baslik" style="margin-bottom:8px">Uygulamayı Paylaş</div>
     <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-bottom:10px">Bilgisayardan veya iPhone'dan açmak isteyenlerle bağlantıyı paylaş; kaynak kodunu görmek istersen GitHub'a bakabilirsin.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -2610,6 +2627,21 @@ function hakkindaAc(){
     if (navigator.share){ try{ await navigator.share({title:'Türbedar', text:'Türbedar — türbe ve mezar envanteri', url}); }catch(e){} }
     else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
   });
+  if (kullanici){
+    $('#mesaj-gonder-btn').addEventListener('click', async () => {
+      const icerik = $('#mesaj-icerik').value.trim();
+      if (icerik.length < 2) return bildir('Lütfen bir mesaj yaz', true);
+      const konu = $('#mesaj-konu').value.trim() || null;
+      const btn = $('#mesaj-gonder-btn'); btn.disabled = true;
+      const {error} = await sb.from('turbedar_mesajlar').insert({gonderen_id: kullanici.id, konu, icerik});
+      btn.disabled = false;
+      if (error) return bildir('Gönderilemedi: ' + error.message, true);
+      $('#mesaj-konu').value = ''; $('#mesaj-icerik').value = '';
+      bildir('🕌 Mesajın yöneticilere iletildi, teşekkürler');
+    });
+  } else {
+    $('#mesaj-giris-btn')?.addEventListener('click', () => { $('#kip-hakkinda').classList.remove('acik'); girisIste(); });
+  }
 }
 $('#hakkinda-kapat').addEventListener('click', () => $('#kip-hakkinda').classList.remove('acik'));
 $('#hakkinda-kapat2').addEventListener('click', () => $('#kip-hakkinda').classList.remove('acik'));
@@ -2869,6 +2901,41 @@ async function yonetimCiz(){
       await sb.from('turbedar_revizyonlar').update({durum:'reddedildi', onaylayan_id: kullanici.id}).eq('id', b.dataset.revReddet);
       bildir('Revizyon reddedildi'); yonetimRozetiGuncelle(); yonetimCiz();
     }));
+  }
+  else if (aktifSekme === 'mesaj'){
+    const {data: mesajlar, error} = await sb.from('turbedar_mesajlar')
+      .select('*, gonderen:turbedar_profiller!turbedar_mesajlar_gonderen_id_fkey(ad,avatar_url,whatsapp)')
+      .order('created_at', {ascending:false}).limit(200);
+    if (error){ k.innerHTML = `<p style="color:var(--kirmizi)">${kacir(error.message)}</p>`; return; }
+    if (!mesajlar.length){ k.innerHTML = '<div class="bos-durum"><b>Henüz mesaj yok</b>Kullanıcılar Hakkında sayfasından mesaj gönderebilir.</div>'; return; }
+    // Görünür olanları okundu say (okunmamışları)
+    const okunmamisIdler = mesajlar.filter(m => !m.okundu).map(m => m.id);
+    k.innerHTML = mesajlar.map(m => `<div class="kart mesaj-kart ${m.okundu ? '' : 'okunmadi'}" style="padding:13px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
+        <img src="${m.gonderen?.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'" style="width:32px;height:32px;border-radius:50%;flex:none">
+        <div style="flex:1;min-width:0">
+          <b style="font-size:14px">${kacir(m.gonderen?.ad || 'Üye')}</b>
+          ${m.konu ? `<div style="font-size:12.5px;color:var(--altin);font-weight:700">${kacir(m.konu)}</div>` : ''}
+        </div>
+        <time style="font-size:11px;color:var(--soluk);flex:none">${tarihYaz(m.created_at)}</time>
+      </div>
+      <p style="font-size:13.5px;line-height:1.6;color:#3d4a41;white-space:pre-wrap">${kacir(m.icerik)}</p>
+      <div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap">
+        ${m.gonderen?.whatsapp && waNumaraTemiz(m.gonderen.whatsapp) ? `<a class="btn-altin btn btn-kucuk" href="https://wa.me/${waNumaraTemiz(m.gonderen.whatsapp)}" target="_blank" rel="noopener noreferrer">WhatsApp'tan yanıtla</a>` : ''}
+        <button class="btn-tehlike btn btn-kucuk" data-mesaj-sil="${m.id}">Sil</button>
+      </div>
+    </div>`).join('');
+    k.querySelectorAll('[data-mesaj-sil]').forEach(b => b.addEventListener('click', async () => {
+      const onay = await sor('Mesajı Sil', 'Bu mesaj kalıcı olarak silinecek.', {evetMetin:'Sil', tehlike:true});
+      if (!onay) return;
+      await sb.from('turbedar_mesajlar').delete().eq('id', b.dataset.mesajSil);
+      yonetimRozetiGuncelle(); yonetimCiz();
+    }));
+    // okunmamışları okundu yap (arka planda)
+    if (okunmamisIdler.length){
+      await sb.from('turbedar_mesajlar').update({okundu:true}).in('id', okunmamisIdler);
+      yonetimRozetiGuncelle();
+    }
   }
   else if (aktifSekme === 'bilgi'){
     const f = duzenlenenBilgi;
