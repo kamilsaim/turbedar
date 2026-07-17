@@ -60,6 +60,14 @@ input,select,textarea{font-family:var(--govde);font-size:15px;color:var(--murekk
 img{display:block}
 ::selection{background:var(--altin-acik)}
 
+/* ince, marka uyumlu kaydırma çubukları (PC'de varsayılan kalın gri çubuk yerine) */
+*{scrollbar-width:thin;scrollbar-color:var(--altin-acik) transparent}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--altin-acik);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--altin)}
+::-webkit-scrollbar-corner{background:transparent}
+
 /* ---------- Genel bileşenler ---------- */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -225,7 +233,7 @@ img{display:block}
 .sayfa.acik{transform:translateY(0)}
 .sayfa-tutamak{padding:10px 0 4px;display:flex;justify-content:center;flex:none}
 .sayfa-tutamak i{width:40px;height:4px;border-radius:99px;background:var(--cizgi)}
-.sayfa-icerik{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px calc(24px + env(safe-area-inset-bottom))}
+.sayfa-icerik{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px calc(24px + env(safe-area-inset-bottom));overflow-wrap:break-word}
 @media(min-width:720px){
   .sayfa{left:50%;right:auto;width:600px;transform:translate(-50%,105%)}
   .sayfa.acik{transform:translate(-50%,0)}
@@ -865,7 +873,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.25.1';
+const SURUM = '1.25.2';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
