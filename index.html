@@ -873,7 +873,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.25.3';
+const SURUM = '1.25.4';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1946,15 +1946,26 @@ $('#not-vazgec').addEventListener('click', () => {
   $('#kip-not').classList.remove('acik');
 });
 $('#not-foto-btn').addEventListener('click', () => $('#not-foto-girdi').click());
-$('#not-foto-girdi').addEventListener('change', e => {
+$('#not-foto-girdi').addEventListener('change', async e => {
   const d = e.target.files[0]; e.target.value = '';
   if (!d) return;
   if (notTaslakFoto) URL.revokeObjectURL(notTaslakFoto.onizleme);
-  notTaslakFoto = {dosya: d, onizleme: URL.createObjectURL(d)};
-  $('#not-foto-onizleme').innerHTML = `<div class="foto-hucre" style="width:110px;aspect-ratio:1"><img src="${notTaslakFoto.onizleme}"><button type="button" id="not-foto-sil">✕</button></div>`;
-  $('#not-foto-sil').addEventListener('click', () => {
-    URL.revokeObjectURL(notTaslakFoto.onizleme); notTaslakFoto = null; $('#not-foto-onizleme').innerHTML = '';
-  });
+  notTaslakFoto = null;
+  $('#not-foto-onizleme').innerHTML = '<p style="font-size:12.5px;color:var(--soluk)">Fotoğraf hazırlanıyor...</p>';
+  try{
+    // Dosyayı SEÇİM ANINDA (tazeyken) sıkıştırıp hazır tut — Android'de galeri
+    // dönüşü sonrası dosya referansı bayatlayıp gönderim anında okunamayabiliyor.
+    const blob = await fotoSikistir(d);
+    if (!blob) throw new Error('Fotoğraf işlenemedi');
+    notTaslakFoto = {blob, onizleme: URL.createObjectURL(blob)};
+    $('#not-foto-onizleme').innerHTML = `<div class="foto-hucre" style="width:110px;aspect-ratio:1"><img src="${notTaslakFoto.onizleme}"><button type="button" id="not-foto-sil">✕</button></div>`;
+    $('#not-foto-sil').addEventListener('click', () => {
+      URL.revokeObjectURL(notTaslakFoto.onizleme); notTaslakFoto = null; $('#not-foto-onizleme').innerHTML = '';
+    });
+  }catch(err){
+    $('#not-foto-onizleme').innerHTML = '';
+    bildir('Fotoğraf eklenemedi: ' + (err.message || err), true);
+  }
 });
 $('#not-gonder').addEventListener('click', async () => {
   const icerik = $('#not-icerik').value.trim();
@@ -1971,8 +1982,7 @@ $('#not-gonder').addEventListener('click', async () => {
     let foto_yol = null;
     if (notTaslakFoto){
       yukleniyor(true, 'Fotoğraf yükleniyor...');
-      const blob = await fotoSikistir(notTaslakFoto.dosya);
-      if (!blob) throw new Error('Fotoğraf işlenemedi');
+      const blob = notTaslakFoto.blob;   // seçim anında hazırlandı — yeniden okuma yok
       const uzanti = blob.type === 'image/webp' ? 'webp' : 'jpg';
       foto_yol = `notlar/${yerId}/${crypto.randomUUID()}.${uzanti}`;
       const {error: ye} = await sb.storage.from(BUCKET).upload(foto_yol, blob, {contentType: blob.type});
@@ -2023,18 +2033,24 @@ async function yorumGonder(yerId){
 
 /* ====================== FOTOĞRAF SIKIŞTIRMA ====================== */
 async function fotoSikistir(dosya){
-  const img = await new Promise((coz, hata) => {
-    const u = URL.createObjectURL(dosya); const i = new Image();
-    i.onload = () => coz(i);
-    i.onerror = () => { URL.revokeObjectURL(u); hata(new Error('Fotoğraf açılamadı — biçimi desteklenmiyor olabilir (örn. HEIC). Lütfen JPEG/PNG bir fotoğraf dene.')); };
-    i.src = u;
-  });
+  // Önce modern yol: createImageBitmap (WebView'da daha dayanıklı, objectURL gerektirmez)
+  let img = null;
+  try{ img = await createImageBitmap(dosya); }catch(e){ img = null; }
+  if (!img){
+    img = await new Promise((coz, hata) => {
+      const u = URL.createObjectURL(dosya); const i = new Image();
+      i.onload = () => coz(i);
+      i.onerror = () => { URL.revokeObjectURL(u); hata(new Error('Fotoğraf açılamadı — biçimi desteklenmiyor olabilir (örn. HEIC). Lütfen JPEG/PNG bir fotoğraf dene.')); };
+      i.src = u;
+    });
+  }
   const enUzun = 1600;
   let {width: g, height: y} = img;
   if (Math.max(g, y) > enUzun){ const oran = enUzun / Math.max(g, y); g = Math.round(g*oran); y = Math.round(y*oran); }
   const tuval = document.createElement('canvas'); tuval.width = g; tuval.height = y;
   tuval.getContext('2d').drawImage(img, 0, 0, g, y);
-  URL.revokeObjectURL(img.src);
+  if (img.close) img.close();               // ImageBitmap belleği bırak
+  else if (img.src) URL.revokeObjectURL(img.src);  // Image yolundaki objectURL'i temizle
   // Safari webp desteklemez ve sessizce PNG üretir (2MB sınırını aşar) — tip kontrolü şart
   let blob = await new Promise(c => tuval.toBlob(c, 'image/webp', 0.8));
   if (!blob || blob.type !== 'image/webp'){
