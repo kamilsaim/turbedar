@@ -44,6 +44,7 @@ Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıt
 - 🕌 **Ziyaret takibi** — Gezdiğin yerleri işaretle, kilometre taşlarında manevi mesajlarla
 - 🔔 **Anlık bildirimler** — Kaydın onaylandığı an, telefon kapalı olsa bile haberin olur
 - 📊 **İstatistikler** — Kişisel yolculuğun ve topluluk katkı sıralaması
+- ✉️ **İletişim** — Uygulama içinden yöneticilere mesaj, WhatsApp ile doğrudan ulaşım
 - 📿 **Türbe âdâbı** — Ziyaret hakkında bilinmesi gerekenler bölümü
 - 📱 **Uygulama olarak da** — Android'de doğrudan yüklenebilir; tarayıcıdan açanlara ana ekrana ekleme önerilir
 
@@ -55,7 +56,10 @@ Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
-| **1.22** | Canlı güncelleme yorum ve ek bilgi önerilerine de genişledi; Hakkında sayfasına GitHub linki ve paylaş butonu |
+| **1.25** | Yöneticilere uygulama içi mesaj gönderme, yöneticilere anlık yeni kayıt/öneri bildirimleri, uygulama kapalıyken gerçek push bildirimleri devrede |
+| **1.24** | Ek bilgideki fotoğraf ana galeriye alınabiliyor veya kapak yapılabiliyor; katkı sıralamasında isimler gizlilik için baş harflerle |
+| **1.23** | Logoya dokununca harita tüm kayıtları çerçeveye sığdırıyor |
+| **1.22** | Sürüm güncellemesi artık anında düşüyor (veritabanı + canlı yayın); yorum ve ek bilgi önerileri de anlık; Hakkında sayfasına GitHub linki ve paylaş butonu |
 | **1.21** | Canlı güncelleme: onay/red anında uygulama açıkken bile anlık yansıyor, bildirimler beklemeden düşüyor |
 | **1.20** | Push bildirim altyapısı — cihaz kaydı ve bildirime dokununca ilgili kayda gitme |
 | **1.19** | Tarayıcıdan açanlara "ana ekrana ekle" önerisi (Android gerçek yükleme, iOS yönlendirme) |
