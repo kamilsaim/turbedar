@@ -873,7 +873,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.25.2';
+const SURUM = '1.25.3';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2025,7 +2025,9 @@ async function yorumGonder(yerId){
 async function fotoSikistir(dosya){
   const img = await new Promise((coz, hata) => {
     const u = URL.createObjectURL(dosya); const i = new Image();
-    i.onload = () => coz(i); i.onerror = hata; i.src = u;
+    i.onload = () => coz(i);
+    i.onerror = () => { URL.revokeObjectURL(u); hata(new Error('Fotoğraf açılamadı — biçimi desteklenmiyor olabilir (örn. HEIC). Lütfen JPEG/PNG bir fotoğraf dene.')); };
+    i.src = u;
   });
   const enUzun = 1600;
   let {width: g, height: y} = img;
