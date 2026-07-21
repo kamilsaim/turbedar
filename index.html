@@ -873,7 +873,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.26.0';
+const SURUM = '1.26.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1032,7 +1032,12 @@ function yakinYerler(lat, lng, haricId){
 const tarihYaz = t => new Date(t).toLocaleDateString('tr-TR', {day:'numeric', month:'long', year:'numeric'});
 const yonetici = () => profil && profil.rol === 'yonetici';
 
+// Dokunma titreşimi — sadece Android/Chrome destekler, iOS Safari'de sessizce yok sayılır.
+function titret(desen = 3){
+  try{ navigator.vibrate?.(desen); }catch(e){ /* desteklenmiyor, sorun değil */ }
+}
 function bildir(metin, hata=false){
+  if (hata) titret();
   const d = document.createElement('div');
   d.className = 'bildirim' + (hata ? ' hata' : '');
   d.textContent = metin;
@@ -1126,6 +1131,7 @@ sb.auth.onAuthStateChange((_olay, oturum) => {
 
 /* ====================== KİLOMETRE TAŞI ====================== */
 function kutlamaGoster(km){
+  titret([3, 60, 3, 60, 3]); // kutlama için üç kısa vuruş — diğer aksiyonlardan ayırt edilsin
   $('#kutlama-img').src = $('.marka img').src;
   $('#kutlama-baslik').textContent = km.b;
   $('#kutlama-govde').textContent = km.g;
@@ -1445,6 +1451,7 @@ function haritaCiz(){
   });
 }
 function tumYerleriGoster(){
+  titret(1); // ikincil bir kısayol, çok hafif bir dokunuş yeter
   const gorunur = yerler.filter(y => y.durum !== 'reddedildi' && y.lat && y.lng);
   if (!gorunur.length){ bildir('Gösterilecek kayıt yok'); return; }
   // Keşfetteki gibi harita görünümündeysek değilsek önce haritaya geç
@@ -1791,7 +1798,7 @@ async function detayAc(id){
     const {error} = await sb.from('turbedar_yerler').delete().eq('id', y.id);
     yukleniyor(false);
     if (error) return bildir('Silinemedi: ' + error.message, true);
-    bildir('Kayıt silindi'); sayfaKapat(); veriYukle(); yonetimRozetiGuncelle();
+    titret(); bildir('Kayıt silindi'); sayfaKapat(); veriYukle(); yonetimRozetiGuncelle();
   });
   if (y.durum === 'onaylandi'){
     yorumlariYukle(y.id);
@@ -1890,6 +1897,7 @@ async function katkiNotlariYukle(yerId){
     const yollar = not ? notFotoYollari(not) : [];
     if (yollar.length) await sb.storage.from(BUCKET).remove(yollar);
     await sb.from('turbedar_katki_notlari').delete().eq('id', b.dataset.notSil);
+    titret();
     katkiNotlariYukle(yerId); yonetimRozetiGuncelle();
   }));
   kutu.querySelectorAll('[data-not-galeri]').forEach(b => b.addEventListener('click', () =>
@@ -2032,7 +2040,7 @@ $('#not-gonder').addEventListener('click', async () => {
     yukleniyor(false);
     notFotolariTemizle();
     $('#kip-not').classList.remove('acik');
-    bildir('🕌 Ek bilgi önerin yönetici onayına gönderildi');
+    titret(); bildir('🕌 Ek bilgi önerin yönetici onayına gönderildi');
     katkiNotlariYukle(yerId); yonetimRozetiGuncelle();
   }catch(err){ yukleniyor(false); bildir('Gönderilemedi: ' + (err.message||err), true); }
 });
@@ -2541,7 +2549,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
         const {error: ke} = await sb.from('turbedar_kisiler').insert(kisiler.map(k => ({...k, yer_id: yeni.id})));
         if (ke) throw ke;
       }
-      bildir('🕌 Kayıt onaya gönderildi — yönetici onayından sonra herkes görebilecek');
+      titret(); bildir('🕌 Kayıt onaya gönderildi — yönetici onayından sonra herkes görebilecek');
       taslak._yeniKayitId = yeni.id;
     } else if (taslak.revizyonMu){
       /* ---- ONAYLI KAYITTA REVİZYON ---- */
@@ -2565,7 +2573,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
       const {error} = await sb.from('turbedar_revizyonlar')
         .insert({yer_id: eski.id, degisiklikler: fark, aciklama, ekleyen_id: kullanici.id});
       if (error) throw error;
-      bildir('Düzenleme önerisi yönetici onayına gönderildi');
+      titret(); bildir('Düzenleme önerisi yönetici onayına gönderildi');
     } else {
       /* ---- BEKLEYEN KENDİ KAYDI veya YÖNETİCİ DÜZENLEMESİ ---- */
       const eski = taslak.duzenlenen;
@@ -2702,7 +2710,7 @@ function hakkindaAc(){
       btn.disabled = false;
       if (error) return bildir('Gönderilemedi: ' + error.message, true);
       $('#mesaj-konu').value = ''; $('#mesaj-icerik').value = '';
-      bildir('🕌 Mesajın yöneticilere iletildi, teşekkürler');
+      titret(); bildir('🕌 Mesajın yöneticilere iletildi, teşekkürler');
     });
   } else {
     $('#mesaj-giris-btn')?.addEventListener('click', () => { $('#kip-hakkinda').classList.remove('acik'); girisIste(); });
@@ -2838,14 +2846,14 @@ async function yonetimCiz(){
     k.querySelectorAll('[data-onayla]').forEach(b => b.addEventListener('click', async () => {
       const {error} = await sb.from('turbedar_yerler').update({durum:'onaylandi', onaylayan_id: kullanici.id, red_nedeni:null}).eq('id', b.dataset.onayla);
       if (error) return bildir('Hata: ' + error.message, true);
-      bildir('✅ Kayıt yayınlandı'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
+      titret(); bildir('✅ Kayıt yayınlandı'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-reddet]').forEach(b => b.addEventListener('click', async () => {
       const neden = await sor('Kaydı Reddet', 'Red nedenini yaz — ekleyen kişi bunu görecek.', {girdi:true, girdiZorunlu:true, girdiYerTutucu:'örn. Konum doğrulanamadı', evetMetin:'Reddet', tehlike:true});
       if (!neden) return;
       const {error} = await sb.from('turbedar_yerler').update({durum:'reddedildi', onaylayan_id: kullanici.id, red_nedeni: neden}).eq('id', b.dataset.reddet);
       if (error) return bildir('Hata: ' + error.message, true);
-      bildir('Kayıt reddedildi'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
+      titret(); bildir('Kayıt reddedildi'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-birlestir]').forEach(b => b.addEventListener('click', async () => {
       const kaynak = yerler.find(x => x.id === b.dataset.birlestir);
@@ -2996,6 +3004,7 @@ async function yonetimCiz(){
       const onay = await sor('Mesajı Sil', 'Bu mesaj kalıcı olarak silinecek.', {evetMetin:'Sil', tehlike:true});
       if (!onay) return;
       await sb.from('turbedar_mesajlar').delete().eq('id', b.dataset.mesajSil);
+      titret();
       yonetimRozetiGuncelle(); yonetimCiz();
     }));
     // okunmamışları okundu yap (arka planda)
