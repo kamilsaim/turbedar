@@ -685,6 +685,7 @@ img{display:block}
       <p style="color:var(--altin);font-size:12px;font-weight:700;text-align:center;margin-bottom:6px">⭐ Birden fazla fotoğrafta, ilk gösterilecek kapağı seçebilirsin.</p>
       <div class="foto-izgara" id="foto-izgara"></div>
       <input type="file" id="foto-girdi" accept="image/*" multiple hidden>
+      <input type="file" id="foto-kamera-girdi" accept="image/*" capture="environment" hidden>
       <div class="sihirbaz-alt">
         <button class="btn-ghost btn" id="sihirbaz-vazgec1" style="background:transparent;color:var(--murekkep);border:1px solid var(--cizgi)">Vazgeç</button>
         <button class="btn" id="adim1-ileri">Devam →</button>
@@ -794,6 +795,16 @@ img{display:block}
 </div>
 
 <!-- ============ EK BİLGİ ÖNERİ KİPİ ============ -->
+<div class="kip" id="kip-foto-kaynak">
+  <div class="kip-kutu" style="max-width:340px">
+    <h3>Fotoğraf Nereden?</h3>
+    <p style="margin-bottom:14px;font-size:13px;color:var(--soluk)">Konumun otomatik ve doğru bulunması için kamerayla anlık çekim önerilir — galeriden seçilen fotoğraflarda Android güvenlik nedeniyle konum bilgisi silinebiliyor.</p>
+    <button class="btn btn-tam" id="fk-kamera" style="margin-bottom:8px">📷 Kamerayla Çek</button>
+    <button class="btn-ghost btn btn-tam" id="fk-galeri" style="border:1px solid var(--cizgi);color:var(--murekkep);margin-bottom:8px">🖼️ Galeriden Seç</button>
+    <button class="btn-ghost btn btn-tam" id="fk-vazgec" style="background:transparent;color:var(--soluk)">Vazgeç</button>
+  </div>
+</div>
+
 <div class="kip" id="kip-not">
   <div class="kip-kutu">
     <h3>Ek Bilgi Öner</h3>
@@ -873,7 +884,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.27.1';
+const SURUM = '1.27.2';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2319,7 +2330,7 @@ function fotoIzgaraCiz(){
       Fotoğraf<br>(${toplam}/${FOTO_LIMIT})</button>` : '');
   if (toplam > 1) izgara.insertAdjacentHTML('afterend', '');
   const ekle = $('#foto-ekle-hucre');
-  if (ekle) ekle.addEventListener('click', () => $('#foto-girdi').click());
+  if (ekle) ekle.addEventListener('click', () => fotoKaynakSor());
   izgara.querySelectorAll('[data-eski]').forEach(b => b.addEventListener('click', () => {
     const i = +b.dataset.eski;
     const kapaktiMevcut = kapakMi('mevcut', i);
@@ -2342,8 +2353,13 @@ function fotoIzgaraCiz(){
 /* Konum öncelik sırası: Elle > Fotoğraf GPS (EXIF) > Cihaz konumu */
 const KAYNAK_EXIF = 'Fotoğrafın GPS verisinden bulundu';
 const KAYNAK_CIHAZ = 'Cihaz konumundan alındı';
-$('#foto-girdi').addEventListener('change', e => {
-  const dosyalar = [...e.target.files]; e.target.value = '';
+function fotoKaynakSor(){
+  $('#kip-foto-kaynak').classList.add('acik');
+}
+$('#fk-kamera')?.addEventListener('click', () => { $('#kip-foto-kaynak').classList.remove('acik'); $('#foto-kamera-girdi').click(); });
+$('#fk-galeri')?.addEventListener('click', () => { $('#kip-foto-kaynak').classList.remove('acik'); $('#foto-girdi').click(); });
+$('#fk-vazgec')?.addEventListener('click', () => $('#kip-foto-kaynak').classList.remove('acik'));
+function fotoDosyalariEkle(dosyalar){
   for (const d of dosyalar){
     if (taslak.mevcutFotolar.length + taslak.yeniFotolar.length >= FOTO_LIMIT){ bildir(`En fazla ${FOTO_LIMIT} fotoğraf`, true); break; }
     taslak.yeniFotolar.push({dosya: d, onizleme: URL.createObjectURL(d)});
@@ -2366,6 +2382,16 @@ $('#foto-girdi').addEventListener('change', e => {
     })());
   }
   fotoIzgaraCiz();
+}
+$('#foto-girdi').addEventListener('change', e => {
+  const dosyalar = [...e.target.files]; e.target.value = '';
+  fotoDosyalariEkle(dosyalar);
+});
+$('#foto-kamera-girdi').addEventListener('change', e => {
+  const dosyalar = [...e.target.files]; e.target.value = '';
+  // Kamerayla anlık çekim: Android'in galeri seçicisinin GPS'i sildiği
+  // gizlilik kısıtlamasına takılmaz, konum her zaman tam gelir.
+  fotoDosyalariEkle(dosyalar);
 });
 
 /* Adım 2: konum */
