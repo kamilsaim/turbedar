@@ -10,6 +10,8 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 
 [**▶ Uygulamayı Aç**](https://kamilsaim.github.io/turbedar/)
 
+<sub>Geliştiricinin diğer uygulamaları için: [kamilsaim.web.app](https://kamilsaim.web.app)</sub>
+
 </div>
 
 ---
@@ -56,6 +58,8 @@ Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.27** | Hesabını silme özelliği eklendi (kişisel veriler silinir, onaylı katkılar isimsiz olarak envanterde kalır) |
+| **1.26** | Ek bilgi önerilerine 3'e kadar fotoğraf eklenebiliyor; önemli işlemlerde dokunma titreşimi |
 | **1.25** | Yöneticilere uygulama içi mesaj gönderme, yöneticilere anlık yeni kayıt/öneri bildirimleri, uygulama kapalıyken gerçek push bildirimleri devrede |
 | **1.24** | Ek bilgideki fotoğraf ana galeriye alınabiliyor veya kapak yapılabiliyor; katkı sıralamasında isimler gizlilik için baş harflerle |
 | **1.23** | Logoya dokununca harita tüm kayıtları çerçeveye sığdırıyor |
