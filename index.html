@@ -873,7 +873,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.26.1';
+const SURUM = '1.27.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2790,7 +2790,8 @@ async function profilCiz(){
         <span class="rozet rozet-${r.durum}" style="width:auto">${r.durum==='beklemede'?'Bekliyor':r.durum==='onaylandi'?'Onaylandı':'Reddedildi'}</span>
       </div>`).join('')}</div>` : ''}
     ${bilgilerHtml()}
-    <button class="btn-ghost btn btn-tam" id="btn-cikis" style="margin-top:14px;color:var(--kirmizi)">Çıkış Yap</button>`;
+    <button class="btn-ghost btn btn-tam" id="btn-cikis" style="margin-top:14px;color:var(--kirmizi)">Çıkış Yap</button>
+    ${!profil?.kurucu ? `<button class="btn-ghost btn btn-tam" id="btn-hesap-sil" style="margin-top:8px;color:var(--soluk);font-size:12.5px">Hesabımı Sil</button>` : ''}`;
   $('#profil-istatistik-git').addEventListener('click', () => gorunumAc('istatistik'));
   $('#profil-kaydet').addEventListener('click', async () => {
     const ad = $('#profil-ad').value.trim();
@@ -2806,6 +2807,34 @@ async function profilCiz(){
     bildir('Profil güncellendi'); profilCiz();
   });
   $('#btn-cikis').addEventListener('click', async () => { await cikisYap(); profilCiz(); });
+  $('#btn-hesap-sil')?.addEventListener('click', async () => {
+    const onay1 = await sor(
+      'Hesabını Sil',
+      'Hesabın ve kişisel verilerin (mesajların, bildirimlerin, ziyaret geçmişin) kalıcı olarak silinecek. Eklediğin onaylı kayıtlar ve fotoğraflar envanterde kalır, ancak isminle ilişkilendirilmez. Bu işlem GERİ ALINAMAZ.',
+      {evetMetin:'Devam Et', tehlike:true});
+    if (!onay1) return;
+    const onay2 = await sor(
+      'Emin misin?',
+      'Son kez soruyoruz — hesabını gerçekten silmek istiyor musun?',
+      {evetMetin:'Evet, Hesabımı Sil', tehlike:true});
+    if (!onay2) return;
+    try{
+      yukleniyor(true, 'Hesap siliniyor...');
+      const {data: {session}} = await sb.auth.getSession();
+      const yanit = await fetch('https://nzmxjompdipabkvocfio.supabase.co/functions/v1/hesap-sil', {
+        method: 'POST',
+        headers: {Authorization: `Bearer ${session.access_token}`},
+      });
+      const sonuc = await yanit.json();
+      yukleniyor(false);
+      if (!yanit.ok) return bildir('Silinemedi: ' + (sonuc.hata || 'bilinmeyen hata'), true);
+      await sb.auth.signOut();
+      location.reload();
+    }catch(err){
+      yukleniyor(false);
+      bildir('Silinemedi: ' + (err.message || err), true);
+    }
+  });
   k.querySelectorAll('[data-yer]').forEach(s => s.addEventListener('click', () => detayAc(s.dataset.yer)));
 }
 
