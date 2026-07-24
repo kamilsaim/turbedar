@@ -873,7 +873,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.27.0';
+const SURUM = '1.27.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1033,7 +1033,7 @@ const tarihYaz = t => new Date(t).toLocaleDateString('tr-TR', {day:'numeric', mo
 const yonetici = () => profil && profil.rol === 'yonetici';
 
 // Dokunma titreşimi — sadece Android/Chrome destekler, iOS Safari'de sessizce yok sayılır.
-function titret(desen = 3){
+function titret(desen = 18){
   try{ navigator.vibrate?.(desen); }catch(e){ /* desteklenmiyor, sorun değil */ }
 }
 function bildir(metin, hata=false){
@@ -1131,7 +1131,7 @@ sb.auth.onAuthStateChange((_olay, oturum) => {
 
 /* ====================== KİLOMETRE TAŞI ====================== */
 function kutlamaGoster(km){
-  titret([3, 60, 3, 60, 3]); // kutlama için üç kısa vuruş — diğer aksiyonlardan ayırt edilsin
+  titret([18, 70, 18, 70, 18]); // kutlama için üç kısa vuruş — diğer aksiyonlardan ayırt edilsin
   $('#kutlama-img').src = $('.marka img').src;
   $('#kutlama-baslik').textContent = km.b;
   $('#kutlama-govde').textContent = km.g;
@@ -1386,12 +1386,13 @@ function haritaBaslat(){
   harita = L.map('harita', {zoomControl:false, attributionControl:true}).setView([39.2, 35.5], 6);
   const sokak = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'});
   const uydu = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, attribution: 'Tiles © Esri'});
+  const uyduEtiket = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19});
   sokak.addTo(harita);
   harita.uyduAcik = false;
   $('#btn-uydu').addEventListener('click', () => {
     harita.uyduAcik = !harita.uyduAcik;
-    if (harita.uyduAcik){ harita.removeLayer(sokak); uydu.addTo(harita); }
-    else { harita.removeLayer(uydu); sokak.addTo(harita); }
+    if (harita.uyduAcik){ harita.removeLayer(sokak); uydu.addTo(harita); uyduEtiket.addTo(harita); }
+    else { harita.removeLayer(uydu); harita.removeLayer(uyduEtiket); sokak.addTo(harita); }
     $('#btn-uydu').classList.toggle('aktif', harita.uyduAcik);
   });
   L.control.zoom({position:'bottomleft'}).addTo(harita);
@@ -1451,7 +1452,7 @@ function haritaCiz(){
   });
 }
 function tumYerleriGoster(){
-  titret(1); // ikincil bir kısayol, çok hafif bir dokunuş yeter
+  titret(10); // ikincil bir kısayol, hafif ama hissedilir bir dokunuş yeter
   const gorunur = yerler.filter(y => y.durum !== 'reddedildi' && y.lat && y.lng);
   if (!gorunur.length){ bildir('Gösterilecek kayıt yok'); return; }
   // Keşfetteki gibi harita görünümündeysek değilsek önce haritaya geç
@@ -2373,12 +2374,13 @@ function sihirbazHaritaHazirla(){
     sihirbazHarita = L.map('sihirbaz-harita', {zoomControl:true});
     const sSokak = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'});
     const sUydu = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:19, attribution:'Tiles © Esri'});
+    const sUyduEtiket = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {maxZoom:19});
     sSokak.addTo(sihirbazHarita);
     sihirbazHarita.uyduAcik = false;
     $('#sihirbaz-uydu').addEventListener('click', () => {
       sihirbazHarita.uyduAcik = !sihirbazHarita.uyduAcik;
-      if (sihirbazHarita.uyduAcik){ sihirbazHarita.removeLayer(sSokak); sUydu.addTo(sihirbazHarita); }
-      else { sihirbazHarita.removeLayer(sUydu); sSokak.addTo(sihirbazHarita); }
+      if (sihirbazHarita.uyduAcik){ sihirbazHarita.removeLayer(sSokak); sUydu.addTo(sihirbazHarita); sUyduEtiket.addTo(sihirbazHarita); }
+      else { sihirbazHarita.removeLayer(sUydu); sihirbazHarita.removeLayer(sUyduEtiket); sSokak.addTo(sihirbazHarita); }
       $('#sihirbaz-uydu').classList.toggle('aktif', sihirbazHarita.uyduAcik);
       $('#sihirbaz-uydu').textContent = sihirbazHarita.uyduAcik ? 'Sokak' : 'Uydu';
     });
