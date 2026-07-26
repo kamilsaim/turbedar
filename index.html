@@ -805,6 +805,20 @@ img{display:block}
   </div>
 </div>
 
+<div class="kip" id="kip-konum-oner">
+  <div class="kip-kutu" style="max-width:420px">
+    <h3>Konum Öner</h3>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--soluk)">Bu kaydın konumu yanlışsa, haritada doğru yeri işaretle. Önerin yönetici onayından sonra uygulanır.</p>
+    <div id="ko-harita" style="height:220px;border-radius:12px;margin-bottom:10px;border:1px solid var(--cizgi)"></div>
+    <button class="btn-ghost btn btn-kucuk" id="ko-cihaz-konumu" style="margin-bottom:10px">📡 Cihazımın Konumunu Kullan</button>
+    <div class="alan"><label>Neden değiştirilmeli? (zorunlu)</label><textarea id="ko-aciklama" maxlength="500" style="min-height:70px" placeholder="örn. Pin yanlış sokakta, doğrusu şurası..."></textarea></div>
+    <div class="kip-butonlar">
+      <button class="btn-ghost btn" id="ko-vazgec" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Vazgeç</button>
+      <button class="btn" id="ko-gonder">Öner</button>
+    </div>
+  </div>
+</div>
+
 <div class="kip" id="kip-not">
   <div class="kip-kutu">
     <h3>Ek Bilgi Öner</h3>
@@ -884,7 +898,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.27.2';
+const SURUM = '1.28.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1749,7 +1763,7 @@ async function detayAc(id){
       <button class="btn" id="d-yoltarifi">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l19-8-8 19-2.5-8.5L3 11z"/></svg> Yol Tarifi</button>
       <button class="btn-altin btn" id="d-paylas">Paylaş</button>
-      ${duzenlenebilir ? `<button class="btn-ghost btn" id="d-duzenle">Düzenle</button>` : ''}
+      ${duzenlenebilir ? `<button class="btn-ghost btn" id="d-duzenle">Düzenle</button>` : (kullanici ? `<button class="btn-ghost btn" id="d-konum-oner">📍 Konum Öner</button>` : '')}
       ${silinebilir ? `<button class="btn-ghost btn" id="d-sil" style="color:var(--kirmizi)">Sil</button>` : ''}
     </div>
     <p style="font-size:12px;color:var(--soluk)">Ekleyen: ${kacir(y.ekleyen?.ad || 'Bilinmiyor')} • ${tarihYaz(y.created_at)}</p>
@@ -1801,6 +1815,7 @@ async function detayAc(id){
     }
   });
   if ($('#d-duzenle')) $('#d-duzenle').addEventListener('click', () => { sayfaKapat(); sihirbazAc(y); });
+  if ($('#d-konum-oner')) $('#d-konum-oner').addEventListener('click', () => konumOnerAc(y));
   if ($('#d-sil')) $('#d-sil').addEventListener('click', async () => {
     const onay = await sor('Kaydı Sil', `"${y.baslik}" kaydı ve tüm fotoğrafları kalıcı olarak silinecek. Emin misin?`, {evetMetin:'Sil', tehlike:true});
     if (!onay) return;
@@ -2394,6 +2409,49 @@ $('#foto-kamera-girdi').addEventListener('change', e => {
   fotoDosyalariEkle(dosyalar);
 });
 
+/* Sıradan kullanıcının (sahibi/yönetici olmayan) konum düzeltmesi önermesi.
+   Onaylanınca mevcut revizyon sistemi üzerinden otomatik uygulanır. */
+let konumOnerHarita = null, konumOnerMarker = null, konumOnerYerId = null;
+function konumOnerAc(y){
+  if (!y.lat || !y.lng) return bildir('Bu kaydın konumu tanımlı değil', true);
+  konumOnerYerId = y.id;
+  $('#ko-aciklama').value = '';
+  $('#kip-konum-oner').classList.add('acik');
+  setTimeout(() => {
+    if (!konumOnerHarita){
+      konumOnerHarita = L.map('ko-harita', {zoomControl:true});
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(konumOnerHarita);
+      konumOnerMarker = L.marker([y.lat, y.lng], {draggable:true}).addTo(konumOnerHarita);
+      konumOnerHarita.on('click', e => konumOnerMarker.setLatLng(e.latlng));
+    } else {
+      konumOnerMarker.setLatLng([y.lat, y.lng]);
+    }
+    konumOnerHarita.setView([y.lat, y.lng], 15);
+    konumOnerHarita.invalidateSize();
+  }, 60);
+}
+$('#ko-vazgec').addEventListener('click', () => $('#kip-konum-oner').classList.remove('acik'));
+$('#ko-cihaz-konumu').addEventListener('click', () => {
+  if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
+  navigator.geolocation.getCurrentPosition(pos => {
+    const {latitude, longitude} = pos.coords;
+    konumOnerMarker.setLatLng([latitude, longitude]);
+    konumOnerHarita.setView([latitude, longitude], 16);
+  }, () => bildir('Konum alınamadı, izin verildiğinden emin ol', true));
+});
+$('#ko-gonder').addEventListener('click', async () => {
+  const aciklama = $('#ko-aciklama').value.trim();
+  if (!aciklama) return bildir('Lütfen kısaca neden değiştirilmesi gerektiğini yaz', true);
+  const {lat, lng} = konumOnerMarker.getLatLng();
+  const btn = $('#ko-gonder'); btn.disabled = true;
+  const {error} = await sb.from('turbedar_revizyonlar')
+    .insert({yer_id: konumOnerYerId, degisiklikler: {lat, lng}, aciklama, ekleyen_id: kullanici.id});
+  btn.disabled = false;
+  if (error) return bildir('Gönderilemedi: ' + error.message, true);
+  $('#kip-konum-oner').classList.remove('acik');
+  titret(); bildir('📍 Konum önerin yönetici onayına gönderildi');
+});
+
 /* Adım 2: konum */
 function sihirbazHaritaHazirla(){
   if (!sihirbazHarita){
@@ -2965,7 +3023,18 @@ async function yonetimCiz(){
           <button class="btn btn-kucuk" data-not-onayla="${n.id}">Onayla</button>
         </div></div>`).join('') : '';
     const revHtml = revler.length ? `<div class="bolum-baslik" style="margin:14px 0 8px">Düzenleme Önerileri (${revler.length})</div>` + revler.map(r => {
-      const farklar = Object.entries(r.degisiklikler).map(([alan, yeni]) => {
+      const dg = {...r.degisiklikler};
+      let konumSatiri = '';
+      if (dg.lat !== undefined && dg.lng !== undefined){
+        const eskiLat = r.yer?.lat, eskiLng = r.yer?.lng;
+        konumSatiri = `<div class="fark-satir"><b>Konum</b><div>
+          <div class="fark-eski">${eskiLat ? eskiLat.toFixed(5)+', '+eskiLng.toFixed(5) : '(boş)'}</div>
+          <div class="fark-yeni">${dg.lat.toFixed(5)}, ${dg.lng.toFixed(5)}
+            <a href="https://www.google.com/maps?q=${dg.lat},${dg.lng}" target="_blank" rel="noopener noreferrer" style="margin-left:6px;text-decoration:underline">haritada gör</a>
+          </div></div></div>`;
+        delete dg.lat; delete dg.lng;
+      }
+      const farklar = Object.entries(dg).map(([alan, yeni]) => {
         const eski = alan === 'kisiler'
           ? (r.yer?.kisiler||[]).map(x=>x.ad).join(', ') || '(boş)'
           : alan === 'videolar'
@@ -2983,7 +3052,7 @@ async function yonetimCiz(){
         <div class="ust"><div><h3>${kacir(r.yer?.baslik || 'Silinmiş kayıt')}</h3>
           <div class="meta">Öneren: ${kacir(r.ekleyen?.ad||'?')} • ${tarihYaz(r.created_at)}</div></div></div>
         <p style="font-size:13px;font-style:italic;color:#4a564d;margin-bottom:4px">"${kacir(r.aciklama||'')}"</p>
-        <div class="fark-tablo">${farklar}</div>
+        <div class="fark-tablo">${konumSatiri}${farklar}</div>
         <div class="onay-butonlar">
           <button class="btn-tehlike btn btn-kucuk" data-rev-reddet="${r.id}">Reddet</button>
           <button class="btn btn-kucuk" data-rev-onayla="${r.id}">Onayla ve Uygula</button>
