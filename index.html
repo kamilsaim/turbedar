@@ -898,7 +898,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.28.0';
+const SURUM = '1.28.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2489,11 +2489,24 @@ function pinKoy(lat, lng, kaynak, geokodla = true){
     sihirbazPin.on('dragend', () => {
       const p = sihirbazPin.getLatLng();
       taslak.lat = p.lat; taslak.lng = p.lng; taslak.konumKaynak = 'Elle ayarlandı';
+      // Pin sürüklendiğinde adres alanları yeni konuma göre tazelensin
+      delete $('#girdi-il').dataset.elle;
+      delete $('#girdi-ilce').dataset.elle;
+      delete $('#girdi-mahalle').dataset.elle;
+      delete $('#girdi-ulke').dataset.elle;
       konumKaynakYaz(); ilIlceBul(p.lat, p.lng);
     });
   } else sihirbazPin.setLatLng([lat, lng]);
   konumKaynakYaz();
-  if (geokodla) ilIlceBul(lat, lng);
+  if (geokodla){
+    // Programatik konum değişikliği de adres alanlarını tazelesin
+    // (haritaya tıklama, cihaz konumu, fotoğraf GPS'i — hepsi buradan geçer)
+    delete $('#girdi-il').dataset.elle;
+    delete $('#girdi-ilce').dataset.elle;
+    delete $('#girdi-mahalle').dataset.elle;
+    delete $('#girdi-ulke').dataset.elle;
+    ilIlceBul(lat, lng);
+  }
 }
 function konumKaynakYaz(){
   const ana = taslak.lat
