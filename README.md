@@ -48,7 +48,7 @@ Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıt
 - 📊 **İstatistikler** — Kişisel yolculuğun ve topluluk katkı sıralaması
 - ✉️ **İletişim** — Uygulama içinden yöneticilere mesaj, WhatsApp ile doğrudan ulaşım
 - 📿 **Türbe âdâbı** — Ziyaret hakkında bilinmesi gerekenler bölümü
-- 📱 **Uygulama olarak da** — Android'de doğrudan yüklenebilir; tarayıcıdan açanlara ana ekrana ekleme önerilir
+- 📱 **Android uygulaması** — Play Store'da (test yayında), tarayıcıdan açanlara ana ekrana ekleme önerilir
 
 ## Teknoloji
 
@@ -58,7 +58,8 @@ Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
-| **1.27** | Hesabını silme özelliği eklendi (kişisel veriler silinir, onaylı katkılar isimsiz olarak envanterde kalır) |
+| **1.28** | Konum önerme özelliği herkese açıldı; düzenleme sırasında haritada pin taşındığında il/ilçe otomatik yenileniyor |
+| **1.27** | Hesabını silme özelliği (Play Store zorunluluğu); uydu görünümü artık hibrit (yer isimleri görünür); "Kamerayla Çek" seçeneği ile fotoğraf konumu garantili |
 | **1.26** | Ek bilgi önerilerine 3'e kadar fotoğraf eklenebiliyor; önemli işlemlerde dokunma titreşimi |
 | **1.25** | Yöneticilere uygulama içi mesaj gönderme, yöneticilere anlık yeni kayıt/öneri bildirimleri, uygulama kapalıyken gerçek push bildirimleri devrede |
 | **1.24** | Ek bilgideki fotoğraf ana galeriye alınabiliyor veya kapak yapılabiliyor; katkı sıralamasında isimler gizlilik için baş harflerle |
