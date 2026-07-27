@@ -898,7 +898,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.28.1';
+const SURUM = '1.28.2';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2369,6 +2369,10 @@ function fotoIzgaraCiz(){
 const KAYNAK_EXIF = 'Fotoğrafın GPS verisinden bulundu';
 const KAYNAK_CIHAZ = 'Cihaz konumundan alındı';
 function fotoKaynakSor(){
+  // iOS'ta Safari zaten kendi native menüsünü açar (Fotoğraf Arşivi / Fotoğraf Çek / Dosyalar)
+  // — bizim ek pencere üstüne binerse iki katmanlı karışıklık olur, doğrudan galeriye bırakıyoruz.
+  const iOSMi = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  if (iOSMi){ $('#foto-girdi').click(); return; }
   $('#kip-foto-kaynak').classList.add('acik');
 }
 $('#fk-kamera')?.addEventListener('click', () => { $('#kip-foto-kaynak').classList.remove('acik'); $('#foto-kamera-girdi').click(); });
