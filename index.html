@@ -898,7 +898,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.28.2';
+const SURUM = '1.28.3';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -3366,8 +3366,37 @@ function yukleSeridiKapat(tur){
 
     // Push bildirimleri: token al, Supabase'e kaydet, dokununca ilgili kayda git
     pushBildirimBaslat();
+
+    // Android donanım geri tuşu — WhatsApp gibi katmanlı kapama, sonra "tekrar bas ve çık"
+    App.addListener('backButton', () => geriTusu());
   }
 })();
+
+/* Katmanlı geri tuşu: önce en üstteki modal, sonra sihirbaz, sonra detay,
+   hepsi kapalıysa "tekrar bas ve çık" (2 saniye) */
+let geriCikisZamani = 0;
+function geriTusu(){
+  // 1) Herhangi bir modal (kip-*) açıksa onu kapat
+  const acikKipler = document.querySelectorAll('.kip.acik');
+  if (acikKipler.length){
+    // Son açılan (görsel olarak en üstte) kapansın
+    acikKipler[acikKipler.length - 1].classList.remove('acik');
+    return;
+  }
+  // 2) Sihirbaz (yer ekle/düzenle sayfası) açıksa kapat
+  if ($('#sihirbaz-sayfa')?.classList.contains('acik')){ sihirbazKapat(); return; }
+  // 3) Detay sayfası açıksa kapat
+  if ($('#detay-sayfa')?.classList.contains('acik')){ sayfaKapat(); return; }
+  // 4) Ana ekrandayız — "tekrar bas ve çık"
+  const simdi = Date.now();
+  if (simdi - geriCikisZamani < 2000){
+    // İkinci basış: uygulamayı arka plana at (native)
+    if (Capacitor.Plugins.App?.exitApp) Capacitor.Plugins.App.exitApp();
+    return;
+  }
+  geriCikisZamani = simdi;
+  bildir('Çıkmak için tekrar bas');
+}
 
 /* ====================== PUSH BİLDİRİMLERİ (FCM) ====================== */
 async function pushBildirimBaslat(){
