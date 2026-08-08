@@ -632,6 +632,7 @@ img{display:block}
         <button class="sekme aktif" data-sekme="bekleyen">Bekleyen <span id="sk-bekleyen"></span></button>
         <button class="sekme" data-sekme="revizyon">Revizyonlar <span id="sk-revizyon"></span></button>
         <button class="sekme" data-sekme="mesaj">Mesajlar <span id="sk-mesaj"></span></button>
+        <button class="sekme" data-sekme="gunluk" id="sekme-gunluk" style="display:none">Günlük</button>
         <button class="sekme" data-sekme="kullanici">Kullanıcılar</button>
         <button class="sekme" data-sekme="bilgi">Bilgiler</button>
       </div>
@@ -898,7 +899,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.28.3';
+const SURUM = '1.29.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1056,6 +1057,14 @@ function yakinYerler(lat, lng, haricId){
 }
 const tarihYaz = t => new Date(t).toLocaleDateString('tr-TR', {day:'numeric', month:'long', year:'numeric'});
 const yonetici = () => profil && profil.rol === 'yonetici';
+const kurucu = () => profil && profil.kurucu === true;
+async function gunlukYaz(eylem, hedefTur, hedefId, hedefBaslik = null, detay = null){
+  if (!yonetici() || !kullanici) return;
+  await sb.from('turbedar_yonetici_gunlugu').insert({
+    yonetici_id: kullanici.id, eylem, hedef_tur: hedefTur, hedef_id: hedefId,
+    hedef_baslik: hedefBaslik, detay
+  });
+}
 
 // Dokunma titreşimi — sadece Android/Chrome destekler, iOS Safari'de sessizce yok sayılır.
 function titret(desen = 18){
@@ -1298,6 +1307,10 @@ function realtimeGenelBaslat(){
       yonetimRozetiGuncelle();
       if (yonetici() && $('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif') && aktifSekme === 'mesaj') yonetimCiz();
     })
+    .on('postgres_changes', {event:'INSERT', schema:'public', table:'turbedar_yonetici_gunlugu'}, () => {
+      // Kurucu Günlük sekmesindeyse canlı tazele — RLS zaten sadece kurucuya izin verir
+      if (kurucu() && $('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif') && aktifSekme === 'gunluk') yonetimCiz();
+    })
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'turbedar_surum', filter:'id=eq.1'}, payload => {
       // Yeni sürüm yayınlandığı an — açık uygulamalarda ANINDA bildirim çıkar
       const yeni = payload.new;
@@ -1365,6 +1378,7 @@ async function yonetimRozetiGuncelle(){
   const btn = $('#btn-yonetim'), sayi = $('#onay-sayisi');
   if (!yonetici()){ btn.style.display = 'none'; return; }
   btn.style.display = 'flex';
+  const sekmeGunluk = $('#sekme-gunluk'); if (sekmeGunluk) sekmeGunluk.style.display = kurucu() ? '' : 'none';
   const [{count: bk}, {count: rk}, {count: nk}, {count: mk}] = await Promise.all([
     sb.from('turbedar_yerler').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
     sb.from('turbedar_revizyonlar').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
@@ -1825,6 +1839,7 @@ async function detayAc(id){
     const {error} = await sb.from('turbedar_yerler').delete().eq('id', y.id);
     yukleniyor(false);
     if (error) return bildir('Silinemedi: ' + error.message, true);
+    if (yonetici()) gunlukYaz('yer_sil', 'yer', y.id, y.baslik);
     titret(); bildir('Kayıt silindi'); sayfaKapat(); veriYukle(); yonetimRozetiGuncelle();
   });
   if (y.durum === 'onaylandi'){
@@ -2976,15 +2991,19 @@ async function yonetimCiz(){
       </div></div>`).join('');
     k.querySelectorAll('[data-incele]').forEach(b => b.addEventListener('click', () => detayAc(b.dataset.incele)));
     k.querySelectorAll('[data-onayla]').forEach(b => b.addEventListener('click', async () => {
+      const yer = (bekleyenler||[]).find(x => x.id === b.dataset.onayla);
       const {error} = await sb.from('turbedar_yerler').update({durum:'onaylandi', onaylayan_id: kullanici.id, red_nedeni:null}).eq('id', b.dataset.onayla);
       if (error) return bildir('Hata: ' + error.message, true);
+      gunlukYaz('yer_onayla', 'yer', b.dataset.onayla, yer?.baslik);
       titret(); bildir('✅ Kayıt yayınlandı'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-reddet]').forEach(b => b.addEventListener('click', async () => {
       const neden = await sor('Kaydı Reddet', 'Red nedenini yaz — ekleyen kişi bunu görecek.', {girdi:true, girdiZorunlu:true, girdiYerTutucu:'örn. Konum doğrulanamadı', evetMetin:'Reddet', tehlike:true});
       if (!neden) return;
+      const yer = (bekleyenler||[]).find(x => x.id === b.dataset.reddet);
       const {error} = await sb.from('turbedar_yerler').update({durum:'reddedildi', onaylayan_id: kullanici.id, red_nedeni: neden}).eq('id', b.dataset.reddet);
       if (error) return bildir('Hata: ' + error.message, true);
+      gunlukYaz('yer_reddet', 'yer', b.dataset.reddet, yer?.baslik, {neden});
       titret(); bildir('Kayıt reddedildi'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-birlestir]').forEach(b => b.addEventListener('click', async () => {
@@ -3077,8 +3096,10 @@ async function yonetimCiz(){
     }).join('') : '';
     k.innerHTML = notHtml + revHtml;
     k.querySelectorAll('[data-not-onayla]').forEach(b => b.addEventListener('click', async () => {
+      const not = (notlar||[]).find(x => x.id === b.dataset.notOnayla);
       const {error} = await sb.from('turbedar_katki_notlari').update({durum:'onaylandi', onaylayan_id: kullanici.id}).eq('id', b.dataset.notOnayla);
       if (error) return bildir('Hata: ' + error.message, true);
+      gunlukYaz('not_onayla', 'not', b.dataset.notOnayla, not?.yer?.baslik);
       bildir('✅ Ek bilgi yayınlandı'); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-not-reddet]').forEach(b => b.addEventListener('click', async () => {
@@ -3088,6 +3109,7 @@ async function yonetimCiz(){
       const silinecekler = not ? notFotoYollari(not) : [];
       if (silinecekler.length) await sb.storage.from(BUCKET).remove(silinecekler);
       await sb.from('turbedar_katki_notlari').update({durum:'reddedildi', onaylayan_id: kullanici.id}).eq('id', b.dataset.notReddet);
+      gunlukYaz('not_reddet', 'not', b.dataset.notReddet, not?.yer?.baslik);
       bildir('Ek bilgi reddedildi'); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-rev-onayla]').forEach(b => b.addEventListener('click', async () => {
@@ -3109,6 +3131,7 @@ async function yonetimCiz(){
         }
         const {error: re} = await sb.from('turbedar_revizyonlar').update({durum:'onaylandi', onaylayan_id: kullanici.id}).eq('id', r.id);
         if (re) throw re;
+        gunlukYaz('revizyon_onayla', 'revizyon', r.id, r.yer.baslik, {alanlar: Object.keys(r.degisiklikler)});
         yukleniyor(false); bildir('✅ Revizyon uygulandı');
         await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
       }catch(err){ yukleniyor(false); bildir('Hata: ' + (err.message||err), true); }
@@ -3116,7 +3139,9 @@ async function yonetimCiz(){
     k.querySelectorAll('[data-rev-reddet]').forEach(b => b.addEventListener('click', async () => {
       const onay = await sor('Revizyonu Reddet', 'Bu düzenleme önerisi reddedilecek, kayıt aynen kalacak.', {evetMetin:'Reddet', tehlike:true});
       if (!onay) return;
+      const r = revler.find(x => x.id === b.dataset.revReddet);
       await sb.from('turbedar_revizyonlar').update({durum:'reddedildi', onaylayan_id: kullanici.id}).eq('id', b.dataset.revReddet);
+      gunlukYaz('revizyon_reddet', 'revizyon', b.dataset.revReddet, r?.yer?.baslik);
       bildir('Revizyon reddedildi'); yonetimRozetiGuncelle(); yonetimCiz();
     }));
   }
@@ -3146,7 +3171,9 @@ async function yonetimCiz(){
     k.querySelectorAll('[data-mesaj-sil]').forEach(b => b.addEventListener('click', async () => {
       const onay = await sor('Mesajı Sil', 'Bu mesaj kalıcı olarak silinecek.', {evetMetin:'Sil', tehlike:true});
       if (!onay) return;
+      const m = mesajlar.find(x => x.id === b.dataset.mesajSil);
       await sb.from('turbedar_mesajlar').delete().eq('id', b.dataset.mesajSil);
+      gunlukYaz('mesaj_sil', 'mesaj', b.dataset.mesajSil, m?.konu || (m?.gonderen?.ad ? `${m.gonderen.ad} mesajı` : null));
       titret();
       yonetimRozetiGuncelle(); yonetimCiz();
     }));
@@ -3155,6 +3182,44 @@ async function yonetimCiz(){
       await sb.from('turbedar_mesajlar').update({okundu:true}).in('id', okunmamisIdler);
       yonetimRozetiGuncelle();
     }
+  }
+  else if (aktifSekme === 'gunluk'){
+    if (!kurucu()){ k.innerHTML = '<p style="color:var(--soluk);text-align:center;padding:24px">Bu sekme yalnızca kurucuya açıktır.</p>'; return; }
+    const {data: kayitlar, error} = await sb.from('turbedar_yonetici_gunlugu')
+      .select('*, yonetici:turbedar_profiller!turbedar_yonetici_gunlugu_yonetici_id_fkey(ad,avatar_url)')
+      .order('created_at', {ascending:false}).limit(300);
+    if (error){ k.innerHTML = `<p style="color:var(--kirmizi)">${kacir(error.message)}</p>`; return; }
+    if (!kayitlar.length){ k.innerHTML = '<div class="bos-durum"><b>Henüz aktivite yok</b>Yöneticilerin yaptığı işlemler burada listelenecek.</div>'; return; }
+    // Kişi bazlı özet
+    const ozet = {};
+    for (const kg of kayitlar){
+      const ad = kg.yonetici?.ad || 'Bilinmiyor';
+      if (!ozet[ad]) ozet[ad] = 0;
+      ozet[ad]++;
+    }
+    const ozetHtml = `<div class="kart" style="padding:12px 14px;margin-bottom:12px">
+      <div class="bolum-baslik" style="margin-bottom:8px">Son 300 işlem</div>
+      ${Object.entries(ozet).sort((a,b)=>b[1]-a[1]).map(([ad, sayi]) =>
+        `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${kacir(ad)}</span><b style="color:var(--zumrut)">${sayi}</b></div>`).join('')}
+    </div>`;
+    const eylemler = {
+      yer_onayla:'✅ Kayıt onayladı', yer_reddet:'❌ Kayıt reddetti', yer_sil:'🗑️ Kayıt sildi',
+      revizyon_onayla:'✅ Düzenleme uyguladı', revizyon_reddet:'❌ Düzenleme reddetti',
+      not_onayla:'✅ Ek bilgi onayladı', not_reddet:'❌ Ek bilgi reddetti',
+      mesaj_sil:'🗑️ Mesaj sildi',
+      bilgi_ekle:'➕ Bilgi ekledi', bilgi_duzenle:'✎ Bilgi düzenledi', bilgi_sil:'🗑️ Bilgi sildi',
+    };
+    k.innerHTML = ozetHtml + kayitlar.map(kg => `<div class="kart" style="padding:11px 13px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
+        <img src="${kg.yonetici?.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'" style="width:28px;height:28px;border-radius:50%;flex:none">
+        <div style="flex:1;min-width:0"><b style="font-size:13.5px">${kacir(kg.yonetici?.ad || 'Bilinmiyor')}</b></div>
+        <time style="font-size:11px;color:var(--soluk);flex:none">${tarihYaz(kg.created_at)}</time>
+      </div>
+      <div style="font-size:13px;color:var(--murekkep);padding-left:37px">
+        ${eylemler[kg.eylem] || kg.eylem}${kg.hedef_baslik ? ': <b>' + kacir(kg.hedef_baslik) + '</b>' : ''}
+        ${kg.detay?.neden ? `<div style="font-size:12px;color:var(--soluk);margin-top:2px;font-style:italic">"${kacir(kg.detay.neden)}"</div>` : ''}
+      </div>
+    </div>`).join('');
   }
   else if (aktifSekme === 'bilgi'){
     const f = duzenlenenBilgi;
@@ -3181,6 +3246,7 @@ async function yonetimCiz(){
       if (f) ({error: hata} = await sb.from('turbedar_bilgiler').update({baslik, icerik, sira}).eq('id', f.id));
       else ({error: hata} = await sb.from('turbedar_bilgiler').insert({baslik, icerik, sira}));
       if (hata) return bildir('Kaydedilemedi: ' + hata.message, true);
+      gunlukYaz(f ? 'bilgi_duzenle' : 'bilgi_ekle', 'bilgi', f?.id || null, baslik);
       duzenlenenBilgi = null;
       await bilgileriYukle();
       bildir(f ? 'Bilgi güncellendi' : 'Bilgi eklendi');
@@ -3195,8 +3261,10 @@ async function yonetimCiz(){
     k.querySelectorAll('[data-bilgi-sil]').forEach(b => b.addEventListener('click', async () => {
       const onay = await sor('Bilgiyi Sil', 'Bu bölüm kalıcı olarak silinecek. Emin misin?', {evetMetin:'Sil', tehlike:true});
       if (!onay) return;
+      const b_kayit = bilgiler.find(x => x.id === b.dataset.bilgiSil);
       const {error} = await sb.from('turbedar_bilgiler').delete().eq('id', b.dataset.bilgiSil);
       if (error) return bildir('Silinemedi: ' + error.message, true);
+      gunlukYaz('bilgi_sil', 'bilgi', b.dataset.bilgiSil, b_kayit?.baslik);
       await bilgileriYukle();
       bildir('Bilgi silindi');
       yonetimCiz();
