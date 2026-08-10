@@ -899,7 +899,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.29.0';
+const SURUM = '1.29.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2991,7 +2991,7 @@ async function yonetimCiz(){
       </div></div>`).join('');
     k.querySelectorAll('[data-incele]').forEach(b => b.addEventListener('click', () => detayAc(b.dataset.incele)));
     k.querySelectorAll('[data-onayla]').forEach(b => b.addEventListener('click', async () => {
-      const yer = (bekleyenler||[]).find(x => x.id === b.dataset.onayla);
+      const yer = (bekleyen||[]).find(x => x.id === b.dataset.onayla);
       const {error} = await sb.from('turbedar_yerler').update({durum:'onaylandi', onaylayan_id: kullanici.id, red_nedeni:null}).eq('id', b.dataset.onayla);
       if (error) return bildir('Hata: ' + error.message, true);
       gunlukYaz('yer_onayla', 'yer', b.dataset.onayla, yer?.baslik);
@@ -3000,7 +3000,7 @@ async function yonetimCiz(){
     k.querySelectorAll('[data-reddet]').forEach(b => b.addEventListener('click', async () => {
       const neden = await sor('Kaydı Reddet', 'Red nedenini yaz — ekleyen kişi bunu görecek.', {girdi:true, girdiZorunlu:true, girdiYerTutucu:'örn. Konum doğrulanamadı', evetMetin:'Reddet', tehlike:true});
       if (!neden) return;
-      const yer = (bekleyenler||[]).find(x => x.id === b.dataset.reddet);
+      const yer = (bekleyen||[]).find(x => x.id === b.dataset.reddet);
       const {error} = await sb.from('turbedar_yerler').update({durum:'reddedildi', onaylayan_id: kullanici.id, red_nedeni: neden}).eq('id', b.dataset.reddet);
       if (error) return bildir('Hata: ' + error.message, true);
       gunlukYaz('yer_reddet', 'yer', b.dataset.reddet, yer?.baslik, {neden});
