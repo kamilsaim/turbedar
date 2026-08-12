@@ -900,7 +900,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.30.0';
+const SURUM = '1.30.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2714,7 +2714,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
     }
     const yeniKayitMi = !taslak.duzenlenen;
     yukleniyor(false); sihirbazKapat(); await veriYukle(); yonetimRozetiGuncelle();
-    if (yeniKayitMi) kayitKilometreKontrol();
+    if (yeniKayitMi){ kayitKilometreKontrol(); bildirimOnerisiGoster(); }
   }catch(err){
     yukleniyor(false);
     bildir('Kaydedilemedi: ' + (err.message || err), true);
@@ -3591,6 +3591,31 @@ function bildirimDugmesiGuncelle(){
   const gizle = !!window.Capacitor || !kullanici || !webPushDestekli() ||
                 (iosMu() && !anaEkrandaMi()) || Notification.permission === 'granted';
   d.style.display = gizle ? 'none' : '';
+}
+
+/* Kayıt gönderildikten sonra bir kez "bildirimleri açalım mı?" önerisi.
+   Bildirimin faydası tam da bu an somut: kaydın onaylandığında haberi olsun.
+   iOS kullanıcıları bu düğmenin varlığını fark etmeyebiliyor — asıl hedef onlar.
+   "Şimdi değil" denirse 30 gün sorulmaz (ana ekrana ekle önerisiyle aynı desen). */
+const BILDIRIM_ONERI_ANAHTAR = 'turbedar_bildirim_onerisi_kapatildi';
+async function bildirimOnerisiGoster(){
+  if (window.Capacitor) return;                  // APK'da izin zaten açılışta isteniyor
+  if (!kullanici || !webPushDestekli()) return;
+  if (Notification.permission !== 'default') return;   // zaten izin verilmiş ya da reddedilmiş
+  if (iosMu() && !anaEkrandaMi()) return;        // önce ana ekrana eklemeli (o öneri ayrıca çıkıyor)
+  const kapatilma = parseInt(localStorage.getItem(BILDIRIM_ONERI_ANAHTAR) || '0', 10);
+  if (kapatilma && Date.now() - kapatilma < 30 * 24 * 60 * 60 * 1000) return;
+
+  // kutlama/kilometre kipiyle çakışmasın diye biraz beklet
+  await new Promise(r => setTimeout(r, 1400));
+  if ($('.kip.acik')) { localStorage.setItem(BILDIRIM_ONERI_ANAHTAR, String(Date.now())); return; }
+
+  const evet = await sor(
+    'Haberin olsun mu?',
+    'Kaydın yöneticilere ulaştı. Onaylandığı an — uygulama kapalı olsa bile — telefonuna bildirim gönderelim mi?',
+    {evetMetin: 'Bildirimleri Aç'});
+  localStorage.setItem(BILDIRIM_ONERI_ANAHTAR, String(Date.now()));
+  if (evet) webPushBaslat(true);                 // izin, düğmeye basılan bu an içinde istenir
 }
 
 // Servis çalışanından gelen "bildirime dokunuldu" mesajı
