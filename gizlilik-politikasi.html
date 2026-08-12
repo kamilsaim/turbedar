@@ -8,40 +8,105 @@
   body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:680px;margin:0 auto;padding:32px 20px 60px;line-height:1.7;color:#2d3830;background:#F7F0E6}
   h1{color:#2f5c46;font-size:26px}
   h2{color:#2f5c46;font-size:18px;margin-top:32px}
+  h3{color:#2f5c46;font-size:15px;margin-top:22px;margin-bottom:4px}
   a{color:#b8860b}
   .tarih{color:#8a8a7a;font-size:13px}
+  .kutu{background:#FFFCF5;border-left:3px solid #b8860b;padding:12px 16px;margin:18px 0;border-radius:0 6px 6px 0}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin-top:8px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #e6ddcc;vertical-align:top}
+  th{color:#2f5c46}
 </style>
 </head>
 <body>
 <h1>Türbedar — Gizlilik Politikası</h1>
-<p class="tarih">Son güncelleme: 24 Temmuz 2026</p>
+<p class="tarih">Son güncelleme: 12 Ağustos 2026 • Yürürlük tarihi: 12 Ağustos 2026</p>
 
-<p>Türbedar, türbe, kümbet, şehitlik ve önemli mezarların gönüllü katkılarla oluşturulan bir envanter uygulamasıdır. Bu sayfa, uygulamayı kullanırken hangi bilgilerin toplandığını ve nasıl kullanıldığını açıklar.</p>
+<p>Türbedar; türbe, kümbet, şehitlik ve önemli mezarların gönüllü katkılarla oluşturulan ortak bir envanter uygulamasıdır. Bu sayfa, uygulamayı kullanırken hangi bilgilerin toplandığını, nasıl kullanıldığını, kimlerle paylaşıldığını ve bunlar üzerinde hangi haklara sahip olduğunuzu açıklar.</p>
 
-<h2>Topladığımız Bilgiler</h2>
-<p>Google ile giriş yaptığınızda adınızı, e-posta adresinizi ve profil fotoğrafınızı alırız. Bu bilgiler yalnızca hesabınızı tanımlamak ve katkılarınızı (eklediğiniz yerler, yorumlar, fotoğraflar) sizinle ilişkilendirmek için kullanılır.</p>
-<p>Bir yer eklerken veya ziyaretinizi işaretlerken, o an bulunduğunuz konumu veya seçtiğiniz bir fotoğrafın konum bilgisini kullanabilirsiniz — bu, yalnızca sizin onayınızla ve tarayıcının/işletim sisteminin izin isteğine açıkça "izin ver" demenizle gerçekleşir.</p>
-<p>Bildirim gönderebilmek için, izin verirseniz cihazınıza özel bir bildirim kimliği (push token) saklarız.</p>
+<div class="kutu">
+<b>Veri sorumlusu:</b> Kamil Saim (bireysel geliştirici)<br>
+<b>İletişim:</b> <a href="mailto:saimkamil@gmail.com">saimkamil@gmail.com</a><br>
+<b>Uygulama:</b> Türbedar (com.kamilsaim.turbedar)
+</div>
 
-<h2>Bilgilerinizi Nasıl Kullanırız</h2>
+<h2>1. Topladığımız Bilgiler</h2>
+
+<h3>Hesap bilgileri</h3>
+<p>Google ile giriş yaptığınızda Google'dan <b>adınız, e-posta adresiniz ve profil fotoğrafınızın adresi</b> alınır. Ayrıca profilinizde isteğe bağlı olarak "hakkımda" metni girebilirsiniz. Uygulamayı giriş yapmadan da kullanabilirsiniz; bu durumda hiçbir hesap bilgisi toplanmaz, yalnızca herkese açık onaylı içerikleri görüntülersiniz.</p>
+
+<h3>Konum bilgisi</h3>
+<p>Bir yer eklerken, konum önerirken veya "yakınımdaki yerler" özelliğini kullanırken cihazınızın konumu istenebilir. Bu <b>yalnızca sizin o an izin vermenizle</b> gerçekleşir; uygulama arka planda konum toplamaz ve konum geçmişi tutmaz. Seçtiğiniz bir fotoğrafın içindeki konum (EXIF GPS) bilgisi de yalnızca eklediğiniz yerin koordinatını önermek için okunur. Kaydettiğiniz yerin koordinatı, kaydın kendisinin bir parçası olarak herkese açık şekilde yayımlanır.</p>
+
+<h3>Yüklediğiniz içerikler</h3>
+<p>Eklediğiniz yer bilgileri, fotoğraflar, yorumlar, ek bilgi notları, kaynak ve video bağlantıları, ziyaret işaretleriniz ve yönetime gönderdiğiniz mesajlar saklanır. Yüklediğiniz fotoğraflar cihazınızda yeniden boyutlandırılıp sıkıştırıldığı için içlerindeki EXIF verileri (konum, cihaz modeli, çekim tarihi) sunucuya <b>aktarılmaz</b>.</p>
+
+<h3>Bildirim kimliği</h3>
+<p>Bildirimlere izin verirseniz, cihazınıza özel bir bildirim kimliği (Firebase push token) profilinizde saklanır. İzin vermezseniz saklanmaz; geçersiz hâle gelen kimlikler otomatik silinir.</p>
+
+<h3>Teknik kayıtlar</h3>
+<p>Altyapı sağlayıcımız, güvenlik ve hata takibi amacıyla standart sunucu kayıtları (IP adresi, istek zamanı, tarayıcı/cihaz bilgisi) tutar. Uygulamada <b>reklam ağı, analitik izleyici veya çerez tabanlı takip bulunmaz</b>.</p>
+
+<h2>2. Bilgilerinizi Nasıl Kullanırız</h2>
 <ul>
-<li>Hesabınızı oluşturmak ve katkılarınızı görüntülemek için</li>
-<li>Eklediğiniz kayıtların yönetici onayından geçmesi için</li>
-<li>Kaydınızın durumu değiştiğinde (onay/red) veya size ulaşan mesajlarda bildirim göndermek için</li>
-<li>Topluluk katkı istatistiklerinde (isminiz baş harflerle gösterilir, tam adınız yalnızca size görünür)</li>
+<li>Hesabınızı oluşturmak, oturumunuzu sürdürmek ve katkılarınızı sizinle ilişkilendirmek</li>
+<li>Eklediğiniz kayıtların yönetici onayından geçmesi ve mükerrer kayıtların birleştirilmesi</li>
+<li>Kaydınızın durumu değiştiğinde (onay/red), mesajınıza yanıt gerektiğinde veya bir kilometre taşına ulaştığınızda bildirim göndermek</li>
+<li>Topluluk katkı istatistiklerini oluşturmak</li>
+<li>Kötüye kullanımı önlemek ve uygulamanın güvenliğini sağlamak</li>
+</ul>
+<p>Verilerinizle otomatik karar alma veya profilleme yapılmaz.</p>
+
+<h2>3. Herkese Açık Olan Bilgiler</h2>
+<p>Türbedar ortak bir envanter olduğu için, katkılarınız onaylandıktan sonra <b>uygulamayı kullanan herkese (giriş yapmayanlar dâhil) açık</b> hâle gelir. Açıkça belirtmek isteriz:</p>
+<ul>
+<li><b>Adınız ve profil fotoğrafınız</b>, eklediğiniz yerlerde "Ekleyen" olarak, yorumlarınızın ve ek bilgi notlarınızın yanında görünür.</li>
+<li>Yüklediğiniz fotoğraflar, yazdığınız yorum ve notlar, kaydın konumu herkese açıktır.</li>
+<li>İstatistik sekmesindeki katkı sıralamasında adınız yalnızca baş harfleriyle (örn. "K. S.") gösterilir; ancak yukarıdaki diğer yerlerde tam adınız görünür.</li>
+<li><b>E-posta adresiniz hiçbir yerde başka kullanıcılara gösterilmez.</b> Profilinize isteğe bağlı WhatsApp numarası girerseniz — ki bu yalnızca kurucu hesap için kullanılan bir alandır — o numara herkese açık olur.</li>
+<li>Yönetime gönderdiğiniz mesajlar yalnızca yöneticiler tarafından görülür.</li>
 </ul>
 
-<h2>Bilgi Paylaşımı</h2>
-<p>Bilgileriniz hiçbir üçüncü tarafla satılmaz veya pazarlama amacıyla paylaşılmaz. Eklediğiniz yer, fotoğraf ve yorumlar — onaylandıktan sonra — uygulamayı kullanan herkese açık olarak görünür, çünkü Türbedar'ın amacı ortak bir envanter oluşturmaktır.</p>
+<h2>4. Bilgi Paylaşımı ve Üçüncü Taraflar</h2>
+<p>Verilerinizi <b>satmıyoruz</b> ve pazarlama amacıyla kimseyle paylaşmıyoruz. Uygulamanın çalışabilmesi için aşağıdaki hizmet sağlayıcılar devrededir:</p>
+<table>
+<tr><th>Hizmet</th><th>İşlenen veri</th><th>Amaç</th></tr>
+<tr><td>Supabase (AB / Frankfurt)</td><td>Tüm hesap ve içerik verileri, sunucu kayıtları</td><td>Veritabanı, kimlik doğrulama, dosya depolama</td></tr>
+<tr><td>Google (Google Sign-In)</td><td>Ad, e-posta, profil fotoğrafı</td><td>Giriş yapma</td></tr>
+<tr><td>Firebase Cloud Messaging (Google)</td><td>Bildirim kimliği, bildirim metni</td><td>Anlık bildirim gönderimi</td></tr>
+<tr><td>OpenStreetMap / Nominatim</td><td>Seçtiğiniz koordinat, IP adresi</td><td>Harita görüntüleri ve adres çözümleme (il/ilçe/mahalle bulma)</td></tr>
+<tr><td>Esri World Imagery</td><td>Görüntülenen harita alanı, IP adresi</td><td>Uydu görünümü karoları</td></tr>
+<tr><td>GitHub Pages, cdnjs, jsDelivr, Google Fonts</td><td>IP adresi, tarayıcı bilgisi</td><td>Uygulamanın ve yazı tiplerinin sunulması</td></tr>
+</table>
+<p>Ayrıca, yasal bir zorunluluk hâlinde (mahkeme kararı vb.) bilgileri yetkili mercilerle paylaşmak durumunda kalabiliriz.</p>
 
-<h2>Verilerinizi Saklama ve Silme</h2>
-<p>Verileriniz, hesabınız aktif olduğu sürece saklanır. Hesabınızın ve kişisel verilerinizin silinmesini talep etmek için uygulama içindeki "Bize Mesaj Gönder" özelliğini kullanabilir veya <a href="https://github.com/kamilsaim/turbedar">GitHub</a> üzerinden bize ulaşabilirsiniz; talebiniz makul bir süre içinde işleme alınır.</p>
+<h2>5. Verilerin Saklanması ve Hesabınızı Silme</h2>
+<p>Verileriniz, hesabınız var olduğu sürece saklanır.</p>
 
-<h2>Veri Güvenliği</h2>
-<p>Verileriniz Supabase altyapısında, satır bazlı erişim kontrolleriyle (Row Level Security) korunur — bir kullanıcı yalnızca kendi verilerine ve herkese açık onaylı içeriğe erişebilir.</p>
+<h3>Hesabınızı nasıl silersiniz</h3>
+<p><b>Uygulama içinden:</b> Profil sekmesi → sayfanın altındaki <b>"Hesabımı Sil"</b> düğmesi → iki aşamalı onay. Silme işlemi anında ve geri alınamaz şekilde gerçekleşir.</p>
+<p><b>Uygulamaya erişemiyorsanız:</b> <a href="mailto:saimkamil@gmail.com">saimkamil@gmail.com</a> adresine hesabınızın e-posta adresinden talep gönderin; talebiniz en geç 30 gün içinde işleme alınır.</p>
 
-<h2>İletişim</h2>
-<p>Bu politika hakkında sorularınız için uygulama içindeki "Bize Mesaj Gönder" özelliğini veya <a href="https://github.com/kamilsaim/turbedar">GitHub</a> sayfamızı kullanabilirsiniz.</p>
+<h3>Silindiğinde ne olur</h3>
+<p><b>Tamamen silinen kişisel veriler:</b> hesabınız ve giriş bilgileriniz, profiliniz (ad, e-posta, profil fotoğrafı, hakkımda metni, bildirim kimliği), yorumlarınız, ziyaret işaretleriniz, bildirimleriniz ve yönetime gönderdiğiniz mesajlar.</p>
+<p><b>Korunan içerikler:</b> Türbedar ortak bir kültürel envanter olduğu ve kayıtlar başka kullanıcıların katkılarıyla da zenginleştiği için, <b>onaylanmış yer kayıtlarınız, fotoğraflarınız ve ek bilgi notlarınız silinmez</b> — bunlar adınızdan koparılıp isimsiz bir "Silinmiş Kullanıcı" künyesine devredilir, yani içerik kalır ama sizinle ilişkisi kalıcı olarak kesilir. Belirli bir fotoğrafın veya kaydın tamamen kaldırılmasını istiyorsanız, hesabınızı silmeden önce uygulama içinden silebilir ya da bize yazabilirsiniz.</p>
+
+<h2>6. Haklarınız</h2>
+<p>KVKK (6698 sayılı Kanun) ve GDPR kapsamında; verilerinize erişme, düzeltilmesini veya silinmesini isteme, işlenmesine itiraz etme ve verilerinizin bir kopyasını talep etme hakkına sahipsiniz. Verilerinizin çoğuna uygulama içinden doğrudan erişebilir ve düzenleyebilirsiniz; diğer talepleriniz için <a href="mailto:saimkamil@gmail.com">saimkamil@gmail.com</a> adresine yazmanız yeterlidir. Talepleriniz en geç 30 gün içinde yanıtlanır.</p>
+
+<h2>7. Veri Güvenliği</h2>
+<p>Tüm bağlantılar HTTPS ile şifrelenir. Veriler Supabase altyapısında satır bazlı erişim kontrolleriyle (Row Level Security) korunur — bir kullanıcı yalnızca kendi verilerine ve herkese açık onaylı içeriğe erişebilir. Uygulamada parola saklanmaz; kimlik doğrulama Google üzerinden yapılır. Yine de hiçbir sistemin %100 güvenli olmadığını hatırlatırız.</p>
+
+<h2>8. Çocukların Gizliliği</h2>
+<p>Türbedar 13 yaşın altındaki çocuklara yönelik değildir ve bilerek 13 yaş altı kullanıcılardan kişisel veri toplamayız. Böyle bir verinin toplandığını fark edersek derhal sileriz; bu durumu bize bildirebilirsiniz.</p>
+
+<h2>9. Bu Politikadaki Değişiklikler</h2>
+<p>Bu politika zaman zaman güncellenebilir. Değişiklik olduğunda bu sayfadaki "Son güncelleme" tarihi yenilenir; önemli değişikliklerde uygulama içinden ayrıca bilgilendirme yapılır. Politikanın güncel hâli her zaman bu adreste yayımlanır.</p>
+
+<h2>10. İletişim</h2>
+<p>Bu politika hakkındaki her türlü soru, talep ve şikâyetiniz için:</p>
+<p><b>E-posta:</b> <a href="mailto:saimkamil@gmail.com">saimkamil@gmail.com</a><br>
+<b>Uygulama içi:</b> Profil → Türbedar Hakkında → "Bize Mesaj Gönder"<br>
+<b>Kaynak kod:</b> <a href="https://github.com/kamilsaim/turbedar">github.com/kamilsaim/turbedar</a></p>
 
 </body>
 </html>
