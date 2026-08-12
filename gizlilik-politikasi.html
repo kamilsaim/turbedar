@@ -41,7 +41,7 @@
 <p>Eklediğiniz yer bilgileri, fotoğraflar, yorumlar, ek bilgi notları, kaynak ve video bağlantıları, ziyaret işaretleriniz ve yönetime gönderdiğiniz mesajlar saklanır. Yüklediğiniz fotoğraflar cihazınızda yeniden boyutlandırılıp sıkıştırıldığı için içlerindeki EXIF verileri (konum, cihaz modeli, çekim tarihi) sunucuya <b>aktarılmaz</b>.</p>
 
 <h3>Bildirim kimliği</h3>
-<p>Bildirimlere izin verirseniz, cihazınıza özel bir bildirim kimliği (Firebase push token) profilinizde saklanır. İzin vermezseniz saklanmaz; geçersiz hâle gelen kimlikler otomatik silinir.</p>
+<p>Bildirimlere izin verirseniz, cihazınıza özel bir bildirim kimliği profilinizde saklanır: Android uygulamasında Firebase push token'ı, iPhone/iPad ana ekran uygulamasında ve masaüstü tarayıcılarda ise tarayıcınızın ürettiği web push abonelik adresi ve şifreleme anahtarları. İzin vermezseniz saklanmaz; geçersiz hâle gelen kimlikler otomatik silinir. Bildirim içerikleri cihazınıza ulaşana kadar şifrelidir.</p>
 
 <h3>Teknik kayıtlar</h3>
 <p>Altyapı sağlayıcımız, güvenlik ve hata takibi amacıyla standart sunucu kayıtları (IP adresi, istek zamanı, tarayıcı/cihaz bilgisi) tutar. Uygulamada <b>reklam ağı, analitik izleyici veya çerez tabanlı takip bulunmaz</b>.</p>
@@ -73,6 +73,7 @@
 <tr><td>Supabase (AB / Frankfurt)</td><td>Tüm hesap ve içerik verileri, sunucu kayıtları</td><td>Veritabanı, kimlik doğrulama, dosya depolama</td></tr>
 <tr><td>Google (Google Sign-In)</td><td>Ad, e-posta, profil fotoğrafı</td><td>Giriş yapma</td></tr>
 <tr><td>Firebase Cloud Messaging (Google)</td><td>Bildirim kimliği, bildirim metni</td><td>Anlık bildirim gönderimi</td></tr>
+<tr><td>Tarayıcı push servisleri (Apple, Google, Mozilla)</td><td>Bildirim abonelik adresi, şifrelenmiş bildirim içeriği</td><td>iPhone/iPad ana ekran uygulamasına ve tarayıcılara bildirim iletimi</td></tr>
 <tr><td>OpenStreetMap / Nominatim</td><td>Seçtiğiniz koordinat, IP adresi</td><td>Harita görüntüleri ve adres çözümleme (il/ilçe/mahalle bulma)</td></tr>
 <tr><td>Esri World Imagery</td><td>Görüntülenen harita alanı, IP adresi</td><td>Uydu görünümü karoları</td></tr>
 <tr><td>GitHub Pages, cdnjs, jsDelivr, Google Fonts</td><td>IP adresi, tarayıcı bilgisi</td><td>Uygulamanın ve yazı tiplerinin sunulması</td></tr>
