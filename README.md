@@ -44,20 +44,22 @@ Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıt
 - ✅ **Onay ve revizyon sistemi** — Kaliteli ve güvenilir bir envanter için yönetici denetimi
 - 🤝 **Topluluk katkısı** — Fotoğraf, ek bilgi ve düzenleme önerileri
 - 🕌 **Ziyaret takibi** — Gezdiğin yerleri işaretle, kilometre taşlarında manevi mesajlarla
-- 🔔 **Anlık bildirimler** — Kaydın onaylandığı an, telefon kapalı olsa bile haberin olur
+- 🔔 **Anlık bildirimler** — Kaydın onaylandığı an, telefon kapalı olsa bile haberin olur (Android uygulamasında; iPhone/iPad'de uygulamayı ana ekrana ekleyip Profil'den "Bildirimleri Aç" dedikten sonra)
 - 📊 **İstatistikler** — Kişisel yolculuğun ve topluluk katkı sıralaması
 - ✉️ **İletişim** — Uygulama içinden yöneticilere mesaj, WhatsApp ile doğrudan ulaşım
 - 📿 **Türbe âdâbı** — Ziyaret hakkında bilinmesi gerekenler bölümü
-- 📱 **Android uygulaması** — Play Store'da (test yayında), tarayıcıdan açanlara ana ekrana ekleme önerilir
+- 📱 **Her cihazda** — Android uygulaması Play Store'da (test yayında); iPhone, iPad ve masaüstünde tarayıcıdan açılır, ana ekrana eklenerek uygulama gibi kullanılır
 
 ## Teknoloji
 
-Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade bir uygulamadır. Arka planda [Supabase](https://supabase.com) (veritabanı, kimlik doğrulama ve dosya depolama) kullanır; harita için [Leaflet](https://leafletjs.com), giriş için Google ile kimlik doğrulama tercih edilmiştir. [GitHub Pages](https://pages.github.com) üzerinden yayınlanır. Aynı kod, [Capacitor](https://capacitorjs.com) ile sarılarak Android uygulaması (APK) olarak da dağıtılabilir — web sürümü güncellendiğinde mobil uygulama da otomatik güncellenir.
+Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade bir uygulamadır. Arka planda [Supabase](https://supabase.com) (veritabanı, kimlik doğrulama, dosya depolama ve bildirim gönderimi) kullanır; harita için [Leaflet](https://leafletjs.com), giriş için Google ile kimlik doğrulama tercih edilmiştir. [Firebase Hosting](https://firebase.google.com/products/hosting) (turbedar.web.app) ve [GitHub Pages](https://pages.github.com) üzerinden yayınlanır. Bildirimler Android'de Firebase Cloud Messaging, iPhone/iPad ve masaüstünde ise standart Web Push (VAPID) ile iletilir. Aynı kod, [Capacitor](https://capacitorjs.com) ile sarılarak Android uygulaması (APK) olarak da dağıtılabilir — web sürümü güncellendiğinde mobil uygulama da otomatik güncellenir.
 
 ## Sürüm Geçmişi
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.30** | iPhone ve iPad'de de bildirim: ana ekrana eklenen uygulamaya, telefon kilitliyken bile bildirim düşüyor; masaüstü tarayıcılarda da bildirimler açıldı |
+| **1.29** | Yönetici aktivite günlüğü (kurucuya özel); gizlilik politikası Play Store gerekliliklerine göre yenilendi |
 | **1.28** | Konum önerme özelliği herkese açıldı; düzenleme sırasında haritada pin taşındığında il/ilçe otomatik yenileniyor |
 | **1.27** | Hesabını silme özelliği (Play Store zorunluluğu); uydu görünümü artık hibrit (yer isimleri görünür); "Kamerayla Çek" seçeneği ile fotoğraf konumu garantili |
 | **1.26** | Ek bilgi önerilerine 3'e kadar fotoğraf eklenebiliyor; önemli işlemlerde dokunma titreşimi |
@@ -91,6 +93,10 @@ Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade
 ## Katkı
 
 Türbedar bir gönül işidir. Bir yeri ziyaret ettiğinde fotoğraflayıp eklemen, bilgi düzeltmen ya da eksik bir kaynağı tamamlaman, bu ortak hafızaya katkıdır. Uygulamaya [buradan](https://turbedar.web.app) Google hesabınla giriş yaparak başlayabilirsin.
+
+## Gizlilik
+
+Hangi bilgilerin toplandığı, kimlerle paylaşıldığı ve hesabını nasıl silebileceğin [Gizlilik Politikası](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html) sayfasında açıkça yazılıdır. Özetle: reklam ve analitik takip yoktur, e-posta adresin hiçbir kullanıcıya gösterilmez, konum yalnızca sen izin verdiğinde alınır ve hesabını uygulama içinden tek başına silebilirsin.
 
 ---
 
