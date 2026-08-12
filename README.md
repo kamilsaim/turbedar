@@ -8,7 +8,7 @@
 
 _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü ortak envanteri_
 
-[**▶ Uygulamayı Aç**](https://kamilsaim.github.io/turbedar/)
+[**▶ Uygulamayı Aç**](https://turbedar.web.app)
 
 <sub>Geliştiricinin diğer uygulamaları için: [kamilsaim.web.app](https://kamilsaim.web.app)</sub>
 
@@ -90,7 +90,7 @@ Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade
 
 ## Katkı
 
-Türbedar bir gönül işidir. Bir yeri ziyaret ettiğinde fotoğraflayıp eklemen, bilgi düzeltmen ya da eksik bir kaynağı tamamlaman, bu ortak hafızaya katkıdır. Uygulamaya [buradan](https://kamilsaim.github.io/turbedar/) Google hesabınla giriş yaparak başlayabilirsin.
+Türbedar bir gönül işidir. Bir yeri ziyaret ettiğinde fotoğraflayıp eklemen, bilgi düzeltmen ya da eksik bir kaynağı tamamlaman, bu ortak hafızaya katkıdır. Uygulamaya [buradan](https://turbedar.web.app) Google hesabınla giriş yaparak başlayabilirsin.
 
 ---
 
