@@ -1,0 +1,17 @@
+{
+  "name": "Türbedar",
+  "short_name": "Türbedar",
+  "description": "Türbe ve mezar envanteri",
+  "lang": "tr",
+  "dir": "ltr",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7F0E6",
+  "theme_color": "#1E4D38",
+  "scope": "/turbedar/",
+  "start_url": "/turbedar/",
+  "icons": [
+    { "src": "icon-192.webp", "sizes": "192x192", "type": "image/webp", "purpose": "any" },
+    { "src": "icon-512.webp", "sizes": "512x512", "type": "image/webp", "purpose": "any" }
+  ]
+}
