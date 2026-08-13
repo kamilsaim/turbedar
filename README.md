@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logo.png" alt="Türbedar" width="240">
+<img src="logo.png" alt="Türbedar" width="220">
 
 # Türbedar
 
@@ -8,7 +8,12 @@
 
 _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü ortak envanteri_
 
-[**▶ Uygulamayı Aç**](https://turbedar.web.app)
+[![Uygulama](https://img.shields.io/badge/uygulamay%C4%B1%20a%C3%A7-turbedar.web.app-1E4D38?style=for-the-badge)](https://turbedar.web.app)
+
+![Version](https://img.shields.io/badge/v1.33.0-B8923E)
+![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
+![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
+[![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
 
 <sub>Geliştiricinin diğer uygulamaları için: [kamilsaim.web.app](https://kamilsaim.web.app)</sub>
 
@@ -22,60 +27,109 @@ Türbedar, bir türbenin bakımını ve hizmetini üstlenen kişiye verilen add�
 
 Birçok türbe ufak bir köyün kenarında, bir tepenin yamacında, kayıtsız ve bilinmez halde durur. Bir yere gidip o yeri görmüş, fotoğraflamış, hakkında bilgi edinmiş herkes; bu bilgiyi ortak bir hafızaya ekleyebilir. Böylece dağınık bilgi tek bir yerde toplanır, herkesin erişimine açılır.
 
-> _"Allah yolunda öldürülenler için 'ölüler' demeyin. Hayır, onlar diridirler, fakat siz bilemezsiniz."_ — Bakara, 154
+> _"Allah yolunda öldürülenler için 'ölüler' demeyin. Hayır, onlar diridirler, fakat siz bilemezsiniz."_
+> — Bakara, 154
+
+---
+
+## Uygulamadan görünüm
+
+<div align="center">
+<img src="ekran/harita.webp" width="24%" alt="Harita">
+<img src="ekran/kesfet.webp" width="24%" alt="Keşfet">
+<img src="ekran/detay.webp" width="24%" alt="Yer detayı">
+<img src="ekran/istatistik.webp" width="24%" alt="İstatistikler">
+</div>
+
+<div align="center"><sub>Harita &nbsp;·&nbsp; Keşfet &nbsp;·&nbsp; Yer detayı &nbsp;·&nbsp; İstatistikler</sub></div>
+
+---
 
 ## Nasıl çalışır?
 
 Türbedar topluluk temelli bir envanterdir. Herkes katkıda bulunabilir, ama kalite için her katkı bir onay sürecinden geçer:
 
-1. **Keşfet** — Haritada veya listede mevcut türbeleri gezersin. İl, ilçe, mahalle ve kategoriye göre arayabilir, sana en yakın yerleri görebilirsin.
-2. **Ekle** — Gittiğin bir yeri kaydedersin. Fotoğrafını çekersin (konum, fotoğrafın kendisinden ya da cihazından otomatik bulunur), yerin adını, burada yatan kişileri, kaynakları ve varsa video bağlantılarını girersin.
-3. **Onay** — Eklediğin kayıt yöneticilere ulaşır. Onaylandığında haritada herkese görünür hale gelir.
-4. **Zenginleştir** — Onaylı bir yere herkes fotoğraf, ek bilgi veya düzenleme önerisi katabilir. Ziyaret ettiğin yerleri işaretler, yorum yaparsın.
+| | Adım | Ne yaparsın |
+|:--:|---|---|
+| **1** | **Keşfet** | Haritada veya listede mevcut türbeleri gezersin. İl, ilçe, mahalle ve kategoriye göre arar, sana en yakın yerleri görürsün. |
+| **2** | **Ekle** | Gittiğin bir yeri kaydedersin. Fotoğrafını çekersin — konum fotoğrafın kendisinden ya da cihazından otomatik bulunur. Yerin adını, burada yatan kişileri, kaynakları ve varsa video bağlantılarını girersin. |
+| **3** | **Onay** | Kaydın yöneticilere ulaşır. Onaylandığında haritada herkese görünür hale gelir — ve sana bildirim düşer. |
+| **4** | **Zenginleştir** | Onaylı bir yere herkes fotoğraf, ek bilgi, kaynak veya düzenleme önerisi katabilir. Ziyaret ettiğin yerleri işaretler, yorum yaparsın. |
 
 Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıtları tespit edip seni uyarır ve katkını mevcut kayda yönlendirir.
 
+---
+
 ## Öne çıkan özellikler
 
-- 🗺️ **Harita** — Sokak ve uydu görünümü, kubbe biçimli işaretler, konum tabanlı keşif
-- 📷 **Akıllı konum** — Fotoğraftan otomatik GPS, cihaz konumu veya elle iğne yerleştirme
-- 👥 **Yatan kişiler** — Her yere birden çok kişi, unvanları ve kısa biyografileriyle
-- 📚 **Kaynaklar ve videolar** — Bilginin dayanağını belgele, YouTube/Instagram/X bağlantıları ekle
-- ✅ **Onay ve revizyon sistemi** — Kaliteli ve güvenilir bir envanter için yönetici denetimi
-- 🤝 **Topluluk katkısı** — Fotoğraf, ek bilgi ve düzenleme önerileri
-- 🕌 **Ziyaret takibi** — Gezdiğin yerleri işaretle, kilometre taşlarında manevi mesajlarla
-- 🔔 **Anlık bildirimler** — Kaydın onaylandığı an, telefon kapalı olsa bile haberin olur (Android uygulamasında; iPhone/iPad'de uygulamayı ana ekrana ekleyip Profil'den "Bildirimleri Aç" dedikten sonra)
-- 📊 **İstatistikler** — Kişisel yolculuğun ve topluluk katkı sıralaması
-- ✉️ **İletişim** — Uygulama içinden yöneticilere mesaj, WhatsApp ile doğrudan ulaşım
-- 📿 **Türbe âdâbı** — Ziyaret hakkında bilinmesi gerekenler bölümü
-- 📱 **Her cihazda** — Android uygulaması Play Store'da (test yayında); iPhone, iPad ve masaüstünde tarayıcıdan açılır, ana ekrana eklenerek uygulama gibi kullanılır
+| | |
+|---|---|
+| 🗺️ **Harita** | Sokak ve uydu görünümü, kubbe biçimli işaretler, konum tabanlı keşif |
+| 📷 **Akıllı konum** | Fotoğraftan otomatik GPS, cihaz konumu veya elle iğne yerleştirme |
+| 👥 **Yatan kişiler** | Her yere birden çok kişi, unvanları ve kısa biyografileriyle |
+| 📚 **Kaynaklar ve videolar** | Bilginin dayanağını belgele; YouTube, Instagram, X bağlantıları ekle |
+| ✅ **Onay ve revizyon** | Kaliteli ve güvenilir bir envanter için yönetici denetimi |
+| 🤝 **Topluluk katkısı** | Fotoğraf, ek bilgi, kaynak ve düzenleme önerileri |
+| 🕌 **Ziyaret takibi** | Gezdiğin yerleri işaretle, kilometre taşlarında manevi mesajlar |
+| 🔔 **Anlık bildirimler** | Kaydın onaylandığı an, telefon kapalı olsa bile haberin olur |
+| 📊 **İstatistikler** | Kişisel yolculuğun ve topluluk katkı sıralaması |
+| ✉️ **İletişim** | Uygulama içinden yöneticilere mesaj, WhatsApp ile doğrudan ulaşım |
+| 📿 **Türbe âdâbı** | Ziyaret hakkında bilinmesi gerekenler bölümü |
+| 📱 **Her cihazda** | Android uygulaması Play Store'da (test yayında); iPhone, iPad ve masaüstünde tarayıcıdan açılır, ana ekrana eklenerek uygulama gibi kullanılır |
+
+> **Bildirimler hakkında:** Android uygulamasında doğrudan çalışır. iPhone/iPad'de uygulamayı önce **ana ekrana eklemen**, sonra Profil'den **"Bildirimleri Aç"** demen gerekir (Apple'ın kuralı). Aynı düğmeden istediğin an kapatabilirsin.
+
+---
 
 ## Teknoloji
 
-Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade bir uygulamadır. Arka planda [Supabase](https://supabase.com) (veritabanı, kimlik doğrulama, dosya depolama ve bildirim gönderimi) kullanır; harita için [Leaflet](https://leafletjs.com), giriş için Google ile kimlik doğrulama tercih edilmiştir. [Firebase Hosting](https://firebase.google.com/products/hosting) (turbedar.web.app) ve [GitHub Pages](https://pages.github.com) üzerinden yayınlanır. Bildirimler Android'de Firebase Cloud Messaging, iPhone/iPad ve masaüstünde ise standart Web Push (VAPID) ile iletilir. Aynı kod, [Capacitor](https://capacitorjs.com) ile sarılarak Android uygulaması (APK) olarak da dağıtılabilir — web sürümü güncellendiğinde mobil uygulama da otomatik güncellenir.
+Türbedar, **tek bir HTML dosyasından** oluşan, derleme adımı gerektirmeyen sade bir uygulamadır. Framework yok, paket yöneticisi yok, build çıktısı yok — `index.html` dosyasını güncellemek yayınlamak demektir.
+
+| Katman | Kullanılan |
+|---|---|
+| Arayüz | Vanilla JS + CSS, [Leaflet](https://leafletjs.com) haritalar |
+| Veri | [Supabase](https://supabase.com) — Postgres, kimlik doğrulama, dosya depolama |
+| Güvenlik | Tüm yetkilendirme veritabanı seviyesinde (Row Level Security) |
+| Giriş | Google ile kimlik doğrulama |
+| Bildirim | Android'de Firebase Cloud Messaging, iOS/masaüstünde Web Push (VAPID) |
+| Yayın | [Firebase Hosting](https://firebase.google.com/products/hosting) + [GitHub Pages](https://pages.github.com) |
+| Mobil | [Capacitor](https://capacitorjs.com) ile Android paketi |
+
+Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mobil uygulama da **yeni sürüm yüklemeden** güncellenir.
+
+---
 
 ## Sürüm Geçmişi
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.33** | Bildirimler profilden kapatılabiliyor; yönetim sekmeleri kaydırırken üstte sabit kalıyor |
+| **1.32** | Kaynağı olmayan kayıtlarda nazik katkı daveti; yöneticilere "eksik kayıtlar" çalışma listesi |
+| **1.31** | Paylaşılan bağlantılar WhatsApp ve sosyal medyada Türbedar kartıyla görünüyor |
 | **1.30** | iPhone ve iPad'de de bildirim: ana ekrana eklenen uygulamaya, telefon kilitliyken bile bildirim düşüyor; masaüstü tarayıcılarda da bildirimler açıldı |
 | **1.29** | Yönetici aktivite günlüğü (kurucuya özel); gizlilik politikası Play Store gerekliliklerine göre yenilendi |
 | **1.28** | Konum önerme özelliği herkese açıldı; düzenleme sırasında haritada pin taşındığında il/ilçe otomatik yenileniyor |
-| **1.27** | Hesabını silme özelliği (Play Store zorunluluğu); uydu görünümü artık hibrit (yer isimleri görünür); "Kamerayla Çek" seçeneği ile fotoğraf konumu garantili |
-| **1.26** | Ek bilgi önerilerine 3'e kadar fotoğraf eklenebiliyor; önemli işlemlerde dokunma titreşimi |
-| **1.25** | Yöneticilere uygulama içi mesaj gönderme, yöneticilere anlık yeni kayıt/öneri bildirimleri, uygulama kapalıyken gerçek push bildirimleri devrede |
-| **1.24** | Ek bilgideki fotoğraf ana galeriye alınabiliyor veya kapak yapılabiliyor; katkı sıralamasında isimler gizlilik için baş harflerle |
+| **1.27** | Hesabını silme özelliği; uydu görünümü hibrit oldu (yer isimleri görünür); "Kamerayla Çek" ile fotoğraf konumu garantili |
+| **1.26** | Ek bilgi önerilerine 3'e kadar fotoğraf; önemli işlemlerde dokunma titreşimi |
+| **1.25** | Yöneticilere uygulama içi mesaj, yöneticilere anlık yeni kayıt/öneri bildirimi, uygulama kapalıyken gerçek push |
+| **1.24** | Ek bilgideki fotoğraf ana galeriye alınabiliyor veya kapak yapılabiliyor; katkı sıralamasında isimler baş harflerle |
+
+<details>
+<summary><b>Daha eski sürümler (1.0 – 1.23)</b></summary>
+
+| Sürüm | Öne çıkanlar |
+|-------|--------------|
 | **1.23** | Logoya dokununca harita tüm kayıtları çerçeveye sığdırıyor |
-| **1.22** | Sürüm güncellemesi artık anında düşüyor (veritabanı + canlı yayın); yorum ve ek bilgi önerileri de anlık; Hakkında sayfasına GitHub linki ve paylaş butonu |
-| **1.21** | Canlı güncelleme: onay/red anında uygulama açıkken bile anlık yansıyor, bildirimler beklemeden düşüyor |
+| **1.22** | Sürüm güncellemesi anında düşüyor (veritabanı + canlı yayın); yorum ve ek bilgi önerileri de anlık; Hakkında'ya GitHub linki ve paylaş butonu |
+| **1.21** | Canlı güncelleme: onay/red uygulama açıkken anlık yansıyor |
 | **1.20** | Push bildirim altyapısı — cihaz kaydı ve bildirime dokununca ilgili kayda gitme |
-| **1.19** | Tarayıcıdan açanlara "ana ekrana ekle" önerisi (Android gerçek yükleme, iOS yönlendirme) |
-| **1.18** | Harita butonları sağ alt köşede toplandı, APK'da Google girişi sistem tarayıcısında açılıyor, katkı sıralaması sadece giriş yapana görünür |
-| **1.17** | Haritada "buraya ekle" modu — bir noktaya dokunarak yeni kayıt başlatma |
+| **1.19** | Tarayıcıdan açanlara "ana ekrana ekle" önerisi |
+| **1.18** | Harita butonları sağ alt köşede toplandı; APK'da Google girişi sistem tarayıcısında |
+| **1.17** | Haritada "buraya ekle" modu — bir noktaya dokunarak yeni kayıt |
 | **1.16** | Yurtdışı kayıtlar için ülke bilgisi ve keşfette ülke filtresi |
 | **1.15** | WhatsApp iletişim numarası kurucu profilinden yönetiliyor |
 | **1.14** | Profile "Türbedar Hakkında" sayfası ve iletişim bölümü |
-| **1.13** | Kapak fotoğrafı seçimi — ilk gösterilecek fotoğrafı belirleme |
+| **1.13** | Kapak fotoğrafı seçimi |
 | **1.12** | Kilometre taşı kutlamaları, onay bildirimleri, "yakınımdaki yerler" |
 | **1.11** | Kişisel istatistikler İstatistik sekmesine taşındı, profil sadeleşti |
 | **1.10** | Ek bilgi önerilerine fotoğraf ekleme |
@@ -90,13 +144,27 @@ Türbedar, tek bir HTML dosyasından oluşan, derleme adımı gerektirmeyen sade
 | **1.1** | Harita önizleme kartları, iOS fotoğraf düzeltmesi |
 | **1.0** | İlk sürüm: harita, kayıt ekleme, onay sistemi, yorumlar |
 
+</details>
+
+---
+
 ## Katkı
 
-Türbedar bir gönül işidir. Bir yeri ziyaret ettiğinde fotoğraflayıp eklemen, bilgi düzeltmen ya da eksik bir kaynağı tamamlaman, bu ortak hafızaya katkıdır. Uygulamaya [buradan](https://turbedar.web.app) Google hesabınla giriş yaparak başlayabilirsin.
+Türbedar bir gönül işidir. Bir yeri ziyaret ettiğinde fotoğraflayıp eklemen, bilgi düzeltmen ya da eksik bir kaynağı tamamlaman, bu ortak hafızaya katkıdır.
+
+[**Google hesabınla giriş yap ve başla →**](https://turbedar.web.app)
+
+Kaynak, bir kaydı iddiadan bilgiye çeviren şeydir. Bir türbe hakkında kitap, kitabe, makale ya da güvenilir bir bağlantı biliyorsan, o kaydın **Ek Bilgi** bölümünden paylaşabilirsin — en değerli katkı budur.
 
 ## Gizlilik
 
-Hangi bilgilerin toplandığı, kimlerle paylaşıldığı ve hesabını nasıl silebileceğin [Gizlilik Politikası](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html) sayfasında açıkça yazılıdır. Özetle: reklam ve analitik takip yoktur, e-posta adresin hiçbir kullanıcıya gösterilmez, konum yalnızca sen izin verdiğinde alınır ve hesabını uygulama içinden tek başına silebilirsin.
+Hangi bilgilerin toplandığı, kimlerle paylaşıldığı ve hesabını nasıl silebileceğin [Gizlilik Politikası](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html) sayfasında açıkça yazılıdır. Özetle:
+
+- Reklam ve analitik takip **yoktur**
+- E-posta adresin hiçbir kullanıcıya gösterilmez
+- Konum yalnızca sen izin verdiğinde alınır
+- Yüklediğin fotoğraflar cihazında küçültüldüğü için EXIF verileri sunucuya gitmez
+- Hesabını uygulama içinden tek başına silebilirsin
 
 ---
 
