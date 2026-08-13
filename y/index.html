@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Türbedar</title>
+<!-- Bu sayfa, kartı HENÜZ ÜRETİLMEMİŞ kayıtlar için yedektir. Firebase
+     rewrite'ı /y/** isteklerini buraya düşürür; gerçek /y/<id>.html dosyası
+     varsa o servis edilir (statik dosya rewrite'tan önceliklidir).
+     Kart genel olur ama bağlantı kırılmaz — kullanıcı doğru kayda gider. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Türbedar">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:title" content="Türbedar — Türbe ve Mezar Envanteri">
+<meta property="og:description" content="Türbe, kümbet ve mezarların ortak envanteri. Emanet • Hizmet • Sadakat">
+<meta property="og:image" content="https://turbedar.web.app/og-kart.png">
+<meta property="og:url" content="https://turbedar.web.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Türbedar — Türbe ve Mezar Envanteri">
+<meta name="twitter:description" content="Türbe, kümbet ve mezarların ortak envanteri. Emanet • Hizmet • Sadakat">
+<meta name="twitter:image" content="https://turbedar.web.app/og-kart.png">
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       background:#F7F0E6;color:#1E4D38;font-family:Georgia,'Times New Roman',serif;
+       text-align:center;padding:24px}
+  p{font-size:14px;color:#233129}
+  a{color:#B8923E}
+</style>
+</head>
+<body>
+<div>
+  <h1 style="font-size:22px;font-weight:600;margin:0 0 6px">Türbedar</h1>
+  <p>Açılıyor…</p>
+  <p style="font-size:13px"><a id="baglanti" href="https://turbedar.web.app/">Açılmazsa buraya dokun</a></p>
+</div>
+<script>
+  // /y/<uuid>.html yolundan kaydın kimliğini çıkar
+  var e = location.pathname.match(/([0-9a-f-]{36})/i);
+  var hedef = 'https://turbedar.web.app/' + (e ? '#yer=' + e[1] : '');
+  document.getElementById('baglanti').href = hedef;
+  location.replace(hedef);
+</script>
+</body>
+</html>

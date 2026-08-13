@@ -932,7 +932,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.34.1';
+const SURUM = '1.35.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1850,12 +1850,12 @@ async function detayAc(id){
   k.querySelectorAll('[data-buyuk]').forEach((img, i) => img.addEventListener('click', () => galeriAc(fotolar, i)));
   $('#d-yoltarifi').addEventListener('click', () => window.open(`https://www.google.com/maps/dir/?api=1&destination=${y.lat},${y.lng}`, '_blank'));
   $('#d-paylas').addEventListener('click', async () => {
-    /* NOT: yere özel paylaşım kartı için bir Edge Function denendi ama
-       Supabase gateway'i HTML yanıtları text/plain'e çevirip CSP sandbox
-       uyguluyor — bot OG etiketlerini okuyamıyor, script de çalışmıyor.
-       Kart işi HTML sunabilen bir barındırmaya taşınana kadar hash'li
-       adres kullanılıyor (genel Türbedar kartı görünür). */
-    const url = location.origin + location.pathname + '#yer=' + y.id;
+    /* Hash sunucuya gitmediği için botlar kayda özel kartı hash'li adreste
+       göremez. Bu yüzden paylaşımda `kart-uret.js`in ürettiği statik kart
+       sayfası verilir; o sayfa insanı hash'li adrese yönlendirir.
+       Adres bilerek SABİT turbedar.web.app — APK ya da Pages üzerinden
+       paylaşılsa bile kullanıcıya asıl adres gitsin diye. */
+    const url = `https://turbedar.web.app/y/${y.id}.html`;
     if (navigator.share){ try{ await navigator.share({title: y.baslik, url}); }catch(e){} }
     else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
   });
