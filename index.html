@@ -932,7 +932,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.33.0';
+const SURUM = '1.34.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1850,7 +1850,10 @@ async function detayAc(id){
   k.querySelectorAll('[data-buyuk]').forEach((img, i) => img.addEventListener('click', () => galeriAc(fotolar, i)));
   $('#d-yoltarifi').addEventListener('click', () => window.open(`https://www.google.com/maps/dir/?api=1&destination=${y.lat},${y.lng}`, '_blank'));
   $('#d-paylas').addEventListener('click', async () => {
-    const url = location.origin + location.pathname + '#yer=' + y.id;
+    /* Paylaşımda hash'li adres DEĞİL, paylas fonksiyonu kullanılır: hash
+       sunucuya gitmediği için WhatsApp/X gibi botlar yere özel kartı ancak
+       böyle görebiliyor. Fonksiyon insanı hash'li adrese yönlendirir. */
+    const url = `${SUPA_URL}/functions/v1/paylas?yer=${y.id}`;
     if (navigator.share){ try{ await navigator.share({title: y.baslik, url}); }catch(e){} }
     else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
   });
