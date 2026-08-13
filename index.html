@@ -441,6 +441,10 @@ img{display:block}
 /* ---------- Yönetim ---------- */
 .sekmeler{display:flex;gap:6px;margin-bottom:14px;background:var(--kart-koyu);padding:4px;border-radius:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .sekmeler::-webkit-scrollbar{display:none}
+/* Yönetim ana sekmeleri kaydırırken üstte kalır. Kapsayıcı .gorunum scroll
+   ettiği için top:0 ona göredir; alttaki filtre şeritleri yapışık DEĞİL,
+   yoksa ikisi üst üste binerdi. */
+.sekmeler.yapisik{position:sticky;top:-4px;z-index:6;box-shadow:0 7px 9px -7px rgba(35,49,41,.22)}
 .sekme{flex:1 0 auto;min-width:max-content;padding:9px 11px;border-radius:9px;font-size:12.5px;font-weight:800;color:var(--soluk);text-align:center;white-space:nowrap}
 .sekme.aktif{background:var(--kart);color:var(--zumrut);box-shadow:var(--golge)}
 .eksik-filtre{flex:1 0 auto;min-width:max-content;padding:9px 11px;border-radius:9px;font-size:12.5px;font-weight:800;color:var(--soluk);text-align:center;white-space:nowrap;background:none;border:none;cursor:pointer}
@@ -656,7 +660,7 @@ img{display:block}
   <section class="gorunum" data-gorunum="yonetim">
     <div class="icerik">
       <h2 style="font-family:var(--display);font-size:26px;font-weight:700;color:var(--zumrut);margin-bottom:12px">Yönetim</h2>
-      <div class="sekmeler">
+      <div class="sekmeler yapisik" id="yonetim-sekmeler">
         <button class="sekme aktif" data-sekme="bekleyen">Bekleyen <span id="sk-bekleyen"></span></button>
         <button class="sekme" data-sekme="revizyon">Revizyonlar <span id="sk-revizyon"></span></button>
         <button class="sekme" data-sekme="mesaj">Mesajlar <span id="sk-mesaj"></span></button>
@@ -928,7 +932,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.32.0';
+const SURUM = '1.33.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2890,7 +2894,11 @@ $('#hakkinda-kapat').addEventListener('click', () => $('#kip-hakkinda').classLis
 $('#hakkinda-kapat2').addEventListener('click', () => $('#kip-hakkinda').classList.remove('acik'));
 document.addEventListener('click', e => { if (e.target.closest('#btn-hakkinda')) hakkindaAc(); });
 // Bildirim izni SADECE kullanıcı hareketiyle istenebilir (iOS şartı) — düğmeden tetiklenir
-document.addEventListener('click', e => { if (e.target.closest('#btn-bildirim-izin')) webPushBaslat(true); });
+document.addEventListener('click', e => {
+  const d = e.target.closest('#btn-bildirim-izin');
+  if (!d) return;
+  if (d.dataset.durum === 'acik') webPushKapat(); else webPushBaslat(true);
+});
 
 /* ====================== PROFİL ====================== */
 function markaBasi(){
@@ -2908,7 +2916,7 @@ function markaBasi(){
     </button>
     <button class="btn btn-kucuk" id="btn-bildirim-izin" style="margin-top:10px;display:none">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-      Bildirimleri Aç
+      <span id="bildirim-izin-metin">Bildirimleri Aç</span>
     </button>
     ${iosMu() && !anaEkrandaMi() && !window.Capacitor ? `<div style="font-size:11.5px;color:var(--soluk);margin-top:10px;line-height:1.5">
       Bildirim almak için paylaş simgesine dokunup <b>Ana Ekrana Ekle</b> demelisin.
@@ -3612,8 +3620,15 @@ function aboneJson(ab){
 
 /* istekle=true → kullanıcı düğmeye bastı (izin isteyebiliriz, sonucu bildiririz)
    istekle=false → sayfa açılışı (sadece izin ZATEN verilmişse sessizce abone ol/tazele) */
+/* Kullanıcı bildirimleri kendi eliyle kapattıysa burada işaretlenir. İzin hâlâ
+   'granted' olduğu için bu bayrak olmadan açılıştaki sessiz tazeleme onu
+   yeniden abone eder ve kapatma hiç işe yaramazdı. */
+const PUSH_KAPATILDI_ANAHTAR = 'turbedar_push_kapatildi';
+
 async function webPushBaslat(istekle){
   if (window.Capacitor) return;                       // APK'da native FCM kullanılır
+  if (istekle) localStorage.removeItem(PUSH_KAPATILDI_ANAHTAR);
+  else if (localStorage.getItem(PUSH_KAPATILDI_ANAHTAR)) return;   // kullanıcı kapatmış, saygı göster
   if (!webPushDestekli()){
     if (istekle) bildir('Bu tarayıcı bildirim desteklemiyor', true);
     return;
@@ -3659,13 +3674,43 @@ async function webPushKaydet(){
   await sb.from('turbedar_profiller').update({push_web: webPushAbonesi}).eq('id', kullanici.id);
 }
 
-// Profil kartındaki "Bildirimleri Aç" düğmesinin görünürlüğü/metni
-function bildirimDugmesiGuncelle(){
+// Tarayıcıda kayıtlı mevcut push aboneliği (yoksa null)
+async function mevcutAbone(){
+  try{
+    const kayit = await navigator.serviceWorker.getRegistration();
+    return kayit ? await kayit.pushManager.getSubscription() : null;
+  }catch(e){ return null; }
+}
+
+/* Bildirimleri kapat: tarayıcı aboneliğini iptal eder ve profilden siler.
+   İZİN geri alınamaz (onu ancak kullanıcı cihaz ayarlarından yapar) ama
+   abonelik gidince push gelmez; tekrar açmak tek dokunuş, izin sorulmaz. */
+async function webPushKapat(){
+  yukleniyor(true);
+  try{
+    const abone = await mevcutAbone();
+    if (abone) await abone.unsubscribe();
+  }catch(e){ console.error('Abonelik iptali:', e); }
+  webPushAbonesi = null;
+  localStorage.setItem(PUSH_KAPATILDI_ANAHTAR, String(Date.now()));
+  if (kullanici) await sb.from('turbedar_profiller').update({push_web: null}).eq('id', kullanici.id);
+  yukleniyor(false);
+  bildir('Bildirimler kapatıldı');
+  bildirimDugmesiGuncelle();
+}
+
+// Profil kartındaki bildirim düğmesinin görünürlüğü ve metni (aç/kapat)
+async function bildirimDugmesiGuncelle(){
   const d = $('#btn-bildirim-izin');
   if (!d) return;
-  const gizle = !!window.Capacitor || !kullanici || !webPushDestekli() ||
-                (iosMu() && !anaEkrandaMi()) || Notification.permission === 'granted';
-  d.style.display = gizle ? 'none' : '';
+  const kullanilamaz = !!window.Capacitor || !kullanici || !webPushDestekli() ||
+                       (iosMu() && !anaEkrandaMi());
+  if (kullanilamaz){ d.style.display = 'none'; return; }
+  d.style.display = '';
+  const acik = Notification.permission === 'granted' && !!(await mevcutAbone());
+  d.dataset.durum = acik ? 'acik' : 'kapali';
+  const m = $('#bildirim-izin-metin');
+  if (m) m.textContent = acik ? 'Bildirimleri Kapat' : 'Bildirimleri Aç';
 }
 
 /* Kayıt gönderildikten sonra bir kez "bildirimleri açalım mı?" önerisi.
