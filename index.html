@@ -906,10 +906,7 @@ img{display:block}
 </div>
 <div id="yukle-serit-ios" class="yukle-serit">
   <img id="yukle-serit-img-i" alt="">
-  <div class="ys-yazi"><b>Ana Ekranına Ekle</b><span>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-3px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg>
-    simgesine dokun, "Ana Ekrana Ekle" seç
-  </span></div>
+  <div class="ys-yazi"><b id="yukle-serit-baslik-i">Ana Ekranına Ekle</b><span id="yukle-serit-metin-i"></span></div>
   <button class="ys-kapat" id="yukle-serit-kapat-i" aria-label="Kapat">✕</button>
 </div>
 <div id="bildirimler"></div>
@@ -932,7 +929,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.35.0';
+const SURUM = '1.36.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2447,8 +2444,9 @@ const KAYNAK_CIHAZ = 'Cihaz konumundan alındı';
 function fotoKaynakSor(){
   // iOS'ta Safari zaten kendi native menüsünü açar (Fotoğraf Arşivi / Fotoğraf Çek / Dosyalar)
   // — bizim ek pencere üstüne binerse iki katmanlı karışıklık olur, doğrudan galeriye bırakıyoruz.
-  const iOSMi = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
-  if (iOSMi){ $('#foto-girdi').click(); return; }
+  // iosMu() kullan — iPadOS kendini "Macintosh" olarak tanıttığı için elle yazılan
+  // /ipad/ regex'i iPad'i KAÇIRIR ve kip Safari'nin native menüsünün üstüne biner.
+  if (iosMu()){ $('#foto-girdi').click(); return; }
   $('#kip-foto-kaynak').classList.add('acik');
 }
 $('#fk-kamera')?.addEventListener('click', () => { $('#kip-foto-kaynak').classList.remove('acik'); $('#foto-kamera-girdi').click(); });
@@ -2924,7 +2922,9 @@ function markaBasi(){
       <span id="bildirim-izin-metin">Bildirimleri Aç</span>
     </button>
     ${iosMu() && !anaEkrandaMi() && !window.Capacitor ? `<div style="font-size:11.5px;color:var(--soluk);margin-top:10px;line-height:1.5">
-      Bildirim almak için paylaş simgesine dokunup <b>Ana Ekrana Ekle</b> demelisin.
+      ${uygulamaIciTarayiciMi()
+        ? 'Bildirim almak için Türbedar\'ı ana ekranına eklemelisin. Önce ⋯ menüsünden <b>Safari\'de Aç</b> de, sonra oradan ana ekrana ekle.'
+        : `Bildirim almak için ${paylasSimgesi()} paylaş ya da ⋯ menüsünden <b>Ana Ekrana Ekle</b>'yi seçmelisin. Sonra uygulamayı ana ekrandan açıp tekrar giriş yap.`}
     </div>` : ''}
   </div>`;
 }
@@ -3431,14 +3431,23 @@ function pwaYuklemeBaslat(){
   if (kapatilmaZamani && Date.now() - kapatilmaZamani < 30 * 24 * 60 * 60 * 1000) return;
 
   const ikon = $('.marka img')?.src || '';
-  const iOSMi = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
 
-  if (iOSMi){
-    // iOS/Safari: gerçek install API yok — yönlendirme kartı gösteriyoruz
+  // DİKKAT: iPadOS kendini "Macintosh" olarak tanıtır — kendi regex'ini yazma,
+  // iosMu() bunu (MacIntel + maxTouchPoints) doğru ele alıyor.
+  if (iosMu()){
+    // iOS: gerçek install API yok — yönlendirme kartı gösteriyoruz.
+    // Uygulama içi tarayıcıda (Instagram/Facebook vb.) ana ekrana ekleme HİÇ mümkün
+    // değil; oradaki kullanıcıya ekleme adımını değil, Safari'de açmayı anlatıyoruz.
+    const icerde = uygulamaIciTarayiciMi();
+    $('#yukle-serit-baslik-i').textContent = icerde ? 'Safari\'de Aç' : 'Ana Ekranına Ekle';
+    $('#yukle-serit-metin-i').innerHTML = icerde
+      ? 'Ana ekrana eklemek için önce ⋯ menüsünden <b>Safari\'de Aç</b> demelisin'
+      : `${paylasSimgesi()} paylaş ya da ⋯ menüsünden <b>Ana Ekrana Ekle</b>'yi seç`;
+    // 3200 ms: açılış karşılaması 2800 ms'de tamamen kalkıyor, üstüne binmesin
     setTimeout(() => {
       $('#yukle-serit-img-i').src = ikon;
       $('#yukle-serit-ios').classList.add('acik');
-    }, 2500);
+    }, 3200);
     $('#yukle-serit-kapat-i').addEventListener('click', () => yukleSeridiKapat('ios'));
   } else {
     // Android/Chrome: tarayıcının native install olayını yakala
@@ -3610,6 +3619,20 @@ function anaEkrandaMi(){
 function iosMu(){
   return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+/* Instagram/Facebook/X gibi uygulamaların KENDİ içindeki tarayıcı.
+   iOS'ta buradan ana ekrana ekleme yapılamaz — kullanıcıyı önce Safari'ye
+   yönlendirmek gerekir. Paylaşım kartlarıyla gelen ziyaretçilerin çoğu buradan girer.
+   NOT: Liste tespit edilebilenleri kapsar; WhatsApp gibi bazıları kendini belli
+   etmez, onlarda normal "ana ekrana ekle" tarifi gösterilir (yanlış yönlendirme
+   yapmamak için tespit edilemeyende varsayılan normal akıştır). */
+function uygulamaIciTarayiciMi(){
+  return /FBAN|FBAV|FB_IAB|Instagram|Twitter|Line\/|MicroMessenger|LinkedInApp/i.test(navigator.userAgent);
+}
+/* iOS paylaş simgesi — hem şeritte hem profildeki bildirim yönlendirmesinde kullanılır.
+   const DEĞİL fonksiyon: pwaYuklemeBaslat() bu satırdan ÖNCE çalışıyor, const olsaydı TDZ hatası verirdi. */
+function paylasSimgesi(){
+  return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-3px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg>';
 }
 function b64urlDiziye(s){
   const dolgu = '='.repeat((4 - (s.length % 4)) % 4);
