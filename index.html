@@ -932,7 +932,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.36.2';
+const SURUM = '1.36.3';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -3082,18 +3082,21 @@ async function yonetimCiz(){
       </div></div>`).join('');
     k.querySelectorAll('[data-incele]').forEach(b => b.addEventListener('click', () => detayAc(b.dataset.incele)));
     k.querySelectorAll('[data-onayla]').forEach(b => b.addEventListener('click', async () => {
+      if (b.disabled) return; b.disabled = true;
       const yer = (bekleyen||[]).find(x => x.id === b.dataset.onayla);
       const {error} = await sb.from('turbedar_yerler').update({durum:'onaylandi', onaylayan_id: kullanici.id, red_nedeni:null}).eq('id', b.dataset.onayla);
-      if (error) return bildir('Hata: ' + error.message, true);
+      if (error) { b.disabled = false; return bildir('Hata: ' + error.message, true); }
       gunlukYaz('yer_onayla', 'yer', b.dataset.onayla, yer?.baslik);
       titret(); bildir('✅ Kayıt yayınlandı'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-reddet]').forEach(b => b.addEventListener('click', async () => {
+      if (b.disabled) return;
       const neden = await sor('Kaydı Reddet', 'Red nedenini yaz — ekleyen kişi bunu görecek.', {girdi:true, girdiZorunlu:true, girdiYerTutucu:'örn. Konum doğrulanamadı', evetMetin:'Reddet', tehlike:true});
       if (!neden) return;
+      b.disabled = true;
       const yer = (bekleyen||[]).find(x => x.id === b.dataset.reddet);
       const {error} = await sb.from('turbedar_yerler').update({durum:'reddedildi', onaylayan_id: kullanici.id, red_nedeni: neden}).eq('id', b.dataset.reddet);
-      if (error) return bildir('Hata: ' + error.message, true);
+      if (error) { b.disabled = false; return bildir('Hata: ' + error.message, true); }
       gunlukYaz('yer_reddet', 'yer', b.dataset.reddet, yer?.baslik, {neden});
       titret(); bildir('Kayıt reddedildi'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
     }));
@@ -3187,15 +3190,18 @@ async function yonetimCiz(){
     }).join('') : '';
     k.innerHTML = notHtml + revHtml;
     k.querySelectorAll('[data-not-onayla]').forEach(b => b.addEventListener('click', async () => {
+      if (b.disabled) return; b.disabled = true;
       const not = (notlar||[]).find(x => x.id === b.dataset.notOnayla);
       const {error} = await sb.from('turbedar_katki_notlari').update({durum:'onaylandi', onaylayan_id: kullanici.id}).eq('id', b.dataset.notOnayla);
-      if (error) return bildir('Hata: ' + error.message, true);
+      if (error) { b.disabled = false; return bildir('Hata: ' + error.message, true); }
       gunlukYaz('not_onayla', 'not', b.dataset.notOnayla, not?.yer?.baslik);
       bildir('✅ Ek bilgi yayınlandı'); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-not-reddet]').forEach(b => b.addEventListener('click', async () => {
+      if (b.disabled) return;
       const onay = await sor('Ek Bilgiyi Reddet', 'Bu ek bilgi önerisi reddedilecek.', {evetMetin:'Reddet', tehlike:true});
       if (!onay) return;
+      b.disabled = true;
       const not = (notlar||[]).find(x => x.id === b.dataset.notReddet);
       const silinecekler = not ? notFotoYollari(not) : [];
       if (silinecekler.length) await sb.storage.from(BUCKET).remove(silinecekler);
@@ -3204,8 +3210,9 @@ async function yonetimCiz(){
       bildir('Ek bilgi reddedildi'); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-rev-onayla]').forEach(b => b.addEventListener('click', async () => {
+      if (b.disabled) return; b.disabled = true;
       const r = revler.find(x => x.id === b.dataset.revOnayla);
-      if (!r?.yer) return bildir('Kayıt silinmiş', true);
+      if (!r?.yer) { b.disabled = false; return bildir('Kayıt silinmiş', true); }
       try{
         yukleniyor(true, 'Uygulanıyor...');
         const {kisiler, ...alanlar} = r.degisiklikler;
@@ -3225,11 +3232,13 @@ async function yonetimCiz(){
         gunlukYaz('revizyon_onayla', 'revizyon', r.id, r.yer.baslik, {alanlar: Object.keys(r.degisiklikler)});
         yukleniyor(false); bildir('✅ Revizyon uygulandı');
         await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
-      }catch(err){ yukleniyor(false); bildir('Hata: ' + (err.message||err), true); }
+      }catch(err){ yukleniyor(false); b.disabled = false; bildir('Hata: ' + (err.message||err), true); }
     }));
     k.querySelectorAll('[data-rev-reddet]').forEach(b => b.addEventListener('click', async () => {
+      if (b.disabled) return;
       const onay = await sor('Revizyonu Reddet', 'Bu düzenleme önerisi reddedilecek, kayıt aynen kalacak.', {evetMetin:'Reddet', tehlike:true});
       if (!onay) return;
+      b.disabled = true;
       const r = revler.find(x => x.id === b.dataset.revReddet);
       await sb.from('turbedar_revizyonlar').update({durum:'reddedildi', onaylayan_id: kullanici.id}).eq('id', b.dataset.revReddet);
       gunlukYaz('revizyon_reddet', 'revizyon', b.dataset.revReddet, r?.yer?.baslik);
