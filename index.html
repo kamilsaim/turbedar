@@ -1514,7 +1514,6 @@ function haritaBaslat(){
     if (!eklemeModu) return;
     eklemeModuKapat();
     const lat = e.latlng.lat, lng = e.latlng.lng;
-    bildir('🐞 DEBUG: harita click yakalandı → ' + lat.toFixed(5) + ',' + lng.toFixed(5)); // GEÇİCİ DEBUG — test sonrası kaldır
     // mükerrer kontrolü: çok yakında kayıt varsa uyar
     sihirbazAc(null, {lat, lng});
   });
@@ -2487,9 +2486,7 @@ function fotoDosyalariEkle(dosyalar){
         const gps = await exifr.gps(d);
         if (gps && gps.latitude){
           taslak.exifSonuc = 'bulundu';
-          bildir('🐞 DEBUG: fotoda GPS bulundu, mevcut kaynak=' + taslak.konumKaynak + ' lat=' + taslak.lat); // GEÇİCİ DEBUG — test sonrası kaldır
           if (!taslak.lat || taslak.konumKaynak === KAYNAK_CIHAZ){
-            bildir('🐞 DEBUG: foto GPS pine yazıldı (önceki konum override edildi)'); // GEÇİCİ DEBUG — test sonrası kaldır
             taslak.lat = gps.latitude; taslak.lng = gps.longitude; taslak.konumKaynak = KAYNAK_EXIF;
             if (sihirbazHarita){
               pinKoy(gps.latitude, gps.longitude, KAYNAK_EXIF);
@@ -2576,13 +2573,11 @@ function sihirbazHaritaHazirla(){
     sihirbazHarita.on('click', e => pinKoy(e.latlng.lat, e.latlng.lng, 'Haritadan seçildi'));
   }
   sihirbazHarita.invalidateSize();
-  if (taslak.lat){ bildir('🐞 DEBUG: 2. adımda mevcut konum korunuyor (' + taslak.konumKaynak + ')'); pinKoy(taslak.lat, taslak.lng, taslak.konumKaynak, false); sihirbazHarita.setView([taslak.lat, taslak.lng], 16); } // GEÇİCİ DEBUG — test sonrası kaldır
+  if (taslak.lat){ pinKoy(taslak.lat, taslak.lng, taslak.konumKaynak, false); sihirbazHarita.setView([taslak.lat, taslak.lng], 16); }
   else {
-    bildir('🐞 DEBUG: 2. adımda konum boş, cihaz konumu isteniyor'); // GEÇİCİ DEBUG — test sonrası kaldır
     sihirbazHarita.setView([39.2, 35.5], 6);
     if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => {
       if (!taslak || taslak.lat) return;
-      bildir('🐞 DEBUG: cihaz konumu geldi ve pine yazıldı'); // GEÇİCİ DEBUG — test sonrası kaldır
       pinKoy(p.coords.latitude, p.coords.longitude, KAYNAK_CIHAZ);
       sihirbazHarita.setView([p.coords.latitude, p.coords.longitude], 16);
     }, ()=>{}, {enableHighAccuracy:true, timeout:8000});
