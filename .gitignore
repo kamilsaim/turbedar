@@ -1,0 +1,28 @@
+# --- SIRLAR: asla commit edilmez ---
+*firebase-adminsdk*.json
+.env
+*.jks
+*.keystore
+
+# --- Yayına girmeyen yerel çalışma dosyaları ---
+.claude/
+docs/
+playfoto/
+playstoe/
+CAPACITOR_APK_REHBERI.md
+PLAY_STORE_YAYINLAMA_REHBERI.md
+play-store-metni.md
+CLAUDE.md
+capacitor.config.json
+www-index.html
+turbedar.html
+
+# --- Kaynak/çalışma görselleri (yayınlanan set dışında) ---
+512.png
+512_beyaz.png
+icon.png
+logo2.png
+logouygulama.png
+apkhata.jpeg
+IMG_*.PNG
+ChatGPT Image*.png
