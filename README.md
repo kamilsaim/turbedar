@@ -9,8 +9,9 @@
 _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü ortak envanteri_
 
 [![Uygulama](https://img.shields.io/badge/uygulamay%C4%B1%20a%C3%A7-turbedar.web.app-1E4D38?style=for-the-badge)](https://turbedar.web.app)
+[![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
 
-![Version](https://img.shields.io/badge/v1.33.0-B8923E)
+![Version](https://img.shields.io/badge/v1.37.0-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
@@ -75,7 +76,8 @@ Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıt
 | 📊 **İstatistikler** | Kişisel yolculuğun ve topluluk katkı sıralaması |
 | ✉️ **İletişim** | Uygulama içinden yöneticilere mesaj, WhatsApp ile doğrudan ulaşım |
 | 📿 **Türbe âdâbı** | Ziyaret hakkında bilinmesi gerekenler bölümü |
-| 📱 **Her cihazda** | Android uygulaması Play Store'da (test yayında); iPhone, iPad ve masaüstünde tarayıcıdan açılır, ana ekrana eklenerek uygulama gibi kullanılır |
+| 🔗 **Paylaşım** | Her kaydın kendine ait paylaşım kartı var — WhatsApp ve sosyal medyada başlık, konum ve kapak fotoğrafıyla görünür |
+| 📱 **Her cihazda** | Android uygulaması [Play Store'da yayında](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar); iPhone, iPad ve masaüstünde tarayıcıdan açılır, ana ekrana eklenerek uygulama gibi kullanılır |
 
 > **Bildirimler hakkında:** Android uygulamasında doğrudan çalışır. iPhone/iPad'de uygulamayı önce **ana ekrana eklemen**, sonra Profil'den **"Bildirimleri Aç"** demen gerekir (Apple'ın kuralı). Aynı düğmeden istediğin an kapatabilirsin.
 
@@ -103,6 +105,9 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.37** | Play Store puanlama istemi; galeriden seçilen fotoğrafın konumu için Android izni eklendi |
+| **1.36** | iOS'ta "ana ekrana ekle" yönlendirmesi yenilendi (Instagram/Facebook içi tarayıcılar için "Safari'de aç" kartı); Android kenardan kenara ekran boşlukları; çift tıklama korumaları |
+| **1.35** | Yere özel paylaşım kartları yayında — bir kaydı paylaşınca WhatsApp'ta o türbenin adı ve fotoğrafı çıkıyor; uygulama Google Play'de yayınlandı |
 | **1.33** | Bildirimler profilden kapatılabiliyor; yönetim sekmeleri kaydırırken üstte sabit kalıyor |
 | **1.32** | Kaynağı olmayan kayıtlarda nazik katkı daveti; yöneticilere "eksik kayıtlar" çalışma listesi |
 | **1.31** | Paylaşılan bağlantılar WhatsApp ve sosyal medyada Türbedar kartıyla görünüyor |
@@ -112,13 +117,13 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 | **1.27** | Hesabını silme özelliği; uydu görünümü hibrit oldu (yer isimleri görünür); "Kamerayla Çek" ile fotoğraf konumu garantili |
 | **1.26** | Ek bilgi önerilerine 3'e kadar fotoğraf; önemli işlemlerde dokunma titreşimi |
 | **1.25** | Yöneticilere uygulama içi mesaj, yöneticilere anlık yeni kayıt/öneri bildirimi, uygulama kapalıyken gerçek push |
-| **1.24** | Ek bilgideki fotoğraf ana galeriye alınabiliyor veya kapak yapılabiliyor; katkı sıralamasında isimler baş harflerle |
 
 <details>
-<summary><b>Daha eski sürümler (1.0 – 1.23)</b></summary>
+<summary><b>Daha eski sürümler (1.0 – 1.24)</b></summary>
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.24** | Ek bilgideki fotoğraf ana galeriye alınabiliyor veya kapak yapılabiliyor; katkı sıralamasında isimler baş harflerle |
 | **1.23** | Logoya dokununca harita tüm kayıtları çerçeveye sığdırıyor |
 | **1.22** | Sürüm güncellemesi anında düşüyor (veritabanı + canlı yayın); yorum ve ek bilgi önerileri de anlık; Hakkında'ya GitHub linki ve paylaş butonu |
 | **1.21** | Canlı güncelleme: onay/red uygulama açıkken anlık yansıyor |
