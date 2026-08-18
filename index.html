@@ -955,7 +955,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.37.0';
+const SURUM = '1.38.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2654,6 +2654,7 @@ $('#btn-cihaz-konum').addEventListener('click', () => {
 /* Adım 2: konum arama (Nominatim forward geocoding) */
 let konumAramaZamanlayici = null;
 let konumAramaSirasi = 0;
+let konumAramaIptal = null;
 $('#konum-arama-girdi').addEventListener('input', e => {
   const sorgu = e.target.value.trim();
   clearTimeout(konumAramaZamanlayici);
@@ -2664,8 +2665,10 @@ $('#konum-arama-girdi').addEventListener('input', e => {
 async function konumAramaCalistir(sorgu){
   const siraNo = ++konumAramaSirasi;
   const liste = $('#konum-arama-liste');
+  if (konumAramaIptal) konumAramaIptal.abort();
+  konumAramaIptal = new AbortController();
   try{
-    const sonuclar = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(sorgu)}&limit=5&accept-language=tr`).then(r => r.json());
+    const sonuclar = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(sorgu)}&limit=5&accept-language=tr`, {signal: konumAramaIptal.signal}).then(r => r.json());
     if (siraNo !== konumAramaSirasi) return; // daha yeni bir arama başladı, bu sonucu at
     if (!sonuclar.length){
       liste.innerHTML = '<div class="konum-arama-bos">Sonuç bulunamadı</div>';
@@ -2680,6 +2683,7 @@ async function konumAramaCalistir(sorgu){
     }).join('');
     liste.classList.add('acik');
     liste.querySelectorAll('[data-i]').forEach(el => el.addEventListener('click', () => {
+      clearTimeout(konumAramaZamanlayici);
       const s = sonuclar[Number(el.dataset.i)];
       pinKoy(Number(s.lat), Number(s.lon), KAYNAK_ARAMA);
       sihirbazHarita.setView([Number(s.lat), Number(s.lon)], 16);
