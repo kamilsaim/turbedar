@@ -122,6 +122,25 @@ img{display:block}
 .alan textarea{resize:vertical;min-height:88px}
 .alan input:focus,.alan select:focus,.alan textarea:focus{border-color:var(--altin);box-shadow:0 0 0 3px var(--altin-soluk)}
 .alan .ipucu{font-size:12px;color:var(--soluk);margin-top:5px}
+.konum-arama{position:relative;margin-bottom:10px}
+.konum-arama input{
+  width:100%;background:var(--kart);border:1.5px solid var(--cizgi);
+  border-radius:10px;padding:11px 13px;outline:none;font-size:14px;
+  transition:border .15s,box-shadow .15s;
+}
+.konum-arama input:focus{border-color:var(--altin);box-shadow:0 0 0 3px var(--altin-soluk)}
+.konum-arama-liste{
+  position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:600;
+  background:var(--kart);border:1px solid var(--cizgi);border-radius:10px;
+  box-shadow:var(--golge);max-height:220px;overflow-y:auto;display:none;
+}
+.konum-arama-liste.acik{display:block}
+.konum-arama-oge{padding:10px 13px;cursor:pointer;border-bottom:1px solid var(--cizgi);font-size:13px;line-height:1.4}
+.konum-arama-oge:last-child{border-bottom:none}
+.konum-arama-oge:hover,.konum-arama-oge.secili{background:var(--krem)}
+.konum-arama-oge b{display:block;color:var(--murekkep);font-weight:700}
+.konum-arama-oge span{color:var(--soluk);font-size:11.5px}
+.konum-arama-bos{padding:10px 13px;font-size:12.5px;color:var(--soluk)}
 
 /* tezhip süs ayracı */
 .sus{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--altin)}
@@ -731,6 +750,10 @@ img{display:block}
 
     <!-- ADIM 2: KONUM -->
     <div class="sihirbaz-adim" data-adim="2">
+      <div class="konum-arama">
+        <input type="text" id="konum-arama-girdi" placeholder="🔍 Adres, yer veya mahalle ara" autocomplete="off">
+        <div class="konum-arama-liste" id="konum-arama-liste"></div>
+      </div>
       <div class="konum-kaynak" id="konum-kaynak"></div>
       <div style="position:relative">
         <div id="sihirbaz-harita"></div>
@@ -2465,6 +2488,7 @@ function fotoIzgaraCiz(){
 /* Konum öncelik sırası: Elle > Fotoğraf GPS (EXIF) > Cihaz konumu */
 const KAYNAK_EXIF = 'Fotoğrafın GPS verisinden bulundu';
 const KAYNAK_CIHAZ = 'Cihaz konumundan alındı';
+const KAYNAK_ARAMA = 'Aranarak bulundu';
 function fotoKaynakSor(){
   // iOS'ta Safari zaten kendi native menüsünü açar (Fotoğraf Arşivi / Fotoğraf Çek / Dosyalar)
   // — bizim ek pencere üstüne binerse iki katmanlı karışıklık olur, doğrudan galeriye bırakıyoruz.
@@ -2625,6 +2649,51 @@ $('#btn-cihaz-konum').addEventListener('click', () => {
     pinKoy(p.coords.latitude, p.coords.longitude, KAYNAK_CIHAZ);
     sihirbazHarita.setView([p.coords.latitude, p.coords.longitude], 17);
   }, () => bildir('Konum alınamadı — izin verildiğinden emin ol', true), {enableHighAccuracy:true, timeout:10000});
+});
+
+/* Adım 2: konum arama (Nominatim forward geocoding) */
+let konumAramaZamanlayici = null;
+let konumAramaSirasi = 0;
+$('#konum-arama-girdi').addEventListener('input', e => {
+  const sorgu = e.target.value.trim();
+  clearTimeout(konumAramaZamanlayici);
+  const liste = $('#konum-arama-liste');
+  if (sorgu.length < 3){ liste.classList.remove('acik'); liste.innerHTML = ''; return; }
+  konumAramaZamanlayici = setTimeout(() => konumAramaCalistir(sorgu), 400);
+});
+async function konumAramaCalistir(sorgu){
+  const siraNo = ++konumAramaSirasi;
+  const liste = $('#konum-arama-liste');
+  try{
+    const sonuclar = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(sorgu)}&limit=5&accept-language=tr`).then(r => r.json());
+    if (siraNo !== konumAramaSirasi) return; // daha yeni bir arama başladı, bu sonucu at
+    if (!sonuclar.length){
+      liste.innerHTML = '<div class="konum-arama-bos">Sonuç bulunamadı</div>';
+      liste.classList.add('acik');
+      return;
+    }
+    liste.innerHTML = sonuclar.map((s, i) => {
+      const parcalar = s.display_name.split(',').map(p => p.trim());
+      const baslik = parcalar[0] || s.display_name;
+      const detay = parcalar.slice(1).join(', ');
+      return `<div class="konum-arama-oge" data-i="${i}"><b>${kacir(baslik)}</b>${detay ? `<span>${kacir(detay)}</span>` : ''}</div>`;
+    }).join('');
+    liste.classList.add('acik');
+    liste.querySelectorAll('[data-i]').forEach(el => el.addEventListener('click', () => {
+      const s = sonuclar[Number(el.dataset.i)];
+      pinKoy(Number(s.lat), Number(s.lon), KAYNAK_ARAMA);
+      sihirbazHarita.setView([Number(s.lat), Number(s.lon)], 16);
+      $('#konum-arama-girdi').value = '';
+      liste.classList.remove('acik'); liste.innerHTML = '';
+    }));
+  }catch(err){
+    if (siraNo !== konumAramaSirasi) return;
+    liste.innerHTML = '<div class="konum-arama-bos">Arama başarısız oldu</div>';
+    liste.classList.add('acik');
+  }
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.konum-arama')) $('#konum-arama-liste').classList.remove('acik');
 });
 
 /* Adım 3: kişiler */
