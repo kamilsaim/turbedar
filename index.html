@@ -957,7 +957,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.40.0';
+const SURUM = '1.40.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2963,17 +2963,11 @@ function hakkindaAc(){
     </div>
     <div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
     <div class="bolum-baslik" style="margin-bottom:8px">Uygulamayı Paylaş</div>
-    <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-bottom:10px">Bilgisayardan veya iPhone'dan açmak isteyenlerle <b>turbedar.web.app</b> bağlantısını paylaş; kaynak kodunu görmek istersen GitHub'a bakabilirsin.</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-kucuk" id="hakkinda-paylas" style="flex:1;min-width:140px">
+    <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-bottom:10px">Bilgisayardan veya iPhone'dan açmak isteyenlerle <b>turbedar.web.app</b> bağlantısını paylaş.</p>
+    <button class="btn btn-kucuk btn-tam" id="hakkinda-paylas">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>
-        Bağlantıyı Paylaş
-      </button>
-      <a class="btn-ghost btn btn-kucuk" href="https://github.com/kamilsaim/turbedar" target="_blank" rel="noopener noreferrer" style="flex:1;min-width:140px;text-align:center;text-decoration:none">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-right:5px;vertical-align:-3px"><path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.55 2.87 8.4 6.84 9.76.5.1.68-.22.68-.5 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.36-3.37-1.36-.45-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.05 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05a9.4 9.4 0 0 1 5 0c1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.92-2.34 4.78-4.57 5.04.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.5A10.02 10.02 0 0 0 22 12.26C22 6.58 17.52 2 12 2z"/></svg>
-        GitHub
-      </a>
-    </div>
+      Bağlantıyı Paylaş
+    </button>
     <a class="btn-ghost btn btn-kucuk" href="https://github.com/kamilsaim/turbedar#s%C3%BCr%C3%BCm-ge%C3%A7mi%C5%9Fi" target="_blank" rel="noopener noreferrer" style="display:block;margin-top:8px;text-align:center;text-decoration:none">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
       Sürüm Notları (v${SURUM})

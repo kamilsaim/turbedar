@@ -11,7 +11,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 [![Uygulama](https://img.shields.io/badge/uygulamay%C4%B1%20a%C3%A7-turbedar.web.app-1E4D38?style=for-the-badge)](https://turbedar.web.app)
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
 
-![Version](https://img.shields.io/badge/v1.37.0-B8923E)
+![Version](https://img.shields.io/badge/v1.40.1-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
@@ -105,6 +105,9 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.40** | Hakkında sayfasındaki paylaşım bölümü yenilendi: bağlantı turbedar.web.app, sürüm notları bağlantısı ve iPhone/iPad kullanım tarifi |
+| **1.39** | Tüm uygulama ikonları yeni logoyla yenilendi (uygulama simgesi, açılış ekranı, bildirim ikonu) |
+| **1.38** | Kayıt sihirbazında adres arama: yer adı yazarak haritada konumu bulma |
 | **1.37** | Play Store puanlama istemi; galeriden seçilen fotoğrafın konumu için Android izni eklendi |
 | **1.36** | iOS'ta "ana ekrana ekle" yönlendirmesi yenilendi (Instagram/Facebook içi tarayıcılar için "Safari'de aç" kartı); Android kenardan kenara ekran boşlukları; çift tıklama korumaları |
 | **1.35** | Yere özel paylaşım kartları yayında — bir kaydı paylaşınca WhatsApp'ta o türbenin adı ve fotoğrafı çıkıyor; uygulama Google Play'de yayınlandı |
