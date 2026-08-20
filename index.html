@@ -143,6 +143,8 @@ img{display:block}
 .konum-arama-bos{padding:10px 13px;font-size:12.5px;color:var(--soluk)}
 
 /* tezhip süs ayracı */
+.ios-tarif summary::-webkit-details-marker{display:none}
+.ios-tarif[open] summary{color:var(--altin)}
 .sus{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--altin)}
 .sus::before,.sus::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--altin-acik))}
 .sus::after{background:linear-gradient(90deg,var(--altin-acik),transparent)}
@@ -955,7 +957,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.39.1';
+const SURUM = '1.40.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2961,7 +2963,7 @@ function hakkindaAc(){
     </div>
     <div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
     <div class="bolum-baslik" style="margin-bottom:8px">Uygulamayı Paylaş</div>
-    <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-bottom:10px">Bilgisayardan veya iPhone'dan açmak isteyenlerle bağlantıyı paylaş; kaynak kodunu görmek istersen GitHub'a bakabilirsin.</p>
+    <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-bottom:10px">Bilgisayardan veya iPhone'dan açmak isteyenlerle <b>turbedar.web.app</b> bağlantısını paylaş; kaynak kodunu görmek istersen GitHub'a bakabilirsin.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-kucuk" id="hakkinda-paylas" style="flex:1;min-width:140px">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>
@@ -2972,10 +2974,31 @@ function hakkindaAc(){
         GitHub
       </a>
     </div>
+    <a class="btn-ghost btn btn-kucuk" href="https://github.com/kamilsaim/turbedar#s%C3%BCr%C3%BCm-ge%C3%A7mi%C5%9Fi" target="_blank" rel="noopener noreferrer" style="display:block;margin-top:8px;text-align:center;text-decoration:none">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+      Sürüm Notları (v${SURUM})
+    </a>
+    <details class="ios-tarif" style="margin-top:10px">
+      <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--zumrut);padding:8px 0;list-style:none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-3px"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg>
+        iPhone / iPad'de nasıl kullanılır?
+      </summary>
+      <div style="font-size:12.5px;color:var(--soluk);line-height:1.75;padding:4px 2px 2px">
+        Türbedar iPhone ve iPad'de <b>Safari</b> üzerinden ana ekrana eklenerek uygulama gibi kullanılır (App Store sürümü yoktur).
+        <ol style="margin:8px 0 0;padding-left:18px">
+          <li><b>Safari</b> ile <b>turbedar.web.app</b> adresini aç.</li>
+          <li>Alttaki ${paylasSimgesi()} <b>paylaş</b> simgesine dokun.</li>
+          <li>Listeyi kaydırıp <b>Ana Ekrana Ekle</b>'yi seç, sonra <b>Ekle</b> de.</li>
+          <li>Uygulamayı artık ana ekrandaki Türbedar simgesinden aç.</li>
+        </ol>
+        <p style="margin:8px 0 0">Bildirimler yalnızca <b>ana ekrandan açılan</b> uygulamada çalışır; ekledikten sonra Profil sayfasından bildirimlere izin verebilirsin.</p>
+        <p style="margin:8px 0 0">Bağlantıyı Instagram, Facebook ya da X içinden açtıysan önce ⋯ menüsünden <b>Safari'de Aç</b> demelisin — o tarayıcılarda ana ekrana ekleme çıkmaz.</p>
+      </div>
+    </details>
     <p style="text-align:center;font-size:11px;color:var(--soluk);margin-top:16px;letter-spacing:.06em">Türbedar v${SURUM} • Edeple gelen, lütufla gider</p>`;
   $('#kip-hakkinda').classList.add('acik');
   $('#hakkinda-paylas').addEventListener('click', async () => {
-    const url = 'https://kamilsaim.github.io/turbedar/';
+    const url = 'https://turbedar.web.app';
     if (navigator.share){ try{ await navigator.share({title:'Türbedar', text:'Türbedar — türbe ve mezar envanteri', url}); }catch(e){} }
     else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
   });
