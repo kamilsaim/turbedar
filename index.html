@@ -1554,6 +1554,7 @@ function eksikYerler(){
 
 /* ====================== GEZİNME ====================== */
 function gorunumAc(ad){
+  if (typeof haritaAramaKapat === 'function') haritaAramaKapat();
   $$('.gorunum').forEach(g => g.classList.toggle('aktif', g.dataset.gorunum === ad));
   $$('.nav-oge').forEach(n => n.classList.toggle('aktif', n.dataset.hedef === ad));
   if (ad === 'harita' && harita) setTimeout(() => harita.invalidateSize(), 60);
@@ -1598,6 +1599,7 @@ function haritaBaslat(){
   harita.addLayer(kume);
   // haritaya dokunarak ekleme modu
   harita.on('click', e => {
+    if ($('.harita-ust').classList.contains('arama-acik')) haritaAramaKapat();
     if (!eklemeModu) return;
     eklemeModuKapat();
     const lat = e.latlng.lat, lng = e.latlng.lng;
@@ -1670,6 +1672,32 @@ function tumYerleriGoster(){
   }, 80);
 }
 $('#marka-btn')?.addEventListener('click', tumYerleriGoster);
+
+/* ====================== HARİTA ARAMA ====================== */
+let haritaAramaZamanlayici = null;
+let haritaAramaIptal = null;
+let haritaAramaSirasi = 0;
+
+function haritaAramaAc(){
+  if (eklemeModu) eklemeModuKapat(); // ikisi de harita tıklamasını dinliyor, birlikte yaşayamazlar
+  $('.harita-ust').classList.add('arama-acik');
+  $('#harita-arama-girdi').focus();
+}
+function haritaAramaKapat(){
+  $('.harita-ust').classList.remove('arama-acik');
+  $('#harita-arama-girdi').value = '';
+  const panel = $('#harita-arama-panel');
+  panel.classList.remove('acik');
+  panel.innerHTML = '';
+  clearTimeout(haritaAramaZamanlayici);
+  if (haritaAramaIptal){ haritaAramaIptal.abort(); haritaAramaIptal = null; }
+  haritaAramaSirasi++; // uçuşta kalan sonuç gelirse yok sayılsın
+}
+$('#btn-harita-arama').addEventListener('click', haritaAramaAc);
+$('#harita-arama-kapat').addEventListener('click', haritaAramaKapat);
+$('#harita-arama-girdi').addEventListener('keydown', e => {
+  if (e.key === 'Escape') haritaAramaKapat();
+});
 let konumKatman = null;
 $('#btn-konumum').addEventListener('click', () => {
   if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
