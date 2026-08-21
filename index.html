@@ -1563,9 +1563,12 @@ function eklemeModuKapat(){
 }
 $('#btn-haritadan-ekle').addEventListener('click', () => eklemeModu ? eklemeModuKapat() : eklemeModuAc());
 $('#ekleme-modu-iptal').addEventListener('click', eklemeModuKapat);
+/* id -> Leaflet marker eşlemesi: arama sonucundan popup açmak için */
+const haritaMarkerlar = new Map();
 function haritaCiz(){
   if (!harita) return;
   kume.clearLayers();
+  haritaMarkerlar.clear();
   yerler.filter(y => y.durum !== 'reddedildi').forEach(y => {
     const m = L.marker([y.lat, y.lng], {icon: pinIkon(y)});
     const f = (y.fotograflar||[])[0];
@@ -1584,6 +1587,7 @@ function haritaCiz(){
       const b = e.popup.getElement().querySelector('[data-detay]');
       if (b) b.addEventListener('click', () => { m.closePopup(); detayAc(y.id); });
     });
+    haritaMarkerlar.set(y.id, m);
     kume.addLayer(m);
   });
 }
