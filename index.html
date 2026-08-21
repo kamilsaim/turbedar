@@ -1790,6 +1790,27 @@ function haritaAramaYereGit(id){
     else m.openPopup();
   }, 350);
 }
+
+/* Nominatim forward geocoding — sihirbazdaki konumAramaCalistir ile aynı desen:
+   AbortController ile eski istek iptal, sıra numarasıyla geç gelen sonuç elenir. */
+async function adresAramaCalistir(sorgu){
+  const siraNo = ++haritaAramaSirasi;
+  if (haritaAramaIptal) haritaAramaIptal.abort();
+  haritaAramaIptal = new AbortController();
+  try{
+    const sonuclar = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(sorgu)}&limit=5&accept-language=tr`,
+      {signal: haritaAramaIptal.signal}
+    ).then(r => r.json());
+    if (siraNo !== haritaAramaSirasi) return;                    // daha yeni arama var
+    if ($('#harita-arama-girdi').value.trim() !== sorgu) return; // kullanıcı yazmaya devam etti
+    haritaAramaCiz(sorgu, Array.isArray(sonuclar) ? sonuclar : []);
+  }catch(err){
+    if (err.name === 'AbortError') return;
+    if (siraNo !== haritaAramaSirasi) return;
+    haritaAramaCiz(sorgu, []); // adres bulunamadı gibi davran, kayıtlar yine görünsün
+  }
+}
 let konumKatman = null;
 $('#btn-konumum').addEventListener('click', () => {
   if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
