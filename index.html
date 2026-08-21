@@ -1698,6 +1698,98 @@ $('#harita-arama-kapat').addEventListener('click', haritaAramaKapat);
 $('#harita-arama-girdi').addEventListener('keydown', e => {
   if (e.key === 'Escape') haritaAramaKapat();
 });
+$('#harita-arama-girdi').addEventListener('input', e => {
+  const sorgu = e.target.value.trim();
+  clearTimeout(haritaAramaZamanlayici);
+  if (haritaAramaIptal){ haritaAramaIptal.abort(); haritaAramaIptal = null; }
+  const panel = $('#harita-arama-panel');
+  if (!sorgu){ panel.classList.remove('acik'); panel.innerHTML = ''; return; }
+  // kayıtlar yerel veriden anında çizilir; adres araması gecikmeli
+  haritaAramaCiz(sorgu, null);
+  if (sorgu.length >= 3) haritaAramaZamanlayici = setTimeout(() => adresAramaCalistir(sorgu), 400);
+});
+
+/* Sorguya uyan kayıtlar. Kapsam: reddedilmemişler (haritada görünenlerle aynı küme). */
+function haritaAramaEslesenler(sorgu){
+  const s = trKucuk(sorgu);
+  const bulunan = [];
+  for (const y of yerler){
+    if (y.durum === 'reddedildi' || !y.lat || !y.lng) continue;
+    if (trKucuk(y.baslik).includes(s)){ bulunan.push({yer:y, yatan:null}); continue; }
+    const kisi = (y.kisiler||[]).find(k => trKucuk(k.ad).includes(s));
+    if (kisi){ bulunan.push({yer:y, yatan:kisi.ad}); continue; }
+    if ([y.il, y.ilce, y.mahalle, y.ulke].some(a => a && trKucuk(a).includes(s))){
+      bulunan.push({yer:y, yatan:null});
+    }
+  }
+  return bulunan.slice(0, 8);
+}
+
+const KUBBE_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2C15 5.5 18 7.5 18 12v8H6v-8c0-4.5 3-6.5 6-10z"/></svg>';
+
+/* Paneli çizer. adresler: null = adres araması henüz gelmedi, [] = geldi ve boş. */
+function haritaAramaCiz(sorgu, adresler){
+  const panel = $('#harita-arama-panel');
+  const kayitlar = haritaAramaEslesenler(sorgu);
+  let html = '';
+  if (kayitlar.length){
+    html += '<div class="harita-arama-baslik">Kayıtlar</div>';
+    html += kayitlar.map(({yer:y, yatan}) => {
+      const f = (y.fotograflar||[])[0];
+      return `<div class="harita-arama-oge" role="button" data-yer="${kacir(y.id)}">
+        ${f ? `<img src="${fotoUrl(f.yol)}" alt="" loading="lazy">`
+            : `<div class="harita-arama-ikon">${KUBBE_SVG}</div>`}
+        <div class="harita-arama-govde">
+          <b>${kacir(y.baslik)}</b>
+          <span>${kacir((KATEGORILER[y.kategori]||'') + (konumYazisi(y) ? ' · ' + konumYazisi(y) : ''))}</span>
+          ${yatan ? `<span class="yatan">↳ Yatan: ${kacir(yatan)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  if (adresler && adresler.length){
+    html += '<div class="harita-arama-baslik">Haritada ara</div>';
+    html += adresler.map((a, i) => {
+      const parcalar = String(a.display_name).split(',').map(p => p.trim());
+      return `<div class="harita-arama-oge" role="button" data-adres="${i}">
+        <div class="harita-arama-ikon">📍</div>
+        <div class="harita-arama-govde">
+          <b>${kacir(parcalar[0] || a.display_name)}</b>
+          <span>${kacir(parcalar.slice(1).join(', '))}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  if (!html){
+    html = adresler === null
+      ? '<div class="harita-arama-bos">Aranıyor...</div>'
+      : '<div class="harita-arama-bos">Sonuç bulunamadı</div>';
+  }
+  panel.innerHTML = html;
+  panel.classList.add('acik');
+  panel.querySelectorAll('[data-yer]').forEach(el =>
+    el.addEventListener('click', () => haritaAramaYereGit(el.dataset.yer)));
+  panel.querySelectorAll('[data-adres]').forEach(el =>
+    el.addEventListener('click', () => {
+      const a = adresler[Number(el.dataset.adres)];
+      haritaAramaKapat();
+      harita.setView([Number(a.lat), Number(a.lon)], 14, {animate:true});
+    }));
+}
+
+/* Kayda uç ve popup'ı aç. Marker cluster içinde saklıysa önce onu aç. */
+function haritaAramaYereGit(id){
+  const y = yerler.find(v => v.id === id);
+  if (!y) return;
+  haritaAramaKapat();
+  const m = haritaMarkerlar.get(id);
+  harita.setView([y.lat, y.lng], 16, {animate:true});
+  if (!m) return;
+  setTimeout(() => {
+    if (kume.hasLayer(m)) kume.zoomToShowLayer(m, () => m.openPopup());
+    else m.openPopup();
+  }, 350);
+}
 let konumKatman = null;
 $('#btn-konumum').addEventListener('click', () => {
   if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
