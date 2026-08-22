@@ -1031,7 +1031,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.41.0';
+const SURUM = '1.41.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -3867,6 +3867,22 @@ function yukleSeridiKapat(tur){
   await veriYukle();
   realtimeGenelBaslat();
   realtimeBaslat();
+
+  // iOS'ta uygulama arka plana atılınca realtime websocket'i OS tarafından
+  // kesiliyor ve öne dönüşte kendiliğinden düzgün toparlanmıyor — bildirim
+  // (push) düşse bile ekrandaki veri tazelenmiyordu. Öne her dönüşte kanalları
+  // yeniden kurup verileri baştan çekiyoruz.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (realtimeGenelKanal){ sb.removeChannel(realtimeGenelKanal); realtimeGenelKanal = null; }
+    realtimeGenelBaslat();
+    realtimeBaslat();
+    veriYukle().then(() => {
+      yonetimRozetiGuncelle();
+      if ($('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif')) yonetimCiz();
+    });
+    bildirimleriYukle();
+  });
 
   // paylaşılan bağlantı (#yer=ID)
   const es = location.hash.match(/#yer=([\w-]+)/);
