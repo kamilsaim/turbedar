@@ -762,6 +762,7 @@ img{display:block}
         <button class="sekme aktif" data-sekme="bekleyen">Bekleyen <span id="sk-bekleyen"></span></button>
         <button class="sekme" data-sekme="revizyon">Revizyonlar <span id="sk-revizyon"></span></button>
         <button class="sekme" data-sekme="mesaj">Mesajlar <span id="sk-mesaj"></span></button>
+        <button class="sekme" data-sekme="yorum">Yorumlar</button>
         <button class="sekme" data-sekme="gunluk" id="sekme-gunluk" style="display:none">Günlük</button>
         <button class="sekme" data-sekme="eksik">Eksik Kayıtlar <span id="sk-eksik"></span></button>
         <button class="sekme" data-sekme="kullanici">Kullanıcılar</button>
@@ -1031,7 +1032,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.41.1';
+const SURUM = '1.42.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1345,7 +1346,7 @@ async function bildirimleriYukle(){
 function bildirimListeCiz(){
   const k = $('#bildirim-liste');
   if (!bildirimlerim.length){ k.innerHTML = '<p style="color:var(--soluk);font-size:13.5px;padding:16px;text-align:center">Henüz bildirimin yok.</p>'; return; }
-  const ikon = t => t === 'onay' ? '✓' : t === 'red' ? '!' : t === 'kilometre' ? '★' : '•';
+  const ikon = t => t === 'onay' ? '✓' : t === 'red' ? '!' : t === 'kilometre' ? '★' : t === 'yorum' ? '💬' : '•';
   k.innerHTML = bildirimlerim.map(b => `<div class="bildirim-kart ${b.okundu ? '' : 'okunmadi'}" ${b.yer_id ? `data-bil-yer="${b.yer_id}"` : ''}>
     <div class="bildirim-ikon">${ikon(b.tur)}</div>
     <div class="bildirim-govde">
@@ -2447,7 +2448,13 @@ async function yorumlariYukle(yerId){
     ${kullanici && (yo.yazan_id === kullanici.id || yonetici()) ? `<button data-yorum-sil="${yo.id}" style="color:var(--kirmizi);font-size:12px;font-weight:800;align-self:flex-start">Sil</button>` : ''}
   </div>`).join('');
   kutu.querySelectorAll('[data-yorum-sil]').forEach(b => b.addEventListener('click', async () => {
+    const silinenYorum = data.find(x => x.id === b.dataset.yorumSil);
+    const yoneticiSiliyor = kullanici && yonetici() && silinenYorum && silinenYorum.yazan_id !== kullanici.id;
     await sb.from('turbedar_yorumlar').delete().eq('id', b.dataset.yorumSil);
+    if (yoneticiSiliyor){
+      const yer = yerler.find(y => y.id === yerId);
+      gunlukYaz('yorum_sil', 'yorum', b.dataset.yorumSil, yer?.baslik || null);
+    }
     yorumlariYukle(yerId);
   }));
 }
@@ -3628,6 +3635,38 @@ async function yonetimCiz(){
       yonetimRozetiGuncelle();
     }
   }
+  else if (aktifSekme === 'yorum'){
+    const {data: yorumlar, error} = await sb.from('turbedar_yorumlar')
+      .select('*, yazan:turbedar_profiller!turbedar_yorumlar_yazan_id_fkey(ad,avatar_url), yer:turbedar_yerler(id,baslik)')
+      .order('created_at', {ascending:false}).limit(200);
+    if (error){ k.innerHTML = `<p style="color:var(--kirmizi)">${kacir(error.message)}</p>`; return; }
+    if (!yorumlar.length){ k.innerHTML = '<div class="bos-durum"><b>Henüz yorum yok</b>Kayıtlara yazılan yorumlar burada listelenecek.</div>'; return; }
+    k.innerHTML = yorumlar.map(yo => `<div class="kart mesaj-kart" style="padding:13px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
+        <img src="${yo.yazan?.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'" style="width:32px;height:32px;border-radius:50%;flex:none">
+        <div style="flex:1;min-width:0">
+          <b style="font-size:14px">${kacir(yo.yazan?.ad || 'Üye')}</b>
+          <div style="font-size:12.5px;color:var(--altin);font-weight:700;cursor:pointer" data-yorum-yer="${yo.yer?.id || ''}">${kacir(yo.yer?.baslik || '(silinmiş kayıt)')}</div>
+        </div>
+        <time style="font-size:11px;color:var(--soluk);flex:none">${tarihYaz(yo.created_at)}</time>
+      </div>
+      <p style="font-size:13.5px;line-height:1.6;color:#3d4a41;white-space:pre-wrap">${kacir(yo.icerik)}</p>
+      ${yo.video_url ? `<div class="video-liste" style="margin-top:6px">${videoDugmesi({url: yo.video_url})}</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:9px">
+        <button class="btn-tehlike btn btn-kucuk" data-yonetim-yorum-sil="${yo.id}">Sil</button>
+      </div>
+    </div>`).join('');
+    k.querySelectorAll('[data-yorum-yer]').forEach(el => { if (el.dataset.yorumYer) el.addEventListener('click', () => detayAc(el.dataset.yorumYer)); });
+    k.querySelectorAll('[data-yonetim-yorum-sil]').forEach(b => b.addEventListener('click', async () => {
+      const onay = await sor('Yorumu Sil', 'Bu yorum kalıcı olarak silinecek.', {evetMetin:'Sil', tehlike:true});
+      if (!onay) return;
+      const yo = yorumlar.find(x => x.id === b.dataset.yonetimYorumSil);
+      await sb.from('turbedar_yorumlar').delete().eq('id', b.dataset.yonetimYorumSil);
+      gunlukYaz('yorum_sil', 'yorum', b.dataset.yonetimYorumSil, yo?.yer?.baslik || null);
+      titret();
+      yonetimCiz();
+    }));
+  }
   else if (aktifSekme === 'gunluk'){
     if (!kurucu()){ k.innerHTML = '<p style="color:var(--soluk);text-align:center;padding:24px">Bu sekme yalnızca kurucuya açıktır.</p>'; return; }
     const {data: kayitlar, error} = await sb.from('turbedar_yonetici_gunlugu')
@@ -3652,6 +3691,7 @@ async function yonetimCiz(){
       revizyon_onayla:'✅ Düzenleme uyguladı', revizyon_reddet:'❌ Düzenleme reddetti',
       not_onayla:'✅ Ek bilgi onayladı', not_reddet:'❌ Ek bilgi reddetti',
       mesaj_sil:'🗑️ Mesaj sildi',
+      yorum_sil:'🗑️ Yorum sildi',
       bilgi_ekle:'➕ Bilgi ekledi', bilgi_duzenle:'✎ Bilgi düzenledi', bilgi_sil:'🗑️ Bilgi sildi',
     };
     k.innerHTML = ozetHtml + kayitlar.map(kg => `<div class="kart" style="padding:11px 13px;margin-bottom:8px">
