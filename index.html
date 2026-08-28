@@ -1054,7 +1054,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.5.0';
+const SURUM = '1.5.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2755,7 +2755,11 @@ async function yzOneriGetir(){
     };
     if (foto){ govde.foto_base64 = foto.base64; govde.foto_mime = foto.mime; }
     const {data, error} = await sb.functions.invoke('yer-oner', {body: govde});
-    if (error) throw error;
+    if (error){
+      let mesaj = error.message;
+      try{ const govdeHata = await error.context?.json(); if (govdeHata?.error) mesaj = govdeHata.error; }catch(e){}
+      throw new Error(mesaj);
+    }
     if (data?.error) throw new Error(data.error);
     yzSonuc = data;
     yzOneriKutusuCiz();
