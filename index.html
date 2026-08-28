@@ -1032,7 +1032,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.42.0';
+const SURUM = '1.42.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -3911,17 +3911,27 @@ function yukleSeridiKapat(tur){
   // iOS'ta uygulama arka plana atılınca realtime websocket'i OS tarafından
   // kesiliyor ve öne dönüşte kendiliğinden düzgün toparlanmıyor — bildirim
   // (push) düşse bile ekrandaki veri tazelenmiyordu. Öne her dönüşte kanalları
-  // yeniden kurup verileri baştan çekiyoruz.
+  // yeniden kurup verileri baştan çekiyoruz. AYRICA uzun süre arka planda
+  // kalınca erişim jetonu süresi doluyor ve profil/rol bilgisi bayatlıyor
+  // (yönetici geçici olarak sıradan üye gibi görünüyordu) — bu yüzden önce
+  // oturumu tazeleyip profili yeniden çekiyoruz.
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
-    if (realtimeGenelKanal){ sb.removeChannel(realtimeGenelKanal); realtimeGenelKanal = null; }
-    realtimeGenelBaslat();
-    realtimeBaslat();
-    veriYukle().then(() => {
-      yonetimRozetiGuncelle();
-      if ($('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif')) yonetimCiz();
+    (async () => {
+      const {data: {session}} = await sb.auth.getSession();
+      kullanici = session?.user || null;
+      await profilGetir();
+      if ($('.gorunum[data-gorunum="profil"]').classList.contains('aktif')) profilCiz();
+    })().then(() => {
+      if (realtimeGenelKanal){ sb.removeChannel(realtimeGenelKanal); realtimeGenelKanal = null; }
+      realtimeGenelBaslat();
+      realtimeBaslat();
+      veriYukle().then(() => {
+        yonetimRozetiGuncelle();
+        if ($('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif')) yonetimCiz();
+      });
+      bildirimleriYukle();
     });
-    bildirimleriYukle();
   });
 
   // paylaşılan bağlantı (#yer=ID)
