@@ -3823,28 +3823,25 @@ async function yonetimCiz(){
     </div>`).join('');
   }
   else if (aktifSekme === 'eksik'){
-    const tumu = eksikYerler();
-    const sayilar = {
-      hepsi: tumu.length,
-      kaynaksiz: tumu.filter(kaynaksizMi).length,
-      aciklamasiz: tumu.filter(aciklamasizMi).length,
-      ikisi: tumu.filter(y => kaynaksizMi(y) && aciklamasizMi(y)).length,
+    const eksik = eksikYerler();
+    const yzli = yerler.filter(y => y.durum === 'onaylandi' && y.yz_destekli);
+    const kaynaklar = {
+      hepsi: eksik,
+      kaynaksiz: eksik.filter(kaynaksizMi),
+      aciklamasiz: eksik.filter(aciklamasizMi),
+      ikisi: eksik.filter(y => kaynaksizMi(y) && aciklamasizMi(y)),
+      yz: yzli,
     };
-    const suz = {
-      hepsi: y => true,
-      kaynaksiz: kaynaksizMi,
-      aciklamasiz: aciklamasizMi,
-      ikisi: y => kaynaksizMi(y) && aciklamasizMi(y),
-    }[eksikSuzgec];
-    const liste = tumu.filter(suz);
-    const etiket = {hepsi:'Tümü', kaynaksiz:'Kaynaksız', aciklamasiz:'Açıklamasız', ikisi:'İkisi de yok'};
+    const sayilar = Object.fromEntries(Object.entries(kaynaklar).map(([a, dizi]) => [a, dizi.length]));
+    const liste = kaynaklar[eksikSuzgec] || kaynaklar.hepsi;
+    const etiket = {hepsi:'Tümü', kaynaksiz:'Kaynaksız', aciklamasiz:'Açıklamasız', ikisi:'İkisi de yok', yz:'YZ Destekli'};
     k.innerHTML = `<p style="font-size:12.5px;color:var(--soluk);margin-bottom:10px">
-      Onaylı ${yerler.filter(y => y.durum === 'onaylandi').length} kaydın ${sayilar.hepsi} tanesinde kaynak veya açıklama eksik. Karta dokunarak kaydı açıp tamamlayabilirsin.</p>
+      Onaylı ${yerler.filter(y => y.durum === 'onaylandi').length} kaydın ${sayilar.hepsi} tanesinde kaynak veya açıklama eksik; ${sayilar.yz} tanesi YZ önerisiyle dolduruldu. Karta dokunarak kaydı açabilirsin.</p>
       <div class="sekmeler">${Object.keys(etiket).map(a =>
         `<button class="eksik-filtre${a === eksikSuzgec ? ' aktif' : ''}" data-eksik="${a}">${etiket[a]} (${sayilar[a]})</button>`).join('')}</div>
       ${!liste.length ? '<div class="bos-durum"><b>Bu filtrede kayıt yok</b>Hepsi tamamlanmış.</div>' : liste.map(y => `<div class="kart eksik-kart" data-yer="${y.id}">
         <div class="eksik-ust"><b>${kacir(y.baslik)}</b>
-          <div class="eksik-rozetler">${kaynaksizMi(y) ? '<span class="eksik-rozet">kaynak yok</span>' : ''}${aciklamasizMi(y) ? '<span class="eksik-rozet">açıklama yok</span>' : ''}</div></div>
+          <div class="eksik-rozetler">${kaynaksizMi(y) ? '<span class="eksik-rozet">kaynak yok</span>' : ''}${aciklamasizMi(y) ? '<span class="eksik-rozet">açıklama yok</span>' : ''}${y.yz_destekli ? '<span class="eksik-rozet eksik-rozet-yz">✨ YZ</span>' : ''}</div></div>
         <div class="meta">${KATEGORILER[y.kategori]} • ${kacir(konumYazisi(y, 'Konumsuz'))} • ${kacir(y.ekleyen?.ad || '?')}</div>
       </div>`).join('')}`;
     k.querySelectorAll('[data-eksik]').forEach(b => b.addEventListener('click', () => { eksikSuzgec = b.dataset.eksik; yonetimCiz(); }));
