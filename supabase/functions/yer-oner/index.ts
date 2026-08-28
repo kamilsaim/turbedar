@@ -23,7 +23,7 @@ Deno.serve(async (req: Request) => {
       `"kaynak_url" alanını yalnızca gerçekten bildiğin, genel erişilebilir bir kaynak (örn. Wikipedia sayfası) varsa doldur, aksi halde boş bırak.\n\n` +
       `Yerin adı: ${baslik || "(belirtilmemiş)"}\n` +
       `Konum: ${konumMetni}\n\n` +
-      `JSON şemasına uygun cevap ver: aciklama (2-4 cümlelik Türkçe tarihi/mimari açıklama), yatan_kisi (varsa bilinen kişinin tam adı), kaynak_baslik (varsa kaynağın adı), kaynak_url (varsa bağlantısı).`;
+      `JSON şemasına uygun cevap ver: aciklama (2-4 cümlelik Türkçe tarihi/mimari açıklama), yatan_kisi (varsa bilinen kişinin tam adı), vefat (varsa ölüm tarihi — miladi yıl veya hicri, örn. "1244" ya da "H. 642"), kaynak_baslik (varsa kaynağın adı), kaynak_url (varsa bağlantısı).`;
 
     const parcalar: Record<string, unknown>[] = [{ text: promptMetni }];
     if (foto_base64) {
@@ -39,6 +39,7 @@ Deno.serve(async (req: Request) => {
           properties: {
             aciklama: { type: "STRING" },
             yatan_kisi: { type: "STRING" },
+            vefat: { type: "STRING" },
             kaynak_baslik: { type: "STRING" },
             kaynak_url: { type: "STRING" },
           },

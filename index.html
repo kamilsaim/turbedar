@@ -880,7 +880,7 @@ img{display:block}
       </div>
       <div class="yz-oneri-blok">
         <button type="button" class="btn-altin btn btn-kucuk" id="btn-yz-oner">✨ Yapay Zekayla Öner</button>
-        <p class="ipucu">Başlık ve konumdan (kapak fotoğrafı varsa ondan da) açıklama, yatan kişi ve kaynak önerisi alır — kullanmadan önce mutlaka doğruluğunu kontrol et.</p>
+        <p class="ipucu">Başlık ve konumdan (kapak fotoğrafı varsa ondan da) açıklama, mekan sahibi ve kaynak önerisi alır — kullanmadan önce mutlaka doğruluğunu kontrol et.</p>
         <div id="yz-oneri-kutu"></div>
       </div>
       <div class="alan"><label>Açıklama</label><textarea id="girdi-aciklama" placeholder="Yerin tarihi, mimarisi, önemi..."></textarea></div>
@@ -892,7 +892,7 @@ img{display:block}
       <p class="ipucu" style="margin:-2px 0 6px">YouTube, Instagram, X, TikTok veya Facebook video bağlantısı ekleyebilirsin.</p>
       <div id="video-formlari"></div>
       <button class="btn-altin btn btn-kucuk" id="btn-video-ekle">+ Video Linki Ekle</button>
-      <div class="bolum-baslik" style="margin-top:14px">Yatan Kişiler</div>
+      <div class="bolum-baslik" style="margin-top:14px">Mekan Sahipleri</div>
       <div id="kisi-formlari"></div>
       <button class="btn-altin btn btn-kucuk" id="btn-kisi-ekle">+ Kişi Ekle</button>
       <div class="alan" id="rev-aciklama-alan" style="display:none;margin-top:14px">
@@ -1054,12 +1054,12 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.5.1';
+const SURUM = '1.5.2';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const KATEGORILER = {turbe:'Türbe', kumbet:'Kümbet', mezar:'Mezar', anit_mezar:'Anıt Mezar', sehitlik:'Şehitlik', diger:'Diğer'};
-const ALAN_ADLARI = {baslik:'Başlık', kategori:'Kategori', aciklama:'Açıklama', kaynaklar:'Kaynaklar', mahalle:'Mahalle', il:'İl', ilce:'İlçe', lat:'Enlem', lng:'Boylam', videolar:'Videolar', kisiler:'Yatan kişiler'};
+const ALAN_ADLARI = {baslik:'Başlık', kategori:'Kategori', aciklama:'Açıklama', kaynaklar:'Kaynaklar', mahalle:'Mahalle', il:'İl', ilce:'İlçe', lat:'Enlem', lng:'Boylam', videolar:'Videolar', kisiler:'Mekan sahipleri'};
 const VARSAYILAN_AVATAR = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#E4EDE6"/><circle cx="20" cy="15" r="7" fill="#1E4D38"/><path d="M6 38c0-8 6-12 14-12s14 4 14 12" fill="#1E4D38"/></svg>');
 
 /* ====================== DURUM ====================== */
@@ -1777,7 +1777,7 @@ function haritaAramaCiz(sorgu, adresler){
         <div class="harita-arama-govde">
           <b>${kacir(y.baslik)}</b>
           <span>${kacir((KATEGORILER[y.kategori]||'') + (konumYazisi(y) ? ' · ' + konumYazisi(y) : ''))}</span>
-          ${yatan ? `<span class="yatan">↳ Yatan: ${kacir(yatan)}</span>` : ''}
+          ${yatan ? `<span class="yatan">↳ Sahibi: ${kacir(yatan)}</span>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -1975,7 +1975,7 @@ function istatistikCiz(){
   $('#ozet-izgara').innerHTML = `
     <div class="ozet-kart kart"><div class="sayi">${toplamYer}</div><div class="etiket">Kayıtlı Yer</div></div>
     <div class="ozet-kart kart"><div class="sayi">${ilSayisi}</div><div class="etiket">İl</div></div>
-    <div class="ozet-kart kart"><div class="sayi">${kisiSayisi}</div><div class="etiket">Yatan Kişi</div></div>
+    <div class="ozet-kart kart"><div class="sayi">${kisiSayisi}</div><div class="etiket">Mekan Sahibi</div></div>
     <div class="ozet-kart kart"><div class="sayi">${toplamZiyaret}</div><div class="etiket">Ziyaret</div></div>`;
   // il bazlı
   const ilMap = {};
@@ -2131,7 +2131,7 @@ async function detayAc(id){
       <div id="katki-not-liste"><p style="color:var(--soluk);font-size:13px">Yükleniyor...</p></div>
       <button class="btn-altin btn btn-kucuk btn-tam" id="d-not-ekle" style="margin-top:8px">+ Ek Bilgi Öner</button>` : ''}
     ${(y.kisiler||[]).length ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
-      <div class="bolum-baslik">Burada Yatanlar</div>
+      <div class="bolum-baslik">Mekan Sahipleri</div>
       ${y.kisiler.map(p => `<div class="kisi-kart">
         <div class="kisi-nisan"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3C14.5 6 17 7.8 17 11.5V20H7v-8.5C7 7.8 9.5 6 12 3z"/><path d="M5 21h14"/></svg></div>
         <div><div class="kisi-ad">${kacir(p.ad)}</div>
@@ -2739,6 +2739,16 @@ async function yzKapakBase64(){
     return {mime: blob.type || 'image/webp', base64: veriUrl.slice(veriUrl.indexOf(',') + 1)};
   }catch(e){ return null; }
 }
+async function yzIstekYap(govde){
+  const {data, error} = await sb.functions.invoke('yer-oner', {body: govde});
+  if (error){
+    let mesaj = error.message;
+    try{ const govdeHata = await error.context?.json(); if (govdeHata?.error) mesaj = govdeHata.error; }catch(e){}
+    throw new Error(mesaj);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
 async function yzOneriGetir(){
   const btn = $('#btn-yz-oner');
   if (btn.disabled) return;
@@ -2754,13 +2764,16 @@ async function yzOneriGetir(){
       ulke: $('#girdi-ulke').value.trim(),
     };
     if (foto){ govde.foto_base64 = foto.base64; govde.foto_mime = foto.mime; }
-    const {data, error} = await sb.functions.invoke('yer-oner', {body: govde});
-    if (error){
-      let mesaj = error.message;
-      try{ const govdeHata = await error.context?.json(); if (govdeHata?.error) mesaj = govdeHata.error; }catch(e){}
-      throw new Error(mesaj);
+    let data;
+    try{
+      data = await yzIstekYap(govde);
+    }catch(ilkHata){
+      // Gemini geçici aşırı yükte 503 dönebilir — bir kez sessizce tekrar dene
+      if (String(ilkHata.message||'').includes('503')){
+        await new Promise(r => setTimeout(r, 1500));
+        data = await yzIstekYap(govde);
+      } else throw ilkHata;
     }
-    if (data?.error) throw new Error(data.error);
     yzSonuc = data;
     yzOneriKutusuCiz();
   }catch(err){
@@ -2774,7 +2787,7 @@ function yzOneriKutusuCiz(){
   if (!yzSonuc){ kutu.innerHTML = ''; return; }
   const alanlar = [
     {anahtar:'aciklama', etiket:'Açıklama'},
-    {anahtar:'yatan_kisi', etiket:'Yatan Kişi'},
+    {anahtar:'yatan_kisi', etiket:'Mekan Sahibi'},
     {anahtar:'kaynak_baslik', etiket:'Kaynak'},
   ];
   const doluAlanlar = alanlar.filter(a => yzSonuc[a.anahtar] && String(yzSonuc[a.anahtar]).trim());
@@ -2786,7 +2799,7 @@ function yzOneriKutusuCiz(){
     <div class="yz-panel-ust"><b>✨ Yapay Zeka Önerisi</b><button type="button" id="yz-tumunu-kullan">Tümünü Kullan</button></div>
     ${doluAlanlar.map(a => `<div class="yz-alan" data-yz-alan="${a.anahtar}">
       <div class="yz-alan-ust"><span>${a.etiket}</span><button type="button" data-yz-kullan="${a.anahtar}">Kullan</button></div>
-      <p>${kacir(String(yzSonuc[a.anahtar]))}</p>
+      <p>${kacir(String(yzSonuc[a.anahtar]))}${a.anahtar === 'yatan_kisi' && yzSonuc.vefat && String(yzSonuc.vefat).trim() ? kacir(' — vefat: ' + String(yzSonuc.vefat).trim()) : ''}</p>
     </div>`).join('')}
     <p class="yz-uyari">Yapay zeka yanılabilir — kullanmadan önce doğruluğunu kontrol et.</p>
   </div>`;
@@ -2799,7 +2812,7 @@ function yzAlaniUygula(anahtar){
   if (anahtar === 'aciklama'){
     $('#girdi-aciklama').value = deger;
   } else if (anahtar === 'yatan_kisi'){
-    kisiFormuEkle({ad: deger});
+    kisiFormuEkle({ad: deger, vefat: yzSonuc.vefat ? String(yzSonuc.vefat).trim() : ''});
   } else if (anahtar === 'kaynak_baslik'){
     kaynakFormuEkle({baslik: deger, url: yzSonuc.kaynak_url ? String(yzSonuc.kaynak_url).trim() : ''});
   }
@@ -3304,7 +3317,7 @@ function hakkindaAc(){
     <div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
     <div class="bolum-baslik" style="margin-bottom:8px">Nasıl Çalışır?</div>
     <div class="hakkinda-adim"><b>1. Keşfet</b><span>Haritada veya listede mevcut türbeleri gez. İl, ilçe, mahalle ve kategoriye göre ara, sana en yakın yerleri gör.</span></div>
-    <div class="hakkinda-adim"><b>2. Ekle</b><span>Gittiğin bir yeri kaydet. Fotoğrafını çek (konum otomatik bulunur), yerin adını, burada yatan kişileri ve kaynakları gir.</span></div>
+    <div class="hakkinda-adim"><b>2. Ekle</b><span>Gittiğin bir yeri kaydet. Fotoğrafını çek (konum otomatik bulunur), yerin adını, mekan sahiplerini ve kaynakları gir.</span></div>
     <div class="hakkinda-adim"><b>3. Onay</b><span>Eklediğin kayıt yöneticilere ulaşır. Onaylandığında haritada herkese görünür olur.</span></div>
     <div class="hakkinda-adim"><b>4. Zenginleştir</b><span>Onaylı bir yere herkes fotoğraf, ek bilgi veya düzenleme önerisi katabilir. Ziyaret ettiğin yerleri işaretle.</span></div>
     <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-top:10px">Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıtları tespit edip seni uyarır ve katkını mevcut kayda yönlendirir.</p>
@@ -3537,7 +3550,7 @@ async function yonetimCiz(){
         <span class="rozet rozet-beklemede">Bekliyor</span></div>
       ${(y.fotograflar||[]).length ? `<div class="onay-foto">${y.fotograflar.map(f=>`<img loading="lazy" src="${fotoUrl(f.yol)}">`).join('')}</div>` : ''}
       ${y.aciklama ? `<p style="font-size:13px;color:#4a564d;line-height:1.5">${kacir(y.aciklama.slice(0,260))}${y.aciklama.length>260?'…':''}</p>` : ''}
-      ${(y.kisiler||[]).length ? `<p style="font-size:12.5px;margin-top:6px"><b>Yatanlar:</b> ${kacir(y.kisiler.map(x=>x.ad).join(', '))}</p>` : ''}
+      ${(y.kisiler||[]).length ? `<p style="font-size:12.5px;margin-top:6px"><b>Mekan Sahipleri:</b> ${kacir(y.kisiler.map(x=>x.ad).join(', '))}</p>` : ''}
       ${(() => { const m = yakinYerler(y.lat, y.lng, y.id).filter(x => x.durum === 'onaylandi'); return m.length ? `
         <div style="background:var(--amber-zemin);border:1px solid var(--altin-acik);border-radius:10px;padding:9px 11px;margin-top:8px;font-size:12.5px">
           ⚠️ <b>${Math.round(m[0]._mesafe)} m yakında onaylı kayıt var:</b> ${kacir(m[0].baslik)}
