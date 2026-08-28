@@ -878,6 +878,11 @@ img{display:block}
           <option value="sehitlik">Şehitlik</option><option value="diger">Diğer</option>
         </select>
       </div>
+      <div class="yz-oneri-blok">
+        <button type="button" class="btn-altin btn btn-kucuk" id="btn-yz-oner">✨ Yapay Zekayla Öner</button>
+        <p class="ipucu">Başlık ve konumdan (kapak fotoğrafı varsa ondan da) açıklama, yatan kişi ve kaynak önerisi alır — kullanmadan önce mutlaka doğruluğunu kontrol et.</p>
+        <div id="yz-oneri-kutu"></div>
+      </div>
       <div class="alan"><label>Açıklama</label><textarea id="girdi-aciklama" placeholder="Yerin tarihi, mimarisi, önemi..."></textarea></div>
       <div class="bolum-baslik">Kaynaklar</div>
       <p class="ipucu" style="margin:-2px 0 6px">Bilginin dayanağı — kitabe, kitap, vakıf kaydı, web sayfası. İstersen bağlantı da ekleyebilirsin.</p>
@@ -2093,6 +2098,7 @@ async function detayAc(id){
     <div class="detay-meta">
       <span class="rozet rozet-kategori">${KATEGORILER[y.kategori]||y.kategori}</span>
       ${y.durum !== 'onaylandi' ? `<span class="rozet rozet-${y.durum}">${y.durum === 'beklemede' ? 'Onay Bekliyor' : 'Reddedildi'}</span>` : ''}
+      ${y.yz_destekli ? '<span class="rozet rozet-yz">✨ YZ destekli</span>' : ''}
     </div>
     <h1 class="detay-baslik">${kacir(y.baslik)}</h1>
     <div class="detay-konum">
