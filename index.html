@@ -3178,7 +3178,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
     if (!taslak.duzenlenen){
       /* ---- YENİ KAYIT ---- */
       const {data: yeni, error} = await sb.from('turbedar_yerler')
-        .insert({...alanlar, durum:'beklemede', ekleyen_id: kullanici.id}).select().single();
+        .insert({...alanlar, durum:'beklemede', ekleyen_id: kullanici.id, yz_destekli: !!taslak.yzKullanildi}).select().single();
       if (error) throw error;
       await fotolariYukle(yeni.id);
       if (kisiler.length){
@@ -3201,6 +3201,8 @@ $('#btn-kaydet').addEventListener('click', async () => {
       if (JSON.stringify(eskiK) !== JSON.stringify(kisiler)) fark.kisiler = kisiler;
       if (JSON.stringify(eski.videolar||[]) !== JSON.stringify(alanlar.videolar)) fark.videolar = alanlar.videolar;
       if (JSON.stringify(eski.kaynaklar||[]) !== JSON.stringify(alanlar.kaynaklar)) fark.kaynaklar = alanlar.kaynaklar;
+      // yz_destekli bir meta bilgi — fark tablosunda ayrı bir satır olarak gösterilmez (bkz. rev-onayla handler'daki `delete dg._yzDestekli`)
+      if (taslak.yzKullanildi && !eski.yz_destekli) fark._yzDestekli = true;
       // fotoğraflar doğrudan işlenir (onay gerekmez)
       await fotolariYukle(eski.id);
       if (!Object.keys(fark).length){
@@ -3213,7 +3215,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
     } else {
       /* ---- BEKLEYEN KENDİ KAYDI veya YÖNETİCİ DÜZENLEMESİ ---- */
       const eski = taslak.duzenlenen;
-      const {error} = await sb.from('turbedar_yerler').update(alanlar).eq('id', eski.id);
+      const {error} = await sb.from('turbedar_yerler').update({...alanlar, yz_destekli: !!eski.yz_destekli || !!taslak.yzKullanildi}).eq('id', eski.id);
       if (error) throw error;
       await sb.from('turbedar_kisiler').delete().eq('yer_id', eski.id);
       if (kisiler.length){
