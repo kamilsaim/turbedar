@@ -2589,6 +2589,7 @@ function sihirbazAc(yer = null, baslangicKonum = null){
     kapak: null,
     ulke: yer ? (yer.ulke || 'Türkiye') : null,
     ulkeKodu: yer ? (yer.ulke_kodu || 'tr') : null,
+    yzKullanildi: yer ? !!yer.yz_destekli : false,
   };
   $('#sihirbaz-baslik').textContent = yer ? 'Kaydı Düzenle' : 'Yeni Kayıt';
   $('#girdi-baslik').value = yer?.baslik || '';
@@ -2611,6 +2612,8 @@ function sihirbazAc(yer = null, baslangicKonum = null){
   (yer?.kisiler?.length ? yer.kisiler : []).forEach(k => kisiFormuEkle(k));
   $('#video-formlari').innerHTML = '';
   (yer?.videolar?.length ? yer.videolar : []).forEach(v => videoFormuEkle(v));
+  yzSonuc = null;
+  $('#yz-oneri-kutu').innerHTML = '';
   fotoIzgaraCiz();
   adimaGit(1);
   $('#sihirbaz-sayfa').classList.add('acik'); $('#sihirbaz-ortulu').classList.add('acik');
@@ -2717,6 +2720,90 @@ function kapakMi(tip, i){
   return taslak.kapak.tip === tip && taslak.kapak.i === i;
 }
 function kapakYap(tip, i){ taslak.kapak = {tip, i}; fotoIzgaraCiz(); }
+
+/* Yapay zeka önerisi (Gemini, sunucu tarafında Edge Function üzerinden) */
+let yzSonuc = null;
+async function yzKapakBase64(){
+  let tip = null, i = null;
+  for (let x = 0; x < taslak.mevcutFotolar.length; x++){ if (kapakMi('mevcut', x)){ tip = 'mevcut'; i = x; break; } }
+  if (tip === null) for (let x = 0; x < taslak.yeniFotolar.length; x++){ if (kapakMi('yeni', x)){ tip = 'yeni'; i = x; break; } }
+  if (tip === null) return null;
+  try{
+    const blob = tip === 'yeni' ? taslak.yeniFotolar[i].dosya : await fetch(fotoUrl(taslak.mevcutFotolar[i].yol)).then(r => r.blob());
+    const veriUrl = await new Promise((res, rej) => {
+      const okuyucu = new FileReader();
+      okuyucu.onload = () => res(okuyucu.result);
+      okuyucu.onerror = rej;
+      okuyucu.readAsDataURL(blob);
+    });
+    return {mime: blob.type || 'image/webp', base64: veriUrl.slice(veriUrl.indexOf(',') + 1)};
+  }catch(e){ return null; }
+}
+async function yzOneriGetir(){
+  const btn = $('#btn-yz-oner');
+  if (btn.disabled) return;
+  btn.disabled = true; const eskiMetin = btn.textContent; btn.textContent = 'Öneri hazırlanıyor...';
+  $('#yz-oneri-kutu').innerHTML = '';
+  try{
+    const foto = await yzKapakBase64();
+    const govde = {
+      baslik: $('#girdi-baslik').value.trim(),
+      il: $('#girdi-il').value.trim(),
+      ilce: $('#girdi-ilce').value.trim(),
+      mahalle: $('#girdi-mahalle').value.trim(),
+      ulke: $('#girdi-ulke').value.trim(),
+    };
+    if (foto){ govde.foto_base64 = foto.base64; govde.foto_mime = foto.mime; }
+    const {data, error} = await sb.functions.invoke('yer-oner', {body: govde});
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    yzSonuc = data;
+    yzOneriKutusuCiz();
+  }catch(err){
+    $('#yz-oneri-kutu').innerHTML = `<p class="yz-hata">Şu an kullanılamıyor: ${kacir(err.message || String(err))} — tekrar deneyebilirsin.</p>`;
+  }finally{
+    btn.disabled = false; btn.textContent = eskiMetin;
+  }
+}
+function yzOneriKutusuCiz(){
+  const kutu = $('#yz-oneri-kutu');
+  if (!yzSonuc){ kutu.innerHTML = ''; return; }
+  const alanlar = [
+    {anahtar:'aciklama', etiket:'Açıklama'},
+    {anahtar:'yatan_kisi', etiket:'Yatan Kişi'},
+    {anahtar:'kaynak_baslik', etiket:'Kaynak'},
+  ];
+  const doluAlanlar = alanlar.filter(a => yzSonuc[a.anahtar] && String(yzSonuc[a.anahtar]).trim());
+  if (!doluAlanlar.length){
+    kutu.innerHTML = '<p class="yz-hata">Bu kayıt için bir öneri üretilemedi.</p>';
+    return;
+  }
+  kutu.innerHTML = `<div class="yz-panel">
+    <div class="yz-panel-ust"><b>✨ Yapay Zeka Önerisi</b><button type="button" id="yz-tumunu-kullan">Tümünü Kullan</button></div>
+    ${doluAlanlar.map(a => `<div class="yz-alan" data-yz-alan="${a.anahtar}">
+      <div class="yz-alan-ust"><span>${a.etiket}</span><button type="button" data-yz-kullan="${a.anahtar}">Kullan</button></div>
+      <p>${kacir(String(yzSonuc[a.anahtar]))}</p>
+    </div>`).join('')}
+    <p class="yz-uyari">Yapay zeka yanılabilir — kullanmadan önce doğruluğunu kontrol et.</p>
+  </div>`;
+  kutu.querySelectorAll('[data-yz-kullan]').forEach(b => b.addEventListener('click', () => yzAlaniUygula(b.dataset.yzKullan)));
+  $('#yz-tumunu-kullan').addEventListener('click', () => doluAlanlar.forEach(a => yzAlaniUygula(a.anahtar)));
+}
+function yzAlaniUygula(anahtar){
+  if (!yzSonuc || !yzSonuc[anahtar]) return;
+  const deger = String(yzSonuc[anahtar]).trim();
+  if (anahtar === 'aciklama'){
+    $('#girdi-aciklama').value = deger;
+  } else if (anahtar === 'yatan_kisi'){
+    kisiFormuEkle({ad: deger});
+  } else if (anahtar === 'kaynak_baslik'){
+    kaynakFormuEkle({baslik: deger, url: yzSonuc.kaynak_url ? String(yzSonuc.kaynak_url).trim() : ''});
+  }
+  taslak.yzKullanildi = true;
+  const dugme = document.querySelector(`.yz-alan[data-yz-alan="${anahtar}"] [data-yz-kullan]`);
+  if (dugme){ dugme.textContent = '✓ Kullanıldı'; dugme.disabled = true; }
+}
+$('#btn-yz-oner').addEventListener('click', yzOneriGetir);
 function fotoHucresi(src, silAttr, tip, i){
   const kapak = kapakMi(tip, i);
   return `<div class="foto-hucre ${kapak ? 'kapak' : ''}">
