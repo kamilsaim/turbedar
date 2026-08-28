@@ -3618,6 +3618,8 @@ async function yonetimCiz(){
         </div></div>`).join('') : '';
     const revHtml = revler.length ? `<div class="bolum-baslik" style="margin:14px 0 8px">Düzenleme Önerileri (${revler.length})</div>` + revler.map(r => {
       const dg = {...r.degisiklikler};
+      const yzli = !!dg._yzDestekli;
+      delete dg._yzDestekli;
       let konumSatiri = '';
       if (dg.lat !== undefined && dg.lng !== undefined){
         const eskiLat = r.yer?.lat, eskiLng = r.yer?.lng;
@@ -3643,7 +3645,7 @@ async function yonetimCiz(){
         return `<div class="fark-satir"><b>${ALAN_ADLARI[alan]||alan}</b><div><div class="fark-eski">${kacir(String(eski))}</div><div class="fark-yeni">${kacir(String(yeniYazi))}</div></div></div>`;
       }).join('');
       return `<div class="onay-kart kart">
-        <div class="ust"><div><h3>${kacir(r.yer?.baslik || 'Silinmiş kayıt')}</h3>
+        <div class="ust"><div><h3>${kacir(r.yer?.baslik || 'Silinmiş kayıt')}${yzli ? ' <span class="rozet rozet-yz" style="vertical-align:middle">✨ YZ</span>' : ''}</h3>
           <div class="meta">Öneren: ${kacir(r.ekleyen?.ad||'?')} • ${tarihYaz(r.created_at)}</div></div></div>
         <p style="font-size:13px;font-style:italic;color:#4a564d;margin-bottom:4px">"${kacir(r.aciklama||'')}"</p>
         <div class="fark-tablo">${konumSatiri}${farklar}</div>
@@ -3679,9 +3681,11 @@ async function yonetimCiz(){
       if (!r?.yer) { b.disabled = false; return bildir('Kayıt silinmiş', true); }
       try{
         yukleniyor(true, 'Uygulanıyor...');
-        const {kisiler, ...alanlar} = r.degisiklikler;
-        if (Object.keys(alanlar).length){
-          const {error} = await sb.from('turbedar_yerler').update(alanlar).eq('id', r.yer_id);
+        const {kisiler, _yzDestekli, ...alanlar} = r.degisiklikler;
+        const guncelleme = {...alanlar};
+        if (_yzDestekli) guncelleme.yz_destekli = true;
+        if (Object.keys(guncelleme).length){
+          const {error} = await sb.from('turbedar_yerler').update(guncelleme).eq('id', r.yer_id);
           if (error) throw error;
         }
         if (kisiler !== undefined){
