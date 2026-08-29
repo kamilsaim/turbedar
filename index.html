@@ -1056,7 +1056,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.5.3';
+const SURUM = '1.5.4';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2790,15 +2790,25 @@ async function yzOneriGetir(){
     btn.disabled = false; btn.textContent = eskiMetin;
   }
 }
+function yzMekanSahipleriMetni(){
+  return (yzSonuc.mekan_sahipleri||[]).map(k => {
+    const ad = kacir(String(k?.ad||'').trim());
+    const vefat = k?.vefat && String(k.vefat).trim() ? kacir(' (vefat: ' + String(k.vefat).trim() + ')') : '';
+    return ad + vefat;
+  }).filter(Boolean).join(', ');
+}
 function yzOneriKutusuCiz(){
   const kutu = $('#yz-oneri-kutu');
   if (!yzSonuc){ kutu.innerHTML = ''; return; }
   const alanlar = [
     {anahtar:'aciklama', etiket:'Açıklama'},
-    {anahtar:'yatan_kisi', etiket:'Mekan Sahibi'},
+    {anahtar:'mekan_sahipleri', etiket:'Mekan Sahipleri'},
     {anahtar:'kaynak_baslik', etiket:'Kaynak'},
   ];
-  const doluAlanlar = alanlar.filter(a => yzSonuc[a.anahtar] && String(yzSonuc[a.anahtar]).trim());
+  const doluAlanlar = alanlar.filter(a => {
+    const v = yzSonuc[a.anahtar];
+    return Array.isArray(v) ? v.length > 0 : (v && String(v).trim());
+  });
   if (!doluAlanlar.length){
     kutu.innerHTML = '<p class="yz-hata">Bu kayıt için bir öneri üretilemedi.</p>';
     return;
@@ -2807,7 +2817,7 @@ function yzOneriKutusuCiz(){
     <div class="yz-panel-ust"><b>✨ Yapay Zeka Önerisi</b><button type="button" id="yz-tumunu-kullan">Tümünü Kullan</button></div>
     ${doluAlanlar.map(a => `<div class="yz-alan" data-yz-alan="${a.anahtar}">
       <div class="yz-alan-ust"><span>${a.etiket}</span><button type="button" data-yz-kullan="${a.anahtar}">Kullan</button></div>
-      <p>${kacir(String(yzSonuc[a.anahtar]))}${a.anahtar === 'yatan_kisi' && yzSonuc.vefat && String(yzSonuc.vefat).trim() ? kacir(' — vefat: ' + String(yzSonuc.vefat).trim()) : ''}</p>
+      <p>${a.anahtar === 'mekan_sahipleri' ? yzMekanSahipleriMetni() : kacir(String(yzSonuc[a.anahtar]))}</p>
     </div>`).join('')}
     <p class="yz-uyari">Yapay zeka yanılabilir — kullanmadan önce doğruluğunu kontrol et.</p>
   </div>`;
@@ -2816,13 +2826,15 @@ function yzOneriKutusuCiz(){
 }
 function yzAlaniUygula(anahtar){
   if (!yzSonuc || !yzSonuc[anahtar]) return;
-  const deger = String(yzSonuc[anahtar]).trim();
   if (anahtar === 'aciklama'){
-    $('#girdi-aciklama').value = deger;
-  } else if (anahtar === 'yatan_kisi'){
-    kisiFormuEkle({ad: deger, vefat: yzSonuc.vefat ? String(yzSonuc.vefat).trim() : ''});
+    $('#girdi-aciklama').value = String(yzSonuc.aciklama).trim();
+  } else if (anahtar === 'mekan_sahipleri'){
+    (yzSonuc.mekan_sahipleri||[]).forEach(k => {
+      const ad = String(k?.ad||'').trim();
+      if (ad) kisiFormuEkle({ad, vefat: k?.vefat ? String(k.vefat).trim() : ''});
+    });
   } else if (anahtar === 'kaynak_baslik'){
-    kaynakFormuEkle({baslik: deger, url: yzSonuc.kaynak_url ? String(yzSonuc.kaynak_url).trim() : ''});
+    kaynakFormuEkle({baslik: String(yzSonuc.kaynak_baslik).trim(), url: yzSonuc.kaynak_url ? String(yzSonuc.kaynak_url).trim() : ''});
   }
   taslak.yzKullanildi = true;
   const dugme = document.querySelector(`.yz-alan[data-yz-alan="${anahtar}"] [data-yz-kullan]`);
