@@ -157,6 +157,8 @@ img{display:block}
    görünümü hariç (oradaki üst çubuk zaten kendi safe-area'sını ekliyor). */
 .gorunum{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-top:env(safe-area-inset-top);padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px)}
 .gorunum.aktif{display:block}
+/* Detay/sihirbaz sayfası veya bir kip açıkken arka plan kaymasın (dokunmatik kaydırma sızması) */
+body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .icerik{max-width:760px;margin:0 auto;padding:16px}
 
 /* Harita görünümü */
@@ -1054,7 +1056,7 @@ img{display:block}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.5.2';
+const SURUM = '1.5.3';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2071,6 +2073,12 @@ function katkiCiz(){
 </script>
 <script>
 /* ====================== DETAY SAYFASI ====================== */
+/* Bir .sayfa (detay/sihirbaz) veya .kip açıkken arka plandaki .gorunum kaymasın diye kilitler.
+   Tek tek her aç/kapa noktasına dokunmak yerine class değişimini gözlemler — yeni bir kip eklenirse otomatik kapsar. */
+function gorunumKilitGuncelle(){
+  document.body.classList.toggle('sayfa-acik-kilit', !!document.querySelector('.sayfa.acik, .kip.acik'));
+}
+new MutationObserver(gorunumKilitGuncelle).observe(document.body, {attributes:true, attributeFilter:['class'], subtree:true});
 function sayfaKapat(){
   $('#detay-sayfa').classList.remove('acik'); $('#detay-ortulu').classList.remove('acik');
   acikYerId = null;
