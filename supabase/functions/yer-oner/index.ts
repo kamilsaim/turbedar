@@ -1,7 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+// NOT: 'gemini-flash-latest' alias'ı denendi ama sürekli 503 (aşırı yük) döndürdü;
+// Google'ın kendi 404 hata mesajı 'gemini-3.6-flash'ı öneriyor ve o güvenilir çalışıyor.
+// Gelecekte yeni bir flash modeli çıkarsa burayı güncelle.
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 const CORS_BASLIKLAR = {
   "Access-Control-Allow-Origin": "*",
