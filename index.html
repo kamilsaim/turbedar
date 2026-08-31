@@ -1056,7 +1056,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.5.4';
+const SURUM = '1.5.5';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1102,7 +1102,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const kacir = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const trKucuk = s => String(s||'').toLocaleLowerCase('tr').replace(/[çğıöşü]/g, c => ({'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u'}[c]));
-const trBasHarf = s => String(s||'').replace(/(^|[\s\-\.\/\(])([\p{L}])/gu, (m, on, h) => on + h.toLocaleUpperCase('tr'));
+const trBasHarf = s => String(s||'').replace(/(^|[\s\.\/\(])([\p{L}])/gu, (m, on, h) => on + h.toLocaleUpperCase('tr'));
 const fotoUrl = yol => `${SUPA_URL}/storage/v1/object/public/${BUCKET}/${yol}`;
 const ziyaretSayisi = y => y.ziyaretler?.[0]?.count || 0;
 const fotoSirala = arr => (arr||[]).slice().sort((a,b) => (a.sira ?? 0) - (b.sira ?? 0) || new Date(a.created_at||0) - new Date(b.created_at||0));
