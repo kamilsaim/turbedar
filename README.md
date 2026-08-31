@@ -11,7 +11,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 [![Uygulama](https://img.shields.io/badge/uygulamay%C4%B1%20a%C3%A7-turbedar.web.app-1E4D38?style=for-the-badge)](https://turbedar.web.app)
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
 
-![Version](https://img.shields.io/badge/v1.42.0-B8923E)
+![Version](https://img.shields.io/badge/v1.5.5-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
@@ -105,6 +105,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.5** | Yapay zekâyla (Google Gemini) yer önerisi: açıklama, mekân sahipleri (birden fazla kişi, vefat tarihli) ve kaynak taslağı; "Yatan Kişi" adı "Mekân Sahipleri" oldu; detay/sihirbaz açıkken arka planın kayması engellendi; kişi adlarında tire sonrası hatalı büyük harf düzeltildi (İmam-ı Azam) |
 | **1.42** | Yeni yorumlar artık takip edilebiliyor: kaydın sahibine ve yöneticilere anlık bildirim (push dahil); yönetim panelinde tüm yorumları gösteren "Yorumlar" sekmesi |
 | **1.41** | Haritada arama: üstteki mercek düğmesiyle türbe, yatan kişi, il veya adres arama; adres sonucunda haritanın kendiliğinden uygun yakınlığa gelmesi |
 | **1.40** | Hakkında sayfasındaki paylaşım bölümü yenilendi: bağlantı turbedar.web.app, sürüm notları bağlantısı ve iPhone/iPad kullanım tarifi |
