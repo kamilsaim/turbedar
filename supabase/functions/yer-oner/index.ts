@@ -1,10 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
-// NOT: 'gemini-flash-latest' alias'ı denendi ama sürekli 503 (aşırı yük) döndürdü;
-// Google'ın kendi 404 hata mesajı 'gemini-3.6-flash'ı öneriyor ve o güvenilir çalışıyor.
-// Gelecekte yeni bir flash modeli çıkarsa burayı güncelle.
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`;
+// Model zinciri: Google tarafinda 503 (asiri yuk) sik yasandigi icin tek modele bagli kalmiyoruz.
+// Sirayla denenir, ilk basarili yanit kullanilir. Liste 3 Eyl 2026'da ListModels ile dogrulandi.
+const MODELLER = ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash", "gemini-2.5-flash"];
+const GEMINI_URL = (model: string) =>
+  `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+const bekle = (ms: number) => new Promise((c) => setTimeout(c, ms));
 
 const CORS_BASLIKLAR = {
   "Access-Control-Allow-Origin": "*",
@@ -59,16 +61,34 @@ Deno.serve(async (req: Request) => {
       },
     };
 
-    const yanit = await fetch(GEMINI_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(istek),
-    });
-    if (!yanit.ok) {
-      return new Response(JSON.stringify({ error: `Gemini hatası: ${yanit.status}` }), {
-        status: 502,
-        headers: { ...CORS_BASLIKLAR, "Content-Type": "application/json" },
-      });
+    // Her modeli 2 kez dene; 503/429/500 gecici hatalarda bir sonraki modele gec.
+    let yanit: Response | null = null;
+    let sonHata = "";
+    for (const model of MODELLER) {
+      for (let deneme = 0; deneme < 2; deneme++) {
+        if (deneme > 0) await bekle(1200);
+        try {
+          const r = await fetch(GEMINI_URL(model), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(istek),
+          });
+          if (r.ok) { yanit = r; console.log("Gemini basarili", model); break; }
+          sonHata = `${model}: ${r.status} ${(await r.text()).slice(0, 200)}`;
+          console.error("Gemini hatasi", sonHata);
+          if (r.status !== 503 && r.status !== 429 && r.status !== 500) break; // kalici hata -> sonraki model
+        } catch (e) {
+          sonHata = `${model}: ${String((e as Error)?.message || e)}`;
+          console.error("Gemini istek hatasi", sonHata);
+        }
+      }
+      if (yanit) break;
+    }
+    if (!yanit) {
+      return new Response(
+        JSON.stringify({ error: "Yapay zeka servisi şu an çok yoğun (Google tarafında geçici aşırı yük). Lütfen birkaç dakika sonra tekrar deneyin.", ayrinti: sonHata }),
+        { status: 502, headers: { ...CORS_BASLIKLAR, "Content-Type": "application/json" } },
+      );
     }
     const veri = await yanit.json();
     const metin = veri?.candidates?.[0]?.content?.parts?.[0]?.text;
