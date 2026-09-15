@@ -25,7 +25,7 @@ const VARSAYILAN_GORSEL = `${SITE}/og-kart.png`;
 const CIKTI = path.join(__dirname, 'y');
 
 const KATEGORILER = {
-  turbe: 'Türbe', kumbet: 'Kümbet', mezar: 'Mezar',
+  turbe: 'Türbe', kumbet: 'Kümbet', mezar: 'Mezar', makam: 'Makam',
   anit_mezar: 'Anıt Mezar', sehitlik: 'Şehitlik', diger: 'Diğer',
 };
 

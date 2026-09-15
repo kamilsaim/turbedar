@@ -876,7 +876,8 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
       <div class="alan"><label>Kategori</label>
         <select id="girdi-kategori">
           <option value="turbe">Türbe</option><option value="kumbet">Kümbet</option>
-          <option value="mezar">Mezar</option><option value="anit_mezar">Anıt Mezar</option>
+          <option value="mezar">Mezar</option><option value="makam">Makam</option>
+          <option value="anit_mezar">Anıt Mezar</option>
           <option value="sehitlik">Şehitlik</option><option value="diger">Diğer</option>
         </select>
       </div>
@@ -1056,11 +1057,11 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.5.5';
+const SURUM = '1.5.6';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-const KATEGORILER = {turbe:'Türbe', kumbet:'Kümbet', mezar:'Mezar', anit_mezar:'Anıt Mezar', sehitlik:'Şehitlik', diger:'Diğer'};
+const KATEGORILER = {turbe:'Türbe', kumbet:'Kümbet', mezar:'Mezar', makam:'Makam', anit_mezar:'Anıt Mezar', sehitlik:'Şehitlik', diger:'Diğer'};
 const ALAN_ADLARI = {baslik:'Başlık', kategori:'Kategori', aciklama:'Açıklama', kaynaklar:'Kaynaklar', mahalle:'Mahalle', il:'İl', ilce:'İlçe', lat:'Enlem', lng:'Boylam', videolar:'Videolar', kisiler:'Mekan sahipleri'};
 const VARSAYILAN_AVATAR = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#E4EDE6"/><circle cx="20" cy="15" r="7" fill="#1E4D38"/><path d="M6 38c0-8 6-12 14-12s14 4 14 12" fill="#1E4D38"/></svg>');
 
