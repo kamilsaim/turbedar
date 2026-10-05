@@ -10,6 +10,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 
 [![Uygulama](https://img.shields.io/badge/uygulamay%C4%B1%20a%C3%A7-turbedar.web.app-1E4D38?style=for-the-badge)](https://turbedar.web.app)
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
+[![Türbe Rehberi](https://img.shields.io/badge/il%20il-t%C3%BCrbe%20rehberi-233129?style=for-the-badge)](https://turbedar.web.app/turbeler/)
 
 ![Version](https://img.shields.io/badge/v1.6.0-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
@@ -53,7 +54,7 @@ Türbedar topluluk temelli bir envanterdir. Herkes katkıda bulunabilir, ama kal
 | | Adım | Ne yaparsın |
 |:--:|---|---|
 | **1** | **Keşfet** | Haritada veya listede mevcut türbeleri gezersin. İl, ilçe, mahalle ve kategoriye göre arar, sana en yakın yerleri görürsün. |
-| **2** | **Ekle** | Gittiğin bir yeri kaydedersin. Fotoğrafını çekersin — konum fotoğrafın kendisinden ya da cihazından otomatik bulunur. Yerin adını, burada yatan kişileri, kaynakları ve varsa video bağlantılarını girersin. |
+| **2** | **Ekle** | Gittiğin bir yeri kaydedersin. Fotoğrafını çekersin — konum fotoğrafın kendisinden ya da cihazından otomatik bulunur. Yerin adını, mekân sahiplerini, kaynakları ve varsa video bağlantılarını girersin. |
 | **3** | **Onay** | Kaydın yöneticilere ulaşır. Onaylandığında haritada herkese görünür hale gelir — ve sana bildirim düşer. |
 | **4** | **Zenginleştir** | Onaylı bir yere herkes fotoğraf, ek bilgi, kaynak veya düzenleme önerisi katabilir. Ziyaret ettiğin yerleri işaretler, yorum yaparsın. |
 
@@ -65,9 +66,11 @@ Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıt
 
 | | |
 |---|---|
-| 🗺️ **Harita** | Sokak ve uydu görünümü, kubbe biçimli işaretler, konum tabanlı keşif |
+| 🗺️ **Harita** | Sokak ve uydu görünümü, kubbe biçimli işaretler, konum tabanlı keşif, yer ve adres arama |
+| 📖 **İl il türbe rehberi** | [turbedar.web.app/turbeler](https://turbedar.web.app/turbeler/) — her il ve her kayıt için ayrı, aramada bulunabilir sayfa |
 | 📷 **Akıllı konum** | Fotoğraftan otomatik GPS, cihaz konumu veya elle iğne yerleştirme |
-| 👥 **Yatan kişiler** | Her yere birden çok kişi, unvanları ve kısa biyografileriyle |
+| 👥 **Mekân sahipleri** | Her yere birden çok kişi, unvanları ve vefat tarihleriyle |
+| ✨ **Yapay zekâ önerisi** | Kayıt eklerken açıklama, mekân sahipleri ve kaynak için taslak öneri — kullanmadan hiçbir şey forma yazılmaz |
 | 📚 **Kaynaklar ve videolar** | Bilginin dayanağını belgele; YouTube, Instagram, X bağlantıları ekle |
 | ✅ **Onay ve revizyon** | Kaliteli ve güvenilir bir envanter için yönetici denetimi |
 | 🤝 **Topluluk katkısı** | Fotoğraf, ek bilgi, kaynak ve düzenleme önerileri |
@@ -85,7 +88,7 @@ Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıt
 
 ## Teknoloji
 
-Türbedar, **tek bir HTML dosyasından** oluşan, derleme adımı gerektirmeyen sade bir uygulamadır. Framework yok, paket yöneticisi yok, build çıktısı yok — `index.html` dosyasını güncellemek yayınlamak demektir.
+Türbedar uygulaması **tek bir HTML dosyasından** oluşan, derleme adımı gerektirmeyen sade bir uygulamadır. Framework yok, paket yöneticisi yok — `index.html` dosyasını güncellemek yayınlamak demektir. İl il türbe rehberi ise bağımlılıksız küçük bir Node betiğiyle (`site-uret/`) veritabanından statik sayfalar olarak üretilir.
 
 | Katman | Kullanılan |
 |---|---|
@@ -94,7 +97,8 @@ Türbedar, **tek bir HTML dosyasından** oluşan, derleme adımı gerektirmeyen 
 | Güvenlik | Tüm yetkilendirme veritabanı seviyesinde (Row Level Security) |
 | Giriş | Google ile kimlik doğrulama |
 | Bildirim | Android'de Firebase Cloud Messaging, iOS/masaüstünde Web Push (VAPID) |
-| Yayın | [Firebase Hosting](https://firebase.google.com/products/hosting) + [GitHub Pages](https://pages.github.com) |
+| Yayın | [Firebase Hosting](https://firebase.google.com/products/hosting) (turbedar.web.app) + [GitHub Pages](https://pages.github.com) (eski Android sürümleri için) |
+| Yapay zekâ | Google Gemini (sunucu tarafında, Supabase Edge Function üzerinden) |
 | Mobil | [Capacitor](https://capacitorjs.com) ile Android paketi |
 
 Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mobil uygulama da **yeni sürüm yüklemeden** güncellenir.
