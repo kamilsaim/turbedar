@@ -25,6 +25,7 @@ const PUBLIC = path.join(YAYIN, 'public');
 const DOSYALAR = [
   'index.html', 'gizlilik-politikasi.html', 'logo.png', 'sw.js',
   'manifest.webmanifest', 'icon-192.webp', 'icon-512.webp', 'og-kart.png',
+  'google164315b3fe8acefa.html',  // Search Console doğrulama dosyası (silme)
 ];
 
 const FIREBASE_JSON = {
