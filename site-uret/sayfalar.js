@@ -256,7 +256,7 @@ ${cagri()}
 const SSS = [
   ['Türbedar nedir?', 'Türbedar; türbe, kümbet, makam ve mezarların gönüllüler tarafından oluşturulan ortak envanteridir. Her kayıt fotoğrafı, harita konumu, mekan sahipleri ve kaynaklarıyla birlikte tutulur; uygulamayı kullanan herkes haritada bu yerleri bulabilir ve ziyaret edebilir.'],
   ['Türbedar ücretli mi?', 'Hayır. Türbedar tamamen ücretsizdir; reklam ve analitik takip içermez.'],
-  ['Hesap açmadan kullanabilir miyim?', 'Evet. Haritayı, kayıtları ve fotoğrafları görmek için giriş yapmanız gerekmez. Yer eklemek, ziyaret işaretlemek ve yorum yazmak için Google hesabıyla tek dokunuşla giriş yapılır.'],
+  ['Hesap açmadan kullanabilir miyim?', 'Evet. Haritayı, kayıtları ve fotoğrafları görmek için giriş yapmanız gerekmez. Yer eklemek, ziyaret işaretlemek ve yorum yazmak için Google ya da Apple hesabıyla tek dokunuşla giriş yapılır.'],
   ['Nasıl türbe eklerim?', 'Uygulamada “Ekle” düğmesine dokunun: önce fotoğrafları seçin (fotoğrafın konum bilgisi varsa pin otomatik yerleşir), sonra haritada konumu doğrulayın, en son adı, türü ve mekan sahiplerini yazın. Kayıt yönetici onayından sonra herkese görünür.'],
   ['iPhone\'da Türbedar\'ı nasıl kullanırım?', 'iPhone ve iPad\'de Safari ile turbedar.web.app adresini açın, alttaki Paylaş simgesine dokunup “Ana Ekrana Ekle”yi seçin. Türbedar bir uygulama gibi ana ekranınıza yerleşir ve bildirim alabilir.'],
   ['Yakınımdaki türbeleri nasıl bulurum?', 'Harita ekranındaki “yakınımdaki yerler” düğmesi konumunuza en yakın türbeleri mesafeleriyle listeler. Uydu görünümüyle yerin çevresini de görebilirsiniz.'],

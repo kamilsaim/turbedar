@@ -12,7 +12,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
 [![Türbe Rehberi](https://img.shields.io/badge/il%20il-t%C3%BCrbe%20rehberi-233129?style=for-the-badge)](https://turbedar.web.app/turbeler/)
 
-![Version](https://img.shields.io/badge/v1.6.0-B8923E)
+![Version](https://img.shields.io/badge/v1.6.1-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
@@ -95,7 +95,7 @@ Türbedar uygulaması **tek bir HTML dosyasından** oluşan, derleme adımı ger
 | Arayüz | Vanilla JS + CSS, [Leaflet](https://leafletjs.com) haritalar |
 | Veri | [Supabase](https://supabase.com) — Postgres, kimlik doğrulama, dosya depolama |
 | Güvenlik | Tüm yetkilendirme veritabanı seviyesinde (Row Level Security) |
-| Giriş | Google ile kimlik doğrulama |
+| Giriş | Google ve Apple ile kimlik doğrulama |
 | Bildirim | Android'de Firebase Cloud Messaging, iOS/masaüstünde Web Push (VAPID) |
 | Yayın | [Firebase Hosting](https://firebase.google.com/products/hosting) (turbedar.web.app) + [GitHub Pages](https://pages.github.com) (eski Android sürümleri için) |
 | Yapay zekâ | Google Gemini (sunucu tarafında, Supabase Edge Function üzerinden) |
@@ -109,6 +109,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.6.1** | Apple ile giriş (web, Android ve ileride iPhone uygulamasında) |
 | **1.6.0** | Android uygulaması artık doğrudan turbedar.web.app'i açıyor; il il türbe rehberi (turbedar.web.app/turbeler/), her kayıt için ayrı sayfa ve "Türbedar nedir?" tanıtım sayfası — Google aramalarında görünmek için |
 | **1.5** | Yapay zekâyla (Google Gemini) yer önerisi: açıklama, mekân sahipleri (birden fazla kişi, vefat tarihli) ve kaynak taslağı; "Yatan Kişi" adı "Mekân Sahipleri" oldu; detay/sihirbaz açıkken arka planın kayması engellendi; kişi adlarında tire sonrası hatalı büyük harf düzeltildi (İmam-ı Azam); kategorilere "Makam" eklendi |
 | **1.42** | Yeni yorumlar artık takip edilebiliyor: kaydın sahibine ve yöneticilere anlık bildirim (push dahil); yönetim panelinde tüm yorumları gösteren "Yorumlar" sekmesi |

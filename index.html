@@ -1075,7 +1075,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.6.0';
+const SURUM = '1.6.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1303,7 +1303,7 @@ async function girisIste(){ $('#kip-giris').classList.add('acik'); }
 $('#kip-giris-kapat').addEventListener('click', () => $('#kip-giris').classList.remove('acik'));
 /* Apple girişi Supabase'de Apple sağlayıcısı (Services ID + 6 ayda bir yenilenen
  * secret) yapılandırılınca açılır; kapalıyken düğmeler gizlenir. */
-const APPLE_GIRIS_ACIK = false;
+const APPLE_GIRIS_ACIK = true;
 if (!APPLE_GIRIS_ACIK) document.documentElement.classList.add('apple-kapali');
 
 /* Google ve Apple aynı OAuth akışını kullanır (saglayici: 'google' | 'apple') */
