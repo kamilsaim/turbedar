@@ -27,3 +27,6 @@ apkhata.jpeg
 yayın.jpg
 IMG_*.PNG
 ChatGPT Image*.png
+
+# --- Firebase yayın klasörü (yayin.js her seferinde yeniden kurar) ---
+_yayin/
