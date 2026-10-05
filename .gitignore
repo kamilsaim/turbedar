@@ -32,3 +32,5 @@ ChatGPT Image*.png
 _yayin/
 # site-uret çıktısı (paylaşım kartları artık _yayin/public/y altında üretilir)
 y/
+# yerel zamanlayici betigi (TurbedarSite gorevi calistirir)
+site-yayinla.bat
