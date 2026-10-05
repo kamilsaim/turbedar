@@ -3,8 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>Türbedar — Türbe ve Mezar Envanteri</title>
-<meta name="description" content="Önemli kişilerin türbe ve mezarlarının ortak envanteri. Emanet, Hizmet, Sadakat.">
+<script>
+  /* GitHub Pages'ten TARAYICIYLA gelenleri asıl adrese taşı. APK (window.Capacitor)
+     hariç: eski APK'ların izin listesinde turbedar.web.app yok, yönlendirilirse
+     uygulama dış tarayıcıya fırlardı. Pages bu yüzden açık kalmalı. Capacitor
+     köprüsü bu satırda henüz hazır olmayabilir diye Android WebView işareti
+     ("; wv)") de ayrıca dışlanır. */
+  if (location.hostname === 'kamilsaim.github.io' && !window.Capacitor && !/; wv\)/.test(navigator.userAgent))
+    location.replace('https://turbedar.web.app/' + location.search + location.hash);
+</script>
+<title>Türbedar — Türbe, Kümbet ve Mezar Haritası</title>
+<meta name="description" content="Türkiye ve dünyadaki türbe, kümbet ve mezarların ortak haritası. Yakınındaki türbeleri bul, ziyaretini işaretle, bildiğin yerleri ekle. Emanet, Hizmet, Sadakat.">
+<link rel="canonical" href="https://turbedar.web.app/">
 <meta name="theme-color" content="#1E4D38">
 <meta name="google-site-verification" content="W9UWJ7EpKgBWKdJEKEfUSpdGFuKLmL9zkjTGQ8eHAUM">
 <!-- Sosyal paylaşım kartı (WhatsApp, X, Facebook, Telegram...) -->
@@ -1058,7 +1068,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.5.6';
+const SURUM = '1.6.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -3369,6 +3379,10 @@ function hakkindaAc(){
     <a class="btn-ghost btn btn-kucuk" href="https://github.com/kamilsaim/turbedar#s%C3%BCr%C3%BCm-ge%C3%A7mi%C5%9Fi" target="_blank" rel="noopener noreferrer" style="display:block;margin-top:8px;text-align:center;text-decoration:none">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
       Sürüm Notları (v${SURUM})
+    </a>
+    <a class="btn-ghost btn btn-kucuk" href="https://turbedar.web.app/turbeler/" target="_blank" rel="noopener" style="display:block;margin-top:8px;text-align:center;text-decoration:none">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2zM20 19v3H6"/></svg>
+      İl İl Türbe Rehberi
     </a>
     <details class="ios-tarif" style="margin-top:10px">
       <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--zumrut);padding:8px 0;list-style:none">

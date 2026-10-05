@@ -26,8 +26,6 @@ const DOSYALAR = [
   'index.html', 'gizlilik-politikasi.html', 'logo.png', 'sw.js',
   'manifest.webmanifest', 'icon-192.webp', 'icon-512.webp', 'og-kart.png',
 ];
-// Repodaki klasörler (geçiş dönemi: y/ henüz repoda duruyorsa kopyalanır)
-const KLASORLER = ['y'];
 
 const FIREBASE_JSON = {
   hosting: {
@@ -56,9 +54,10 @@ fs.mkdirSync(PUBLIC, { recursive: true });
 for (const d of DOSYALAR) {
   fs.copyFileSync(path.join(KOK, d), path.join(PUBLIC, d));
 }
-for (const k of KLASORLER) {
-  const kaynak = path.join(KOK, k);
-  if (fs.existsSync(kaynak)) fs.cpSync(kaynak, path.join(PUBLIC, k), { recursive: true });
+// site-uret çalışmamışsa SEO sayfaları ve paylaşım kartları eksik yayınlanır
+if (!fs.existsSync(path.join(PUBLIC, 'sitemap.xml'))) {
+  console.error('HATA: önce node site-uret çalıştırılmalı (sitemap.xml yok).');
+  process.exit(1);
 }
 fs.writeFileSync(path.join(YAYIN, 'firebase.json'), JSON.stringify(FIREBASE_JSON, null, 2));
 

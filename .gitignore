@@ -30,3 +30,5 @@ ChatGPT Image*.png
 
 # --- Firebase yayın klasörü (yayin.js her seferinde yeniden kurar) ---
 _yayin/
+# site-uret çıktısı (paylaşım kartları artık _yayin/public/y altında üretilir)
+y/
