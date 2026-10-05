@@ -4237,7 +4237,10 @@ async function pushBildirimBaslat(){
 let pushTokenBekleyen = null;
 async function pushTokenKaydet(token){
   if (!kullanici || !token) return;
-  await sb.from('turbedar_profiller').update({push_token: token}).eq('id', kullanici.id);
+  // iOS uygulamasında eklenti FCM değil APNs jetonu verir — push-gonder bunu Apple'a
+  // doğrudan yollar (push_ios). Android FCM jetonu push_token'da kalır.
+  const alan = window.Capacitor?.getPlatform?.() === 'ios' ? 'push_ios' : 'push_token';
+  await sb.from('turbedar_profiller').update({[alan]: token}).eq('id', kullanici.id);
 }
 
 /* ============ WEB PUSH (iOS ana ekran PWA + masaüstü/mobil tarayıcılar) ============
