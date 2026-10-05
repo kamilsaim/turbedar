@@ -1075,7 +1075,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.6.2';
+const SURUM = '1.6.3';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -3528,7 +3528,9 @@ async function profilCiz(){
       <img src="${profil?.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
       <div class="pad">
         <h2>${kacir(profil?.ad || '')}</h2>
-        <div class="eposta">${kacir(kullanici.email || '')}</div>
+        <div class="eposta">${/@privaterelay\.appleid\.com$/i.test(kullanici.email || '')
+          ? 'Apple ile giriş yapıldı · e-posta gizli'
+          : kacir(kullanici.email || '')}</div>
         <div style="display:flex;gap:5px;margin-top:6px">
           ${profil?.kurucu ? '<span class="rozet rozet-kurucu">Kurucu</span>' : ''}
           ${yonetici() ? '<span class="rozet rozet-yonetici">Yönetici</span>' : '<span class="rozet rozet-onaylandi">Üye</span>'}
