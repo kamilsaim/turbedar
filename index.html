@@ -1075,7 +1075,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.6.1';
+const SURUM = '1.6.2';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1286,15 +1286,18 @@ $('#kip-onay-evet').addEventListener('click', () => kipOnayCb && kipOnayCb(true)
 $('#kip-onay-hayir').addEventListener('click', () => kipOnayCb && kipOnayCb(false));
 
 /* ====================== OTURUM ====================== */
+/* Bildirim jetonları (push_token/push_web/push_ios) istemciye KAPALI — DB'de sütun
+ * SELECT yetkisi geri alındı; select('*') "permission denied" verir, hep bu listeyi kullan. */
+const PROFIL_KOLONLARI = 'id,ad,avatar_url,hakkinda,rol,kurucu,created_at,whatsapp';
 async function profilGetir(){
   if (!kullanici){ profil = null; return; }
-  let {data} = await sb.from('turbedar_profiller').select('*').eq('id', kullanici.id).maybeSingle();
+  let {data} = await sb.from('turbedar_profiller').select(PROFIL_KOLONLARI).eq('id', kullanici.id).maybeSingle();
   if (!data){
     const meta = kullanici.user_metadata || {};
     // Apple'ın gizli e-postası (x7f3@privaterelay.appleid.com) ad olarak kullanılmaz
     const ePostaAdi = /@privaterelay\.appleid\.com$/i.test(kullanici.email||'') ? '' : (kullanici.email||'').split('@')[0];
     const yeni = {id: kullanici.id, ad: meta.full_name || meta.name || ePostaAdi || 'İsimsiz', avatar_url: meta.avatar_url || null};
-    const {data: olusan} = await sb.from('turbedar_profiller').insert(yeni).select().single();
+    const {data: olusan} = await sb.from('turbedar_profiller').insert(yeni).select(PROFIL_KOLONLARI).single();
     data = olusan || yeni;
   }
   profil = data;
@@ -3987,7 +3990,7 @@ async function yonetimCiz(){
     }));
   }
   else if (aktifSekme === 'kullanici'){
-    const {data: liste, error} = await sb.from('turbedar_profiller').select('*').order('created_at');
+    const {data: liste, error} = await sb.from('turbedar_profiller').select(PROFIL_KOLONLARI).order('created_at');
     if (error){ k.innerHTML = `<p style="color:var(--kirmizi)">${kacir(error.message)}</p>`; return; }
     const ara = (kullaniciArama || '').trim();
     const aN = trKucuk(ara);
