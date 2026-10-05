@@ -1075,7 +1075,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.6.3';
+const SURUM = '1.6.4';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -4181,6 +4181,8 @@ function yukleSeridiKapat(tur){
   } else {
     // APK dışı (tarayıcı / iOS ana ekran PWA): Web Push — izin zaten verilmişse sessizce tazele
     webPushBaslat(false);
+    // supabase-js OAuth jetonlarını adresten temizlesin diye biraz sonra
+    setTimeout(pwaGeriKorumaBaslat, 1500);
   }
 })();
 
@@ -4208,6 +4210,29 @@ function geriTusu(){
   }
   geriCikisZamani = simdi;
   bildir('Çıkmak için tekrar bas');
+}
+
+/* Ana ekran uygulaması (iPhone/Android PWA) geri kaydırması: Google/Apple girişi
+ * sayfayı onların sitesine götürüp geri getirdiği için o sayfalar geçmişte kalır;
+ * kenardan sağa kaydırınca kullanıcı uygulamadan çıkıp Google'ın giriş sayfasına
+ * düşüyordu. Geçmişe bir "koruma" adımı eklenir; geri hareketi bu adımı tüketir,
+ * biz de Android geri tuşu gibi önce açık katmanı kapatıp korumayı yeniden koyarız.
+ * Normal tarayıcı sekmesinde ve Capacitor'da ÇALIŞMAZ (orada geri tuşunu
+ * engellemek kötü deneyim; Capacitor'da backButton → geriTusu var). */
+function pwaGeriKorumaBaslat(){
+  if (window.Capacitor || !anaEkrandaMi()) return;
+  // OAuth dönüşünde adres jeton taşıyabilir — koruma adımına jetonsuz adres yazılır
+  const temizAdres = () => /access_token|[?&]code=/.test(location.href)
+    ? location.pathname : location.pathname + location.search + location.hash;
+  const korumaKoy = () => history.pushState({turbedarKoruma: true}, '', temizAdres());
+  korumaKoy();
+  window.addEventListener('popstate', () => {
+    const acikKipler = document.querySelectorAll('.kip.acik');
+    if (acikKipler.length) acikKipler[acikKipler.length - 1].classList.remove('acik');
+    else if ($('#sihirbaz-sayfa')?.classList.contains('acik')) sihirbazKapat();
+    else if ($('#detay-sayfa')?.classList.contains('acik')) sayfaKapat();
+    korumaKoy();
+  });
 }
 
 /* ====================== PUSH BİLDİRİMLERİ (FCM) ====================== */
