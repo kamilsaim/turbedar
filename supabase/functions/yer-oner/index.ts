@@ -3,14 +3,16 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
 // Model zinciri: Google tarafinda 503 (asiri yuk) sik yasandigi icin tek modele bagli kalmiyoruz.
 // Sirayla denenir, ilk basarili yanit kullanilir. Liste 3 Eyl 2026'da ListModels ile dogrulandi.
-const MODELLER = ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash", "gemini-2.5-flash"];
+// 6 Eki 2026: 3.6 ücretsiz günlük kotası (429) doldu, 3.8 sürekli 503 veriyor; o gün yanıt veren tek model 3.7 olduğu için başa alındı.
+const MODELLER = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash"];
 const GEMINI_URL = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 const bekle = (ms: number) => new Promise((c) => setTimeout(c, ms));
 // Telefonlar ~60 sn'de isteği koparıyor; zincir bundan çok önce bitmeli (6 Eki 2026: 52 sn'lik zincir
-// istemcide "Failed to send a request" olarak düştü). Model başına 15 sn, toplam 35 sn.
-const MODEL_ZAMAN_ASIMI_MS = 15000;
-const BUTCE_MS = 35000;
+// istemcide "Failed to send a request" olarak düştü). Yoğunlukta başarılı model ~17 sn sürdüğü için
+// model başına 20 sn, toplam 45 sn.
+const MODEL_ZAMAN_ASIMI_MS = 20000;
+const BUTCE_MS = 45000;
 
 const CORS_BASLIKLAR = {
   "Access-Control-Allow-Origin": "*",
