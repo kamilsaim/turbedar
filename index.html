@@ -501,11 +501,22 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 
 /* kişisel istatistik açılır listeleri */
 .kisisel-detay{border-top:1px solid var(--cizgi);margin-top:8px}
-.kisisel-detay summary{font-weight:800;font-size:13.5px;color:var(--zumrut);padding:10px 0 6px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
-.kisisel-detay summary::-webkit-details-marker{display:none}
-.kisisel-detay summary::after{content:'+';color:var(--altin);font-size:18px;font-weight:600}
-.kisisel-detay[open] summary::after{content:'–'}
+.kisisel-detay>summary{font-weight:800;font-size:13.5px;color:var(--zumrut);padding:10px 0 6px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.kisisel-detay>summary::-webkit-details-marker{display:none}
+.kisisel-detay>summary::after{content:'+';color:var(--altin);font-size:18px;font-weight:600}
+.kisisel-detay[open]>summary::after{content:'–'}
 .kisisel-liste{padding-bottom:6px}
+.il-ilerleme{padding:2px 0}
+.il-ilerleme summary{display:block;padding:8px 4px 2px;cursor:pointer;list-style:none}
+.il-ilerleme .il-ust{display:flex;align-items:center;gap:10px;margin-bottom:5px}
+.il-ilerleme summary::-webkit-details-marker{display:none}
+.il-ilerleme .il-ust b{flex:1;font-size:13.5px;color:var(--murekkep)}
+.il-ilerleme .il-ust span{font-size:12px;font-weight:800;color:var(--altin);flex:none}
+.il-cubuk{height:5px;border-radius:3px;background:var(--cizgi);overflow:hidden}
+.il-cubuk i{display:block;height:100%;background:var(--zumrut);border-radius:3px}
+.il-eksik{padding:0 4px 6px 14px}
+.il-eksik .il-satir{padding:6px 0;font-size:13px}
+.yakin-suzgec{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--murekkep);margin-bottom:8px;cursor:pointer}
 
 /* ---------- Sihirbaz (kayıt ekleme) ---------- */
 .sihirbaz-adim{display:none}
@@ -963,6 +974,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   <div class="kip-kutu" style="max-width:460px">
     <h3 style="margin-bottom:4px">Yakınımdaki Yerler</h3>
     <p style="font-size:12.5px;color:var(--soluk);margin-bottom:10px" id="yakin-alt">Konumun alınıyor...</p>
+    <label class="yakin-suzgec" id="yakin-suzgec-kutu" style="display:none"><input type="checkbox" id="yakin-gitmediklerim"> Sadece ziyaret etmediklerim</label>
     <div id="yakin-liste" style="max-height:60vh;overflow-y:auto;margin:0 -8px"></div>
     <div class="kip-butonlar" style="margin-top:14px"><button class="btn-ghost btn" id="yakin-kapat" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Kapat</button></div>
   </div>
@@ -1104,7 +1116,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.7.0';
+const SURUM = '1.8.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1481,6 +1493,7 @@ $('#btn-yakin').addEventListener('click', () => {
   $('#yakin-alt').textContent = 'Konumun alınıyor...';
   $('#yakin-liste').innerHTML = '<div style="text-align:center;padding:24px"><div class="hilal-donen" style="margin:0 auto"></div></div>';
   $('#kip-yakin').classList.add('acik');
+  $('#yakin-suzgec-kutu').style.display = kullanici ? 'flex' : 'none';
   if (!navigator.geolocation){ $('#yakin-alt').textContent = 'Cihaz konumu desteklenmiyor.'; $('#yakin-liste').innerHTML = ''; return; }
   navigator.geolocation.getCurrentPosition(
     p => yakinListele(p.coords.latitude, p.coords.longitude),
@@ -1489,14 +1502,18 @@ $('#btn-yakin').addEventListener('click', () => {
   );
 });
 $('#yakin-kapat').addEventListener('click', () => $('#kip-yakin').classList.remove('acik'));
+let yakinSonKonum = null;
+$('#yakin-gitmediklerim').addEventListener('change', () => { if (yakinSonKonum) yakinListele(yakinSonKonum.lat, yakinSonKonum.lng); });
 function yakinListele(lat, lng){
+  yakinSonKonum = {lat, lng};
+  const gitmediklerim = kullanici && $('#yakin-gitmediklerim').checked;
   const liste = yerler
-    .filter(y => y.durum === 'onaylandi')
+    .filter(y => y.durum === 'onaylandi' && !(gitmediklerim && benimZiyaretlerim.has(y.id)))
     .map(y => ({...y, _m: mesafeM(lat, lng, y.lat, y.lng)}))
     .sort((a,b) => a._m - b._m)
     .slice(0, 10);
-  if (!liste.length){ $('#yakin-alt').textContent = 'Henüz onaylı kayıt yok.'; $('#yakin-liste').innerHTML = ''; return; }
-  $('#yakin-alt').textContent = 'Sana en yakın türbe ve mezarlar:';
+  if (!liste.length){ $('#yakin-alt').textContent = gitmediklerim ? 'Ziyaret etmediğin kayıt kalmadı — maşallah!' : 'Henüz onaylı kayıt yok.'; $('#yakin-liste').innerHTML = ''; return; }
+  $('#yakin-alt').textContent = gitmediklerim ? 'Sana en yakın, henüz ziyaret etmediğin yerler:' : 'Sana en yakın türbe ve mezarlar:';
   const uzaklik = m => m < 1000 ? Math.round(m) + ' m' : (m/1000).toFixed(1) + ' km';
   $('#yakin-liste').innerHTML = liste.map(y => {
     const foto = (y.fotograflar||[])[0];
@@ -2085,6 +2102,17 @@ function kisiselIstatistikCiz(){
   const bekleyen = benimkiler.filter(y => y.durum === 'beklemede').length;
   const ziyaretSay = benimZiyaretlerim.size;
   const ziyaretYerleri = yerler.filter(y => benimZiyaretlerim.has(y.id));
+  // İl (yurt dışında ülke) bazında ilerleme: sadece en az bir ziyaret olan bölgeler
+  const bolgeAdi = y => (y.ulke_kodu && y.ulke_kodu !== 'tr') ? (y.ulke || 'Yurt dışı') : (y.il || 'Bilinmeyen il');
+  const bolgeler = new Map();
+  yerler.filter(y => y.durum === 'onaylandi').forEach(y => {
+    const ad = bolgeAdi(y);
+    if (!bolgeler.has(ad)) bolgeler.set(ad, {ad, toplam: 0, gidilen: 0, eksik: []});
+    const b = bolgeler.get(ad); b.toplam++;
+    if (benimZiyaretlerim.has(y.id)) b.gidilen++; else b.eksik.push(y);
+  });
+  const ilerleme = [...bolgeler.values()].filter(b => b.gidilen)
+    .sort((a, b) => (b.gidilen / b.toplam) - (a.gidilen / a.toplam) || b.gidilen - a.gidilen);
   kutu.innerHTML = `<div class="kart" style="padding:16px;margin-bottom:12px;border-color:var(--altin-acik)">
     <div class="bolum-baslik" style="margin-bottom:2px">Senin Yolculuğun</div>
     <p style="font-size:12px;color:var(--soluk);margin-bottom:12px">Envantere katkın ve ziyaretlerin</p>
@@ -2110,6 +2138,16 @@ function kisiselIstatistikCiz(){
           <b style="width:auto;flex:1">${kacir(y.baslik)}</b>
           <span style="width:auto;font-size:12px;color:var(--soluk);font-weight:600">${kacir(y.il||'')}</span>
         </div>`).join('')}</div>
+    </details>` : ''}
+    ${ilerleme.length ? `<details class="kisisel-detay">
+      <summary>İllere Göre Ziyaretlerim (${ilerleme.length})</summary>
+      <div class="kisisel-liste">${ilerleme.map(b => `<details class="il-ilerleme">
+        <summary><div class="il-ust"><b>${kacir(b.ad)}</b><span>${b.gidilen === b.toplam ? '✓ ' : ''}${b.gidilen} / ${b.toplam}</span></div>
+          <div class="il-cubuk"><i style="width:${Math.round(100 * b.gidilen / b.toplam)}%"></i></div></summary>
+        ${b.eksik.length ? `<div class="il-eksik"><p style="font-size:11.5px;color:var(--soluk);margin-bottom:2px">Henüz gitmediklerin:</p>${b.eksik.map(y => `
+          <div class="il-satir" data-yer="${y.id}"><b style="width:auto;flex:1;font-weight:600">${kacir(y.baslik)}</b></div>`).join('')}</div>`
+          : '<p class="il-eksik" style="font-size:12px;color:var(--zumrut)">Bu ildeki bütün kayıtları ziyaret ettin.</p>'}
+      </details>`).join('')}</div>
     </details>` : ''}
   </div>`;
   kutu.querySelectorAll('[data-yer]').forEach(s => s.addEventListener('click', () => detayAc(s.dataset.yer)));
