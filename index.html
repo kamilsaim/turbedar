@@ -131,6 +131,9 @@ img{display:block}
   border-radius:10px;padding:11px 13px;outline:none;transition:border .15s,box-shadow .15s;
 }
 .alan textarea{resize:vertical;min-height:88px}
+/* iOS Safari tarih alanına kendi minimum genişliğini verip width:100%'ü yok sayıyor → kipten taşıyordu */
+.alan input[type=date]{display:block;min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;min-height:46px;text-align:left}
+.alan input[type=date]::-webkit-date-and-time-value{text-align:left}
 .alan input:focus,.alan select:focus,.alan textarea:focus{border-color:var(--altin);box-shadow:0 0 0 3px var(--altin-soluk)}
 .alan .ipucu{font-size:12px;color:var(--soluk);margin-top:5px}
 .konum-arama{position:relative;margin-bottom:10px}
@@ -1153,7 +1156,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.10.1';
+const SURUM = '1.10.2';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
