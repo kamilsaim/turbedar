@@ -305,6 +305,8 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .ziyaret-ani small{display:block;font-size:11.5px;color:var(--soluk);font-weight:700}
 .ziyaret-ani p{margin:2px 0 0;white-space:pre-wrap;line-height:1.45}
 .ziyaret-ani .ani-bos{color:var(--soluk)}
+.rapor-bag{font-size:12px;color:var(--soluk);text-decoration:underline;padding:0;background:none}
+.rapor-neden{display:flex;align-items:center;gap:9px;padding:8px 2px;font-size:14px;color:var(--murekkep);cursor:pointer}
 
 /* harita önizleme kartı */
 .turbedar-popup .leaflet-popup-content-wrapper{background:var(--kart);border-radius:14px;border-top:2px solid var(--altin);box-shadow:var(--golge-buyuk);padding:0;overflow:hidden}
@@ -830,6 +832,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
         <button class="sekme aktif" data-sekme="bekleyen">Bekleyen <span id="sk-bekleyen"></span></button>
         <button class="sekme" data-sekme="revizyon">Revizyonlar <span id="sk-revizyon"></span></button>
         <button class="sekme" data-sekme="mesaj">Mesajlar <span id="sk-mesaj"></span></button>
+        <button class="sekme" data-sekme="rapor">Bildirilenler <span id="sk-rapor"></span></button>
         <button class="sekme" data-sekme="yorum">Yorumlar</button>
         <button class="sekme" data-sekme="gunluk" id="sekme-gunluk" style="display:none">Günlük</button>
         <button class="sekme" data-sekme="eksik">Eksik Kayıtlar <span id="sk-eksik"></span></button>
@@ -1047,6 +1050,20 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   </div>
 </div>
 
+<!-- Kayıt bildirme (hatalı / mükerrer / uygunsuz) -->
+<div class="kip" id="kip-rapor">
+  <div class="kip-kutu">
+    <h3>Hata Bildir</h3>
+    <p style="margin-bottom:8px" id="rapor-yer"></p>
+    <div id="rapor-nedenler"></div>
+    <div class="alan" style="margin-top:8px"><label>Açıklama (isteğe bağlı)</label><textarea id="rapor-aciklama" maxlength="1000" style="min-height:90px" placeholder="Neyin yanlış olduğunu kısaca yaz — örn. doğru konum caminin batı tarafında..."></textarea></div>
+    <div class="kip-butonlar">
+      <button class="btn-ghost btn" id="rapor-vazgec" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Vazgeç</button>
+      <button class="btn" id="rapor-gonder">Gönder</button>
+    </div>
+  </div>
+</div>
+
 <!-- Ziyaret anısı: tarih + kişisel not, sadece sahibi görür -->
 <div class="kip" id="kip-ziyaret-ani">
   <div class="kip-kutu">
@@ -1135,7 +1152,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.9.0';
+const SURUM = '1.10.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1681,18 +1698,20 @@ async function yonetimRozetiGuncelle(){
   if (!yonetici()){ btn.style.display = 'none'; return; }
   btn.style.display = 'flex';
   const sekmeGunluk = $('#sekme-gunluk'); if (sekmeGunluk) sekmeGunluk.style.display = kurucu() ? '' : 'none';
-  const [{count: bk}, {count: rk}, {count: nk}, {count: mk}] = await Promise.all([
+  const [{count: bk}, {count: rk}, {count: nk}, {count: mk}, {count: rpk}] = await Promise.all([
     sb.from('turbedar_yerler').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
     sb.from('turbedar_revizyonlar').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
     sb.from('turbedar_katki_notlari').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
     sb.from('turbedar_mesajlar').select('id', {count:'exact', head:true}).eq('okundu', false),
+    sb.from('turbedar_raporlar').select('id', {count:'exact', head:true}).eq('durum', 'acik'),
   ]);
-  const toplam = (bk||0) + (rk||0) + (nk||0) + (mk||0);
+  const toplam = (bk||0) + (rk||0) + (nk||0) + (mk||0) + (rpk||0);
   sayi.style.display = toplam ? 'flex' : 'none';
   sayi.textContent = toplam;
   $('#sk-bekleyen').textContent = bk ? `(${bk})` : '';
   $('#sk-revizyon').textContent = (rk||0)+(nk||0) ? `(${(rk||0)+(nk||0)})` : '';
   $('#sk-mesaj').textContent = mk ? `(${mk})` : '';
+  $('#sk-rapor').textContent = rpk ? `(${rpk})` : '';
   const ek = eksikYerler().length;
   $('#sk-eksik').textContent = ek ? `(${ek})` : '';
 }
@@ -2292,7 +2311,7 @@ async function detayAc(id){
       ${duzenlenebilir ? `<button class="btn-ghost btn" id="d-duzenle">Düzenle</button>` : (kullanici ? `<button class="btn-ghost btn" id="d-konum-oner">📍 Konum Öner</button>` : '')}
       ${silinebilir ? `<button class="btn-ghost btn" id="d-sil" style="color:var(--kirmizi)">Sil</button>` : ''}
     </div>
-    <p style="font-size:12px;color:var(--soluk)">Ekleyen: ${kacir(y.ekleyen?.ad || 'Bilinmiyor')} • ${tarihYaz(y.created_at)}</p>
+    <p style="font-size:12px;color:var(--soluk)">Ekleyen: ${kacir(y.ekleyen?.ad || 'Bilinmiyor')} • ${tarihYaz(y.created_at)}${y.durum === 'onaylandi' && !(kullanici && y.ekleyen_id === kullanici.id) ? ` • <button type="button" class="rapor-bag" id="d-rapor">🚩 Hata bildir</button>` : ''}</p>
     ${y.durum === 'onaylandi' ? `
       <div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
       <div class="bolum-baslik">Yorumlar</div>
@@ -2358,6 +2377,7 @@ async function detayAc(id){
   });
   if ($('#d-duzenle')) $('#d-duzenle').addEventListener('click', () => { sayfaKapat(); sihirbazAc(y); });
   if ($('#d-konum-oner')) $('#d-konum-oner').addEventListener('click', () => konumOnerAc(y));
+  if ($('#d-rapor')) $('#d-rapor').addEventListener('click', () => raporAc(y));
   if ($('#d-sil')) $('#d-sil').addEventListener('click', async () => {
     const onay = await sor('Kaydı Sil', `"${y.baslik}" kaydı ve tüm fotoğrafları kalıcı olarak silinecek. Emin misin?`, {evetMetin:'Sil', tehlike:true});
     if (!onay) return;
@@ -2993,6 +3013,34 @@ function yzAlaniUygula(anahtar){
 }
 $('#btn-yz-oner').addEventListener('click', yzOneriGetir);
 $('#yzo-kapat').addEventListener('click', () => yzOturumKapat());
+
+/* Kayıt bildirme: turbedar_raporlar insert → DB tetikleyicisi tüm yöneticilere bildirim (push dahil) üretir */
+const RAPOR_NEDENLERI = {yanlis_bilgi:'Yanlış veya eksik bilgi', yanlis_konum:'Konum yanlış', mukerrer:'Mükerrer kayıt (aynı yer iki kez)', uygunsuz:'Uygunsuz fotoğraf veya içerik', diger:'Diğer'};
+let raporYer = null;
+function raporAc(y){
+  if (!kullanici) return girisIste();
+  raporYer = y;
+  $('#rapor-yer').textContent = y.baslik;
+  $('#rapor-nedenler').innerHTML = Object.entries(RAPOR_NEDENLERI).map(([a, e], i) =>
+    `<label class="rapor-neden"><input type="radio" name="rapor-neden" value="${a}"${i === 0 ? ' checked' : ''}> ${e}</label>`).join('');
+  $('#rapor-aciklama').value = '';
+  $('#kip-rapor').classList.add('acik');
+}
+$('#rapor-vazgec').addEventListener('click', () => $('#kip-rapor').classList.remove('acik'));
+$('#rapor-gonder').addEventListener('click', async () => {
+  if (!raporYer || !kullanici) return;
+  const btn = $('#rapor-gonder'); if (btn.disabled) return;
+  const neden = document.querySelector('input[name="rapor-neden"]:checked')?.value || 'diger';
+  btn.disabled = true;
+  const {error} = await sb.from('turbedar_raporlar').insert({yer_id: raporYer.id, raporlayan_id: kullanici.id, neden, aciklama: $('#rapor-aciklama').value.trim() || null});
+  btn.disabled = false;
+  if (error){
+    if (error.code === '23505') return bildir('Bu kaydı zaten bildirdin — yönetici inceleyecek', true);
+    return bildir('Gönderilemedi: ' + error.message, true);
+  }
+  $('#kip-rapor').classList.remove('acik');
+  bildir('Teşekkürler, yöneticilere iletildi 🚩');
+});
 
 /* Ziyaret anısı: işaretlenmiş ziyarete tarih + kişisel not (turbedar_ziyaret_notlari, RLS: sadece sahibi) */
 const tarihYazisi = t => t ? new Date(t + (String(t).length === 10 ? 'T12:00:00' : '')).toLocaleDateString('tr-TR', {day:'numeric', month:'long', year:'numeric'}) : '';
@@ -4151,6 +4199,46 @@ async function yonetimCiz(){
       yonetimRozetiGuncelle();
     }
   }
+  else if (aktifSekme === 'rapor'){
+    const {data: raporlar, error} = await sb.from('turbedar_raporlar')
+      .select('*, raporlayan:turbedar_profiller!turbedar_raporlar_raporlayan_id_fkey(ad,avatar_url), yer:turbedar_yerler(id,baslik)')
+      .order('durum', {ascending:true}).order('created_at', {ascending:false}).limit(200);
+    if (error){ k.innerHTML = `<p style="color:var(--kirmizi)">${kacir(error.message)}</p>`; return; }
+    if (!raporlar.length){ k.innerHTML = '<div class="bos-durum"><b>Bildirilen kayıt yok</b>Kullanıcıların hatalı/mükerrer diye bildirdiği kayıtlar burada listelenir.</div>'; return; }
+    k.innerHTML = raporlar.map(rp => `<div class="kart mesaj-kart ${rp.durum === 'acik' ? 'okunmadi' : ''}" style="padding:13px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
+        <span style="font-size:18px">🚩</span>
+        <div style="flex:1;min-width:0">
+          <b style="font-size:14px;cursor:pointer;color:var(--zumrut)" data-rapor-yer="${rp.yer?.id || ''}">${kacir(rp.yer?.baslik || 'Silinmiş kayıt')}</b>
+          <div style="font-size:12.5px;color:var(--altin);font-weight:700">${RAPOR_NEDENLERI[rp.neden] || rp.neden}${rp.durum === 'kapandi' ? ' · <span style="color:var(--soluk)">kapatıldı</span>' : ''}</div>
+        </div>
+        <time style="font-size:11px;color:var(--soluk);flex:none">${tarihYaz(rp.created_at)}</time>
+      </div>
+      ${rp.aciklama ? `<p style="font-size:13.5px;line-height:1.6;color:#3d4a41;white-space:pre-wrap">${kacir(rp.aciklama)}</p>` : ''}
+      <div style="font-size:12px;color:var(--soluk);margin-top:6px">Bildiren: ${kacir(rp.raporlayan?.ad || 'Üye')}</div>
+      <div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap">
+        ${rp.durum === 'acik' ? `<button class="btn btn-kucuk" data-rapor-kapat="${rp.id}">Çözüldü, kapat</button>` : ''}
+        <button class="btn-tehlike btn btn-kucuk" data-rapor-sil="${rp.id}">Sil</button>
+      </div>
+    </div>`).join('');
+    k.querySelectorAll('[data-rapor-yer]').forEach(el => el.addEventListener('click', () => { if (el.dataset.raporYer) detayAc(el.dataset.raporYer); }));
+    k.querySelectorAll('[data-rapor-kapat]').forEach(b => b.addEventListener('click', async () => {
+      const rp = raporlar.find(x => x.id === b.dataset.raporKapat);
+      const {error: e} = await sb.from('turbedar_raporlar').update({durum: 'kapandi'}).eq('id', rp.id);
+      if (e) return bildir('Kapatılamadı: ' + e.message, true);
+      gunlukYaz('rapor_kapat', 'rapor', rp.id, rp.yer?.baslik || null, {neden: rp.neden});
+      yonetimRozetiGuncelle(); yonetimCiz();
+    }));
+    k.querySelectorAll('[data-rapor-sil]').forEach(b => b.addEventListener('click', async () => {
+      const onay = await sor('Bildirimi Sil', 'Bu bildirim kalıcı olarak silinecek (kayda dokunulmaz).', {evetMetin:'Sil', tehlike:true});
+      if (!onay) return;
+      const rp = raporlar.find(x => x.id === b.dataset.raporSil);
+      const {error: e} = await sb.from('turbedar_raporlar').delete().eq('id', rp.id);
+      if (e) return bildir('Silinemedi: ' + e.message, true);
+      gunlukYaz('rapor_sil', 'rapor', rp.id, rp.yer?.baslik || null, {neden: rp.neden});
+      yonetimRozetiGuncelle(); yonetimCiz();
+    }));
+  }
   else if (aktifSekme === 'yorum'){
     const {data: yorumlar, error} = await sb.from('turbedar_yorumlar')
       .select('*, yazan:turbedar_profiller!turbedar_yorumlar_yazan_id_fkey(ad,avatar_url), yer:turbedar_yerler(id,baslik)')
@@ -4209,6 +4297,8 @@ async function yonetimCiz(){
       mesaj_sil:'🗑️ Mesaj sildi',
       yorum_sil:'🗑️ Yorum sildi',
       yz_taslak:'✨ YZ taslağıyla doldurdu',
+      rapor_kapat:'🚩 Bildirimi kapattı',
+      rapor_sil:'🗑️ Bildirimi sildi',
       bilgi_ekle:'➕ Bilgi ekledi', bilgi_duzenle:'✎ Bilgi düzenledi', bilgi_sil:'🗑️ Bilgi sildi',
     };
     k.innerHTML = ozetHtml + kayitlar.map(kg => `<div class="kart" style="padding:11px 13px;margin-bottom:8px">
