@@ -828,6 +828,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   <section class="gorunum" data-gorunum="yonetim">
     <div class="icerik">
       <h2 style="font-family:var(--display);font-size:26px;font-weight:700;color:var(--zumrut);margin-bottom:12px">Yönetim</h2>
+      <div id="apple-uyari"></div>
       <div class="sekmeler yapisik" id="yonetim-sekmeler">
         <button class="sekme aktif" data-sekme="bekleyen">Bekleyen <span id="sk-bekleyen"></span></button>
         <button class="sekme" data-sekme="revizyon">Revizyonlar <span id="sk-revizyon"></span></button>
@@ -1152,7 +1153,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.10.0';
+const SURUM = '1.10.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1693,11 +1694,24 @@ async function bilgileriYukle(){
   iletisimWhatsapp = (kur && kur.whatsapp && kur.whatsapp.trim()) ? kur.whatsapp.trim() : null;
 }
 
+/* Apple ile Giriş'in Supabase'teki Secret Key'i (JWT) en fazla 6 ay geçerli. Süresi dolarsa Apple girişi
+   TAMAMEN durur. Yenileyince bu tarihi yeni bitişe çek (CLAUDE.md > Apple ile Giriş bölümüne bak). */
+const APPLE_SECRET_BITIS = '2027-04-03';
+function appleUyariCiz(){
+  const kutu = $('#apple-uyari'); if (!kutu) return;
+  const kalanGun = Math.ceil((new Date(APPLE_SECRET_BITIS + 'T00:00:00') - new Date()) / 86400000);
+  if (!kurucu() || kalanGun > 33){ kutu.innerHTML = ''; return; }
+  kutu.innerHTML = `<div class="kart" style="padding:12px 14px;margin-bottom:12px;border-color:var(--kirmizi);background:#fbeeec">
+    <b style="color:var(--kirmizi)">🍎 Apple giriş anahtarı ${kalanGun > 0 ? kalanGun + ' gün sonra' : 'SÜRESİ DOLDU —'} ${kalanGun > 0 ? 'bitiyor' : 'Apple ile giriş çalışmıyor'}</b>
+    <p style="font-size:12.5px;color:var(--murekkep);margin-top:4px;line-height:1.5">Bilgisayarda C:\\apk\\apple-anahtar klasöründe <code>node apple-secret-uret.js AuthKey_7V2L7K74PL.p8 7V2L7K74PL NBTXFU47EV</code> çalıştır, çıkan anahtarı Supabase → Authentication → Apple → Secret Key alanına yapıştır, sonra bu uyarının tarihini (APPLE_SECRET_BITIS) güncelle.</p>
+  </div>`;
+}
 async function yonetimRozetiGuncelle(){
   const btn = $('#btn-yonetim'), sayi = $('#onay-sayisi');
   if (!yonetici()){ btn.style.display = 'none'; return; }
   btn.style.display = 'flex';
   const sekmeGunluk = $('#sekme-gunluk'); if (sekmeGunluk) sekmeGunluk.style.display = kurucu() ? '' : 'none';
+  appleUyariCiz();
   const [{count: bk}, {count: rk}, {count: nk}, {count: mk}, {count: rpk}] = await Promise.all([
     sb.from('turbedar_yerler').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
     sb.from('turbedar_revizyonlar').select('id', {count:'exact', head:true}).eq('durum','beklemede'),
