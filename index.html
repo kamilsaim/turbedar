@@ -301,6 +301,10 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .ziyaret-btn.aktif{background:var(--zumrut);border-color:var(--zumrut-koyu);color:#fff}
 .ziyaret-btn .sayi{font-weight:600;font-size:12px;opacity:.8}
 .ziyaret-btn:disabled{opacity:.6}
+.ziyaret-ani{margin:6px 0 2px;padding:9px 12px;border:1px dashed var(--altin-acik);border-radius:12px;font-size:13px;color:var(--murekkep);cursor:pointer;display:flex;gap:8px;align-items:flex-start}
+.ziyaret-ani small{display:block;font-size:11.5px;color:var(--soluk);font-weight:700}
+.ziyaret-ani p{margin:2px 0 0;white-space:pre-wrap;line-height:1.45}
+.ziyaret-ani .ani-bos{color:var(--soluk)}
 
 /* harita önizleme kartı */
 .turbedar-popup .leaflet-popup-content-wrapper{background:var(--kart);border-radius:14px;border-top:2px solid var(--altin);box-shadow:var(--golge-buyuk);padding:0;overflow:hidden}
@@ -1043,6 +1047,21 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   </div>
 </div>
 
+<!-- Ziyaret anısı: tarih + kişisel not, sadece sahibi görür -->
+<div class="kip" id="kip-ziyaret-ani">
+  <div class="kip-kutu">
+    <h3>Ziyaret Anın</h3>
+    <p style="margin-bottom:10px" id="ani-yer"></p>
+    <div class="alan"><label>Ziyaret tarihi</label><input type="date" id="ani-tarih"></div>
+    <div class="alan"><label>Notun (sadece sen görürsün)</label><textarea id="ani-icerik" maxlength="1000" style="min-height:110px" placeholder="örn. Cuma namazından sonra ailece gittik, türbedar efendi kitabeyi okudu..."></textarea></div>
+    <div class="kip-butonlar">
+      <button class="btn-ghost btn" id="ani-vazgec" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Vazgeç</button>
+      <button class="btn" id="ani-kaydet">Kaydet</button>
+    </div>
+    <button class="btn-ghost btn btn-kucuk" id="ani-sil" style="margin-top:10px;width:100%;color:var(--kirmizi);background:transparent">Anıyı sil</button>
+  </div>
+</div>
+
 <!-- Yönetim > Eksik Kayıtlar: YZ taslak oturumu (tek tek, sıralı) -->
 <div class="kip" id="kip-yz-oturum">
   <div class="kip-kutu yzo-kutu">
@@ -1116,7 +1135,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.8.0';
+const SURUM = '1.9.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1131,6 +1150,8 @@ let istatistik = [];
 let harita, kume, sihirbazHarita, sihirbazPin;
 let suzgec = {arama:'', ulke:'', il:'', ilce:'', kategori:''};
 let benimZiyaretlerim = new Set();   // giriş yapan kullanıcının ziyaret ettiği yer id'leri
+let benimZiyaretTarihleri = new Map(); // yer_id → işaretleme zamanı (anı tarihinin varsayılanı)
+let benimZiyaretAnilari = new Map();   // yer_id → {tarih, icerik} — turbedar_ziyaret_notlari, sadece sahibi görür
 let bildirimlerim = [];              // okunmamış/okunmuş bildirimler
 
 /* Kilometre taşı mesajları (sonradan kolayca düzenlenebilir) */
@@ -1633,8 +1654,13 @@ async function veriYukle(){
   yerler.forEach(y => { y.fotograflar = fotoSirala(y.fotograflar); });
   benimZiyaretlerim = new Set();
   if (kullanici){
-    const {data: zv} = await sb.from('turbedar_ziyaretler').select('yer_id').eq('kullanici_id', kullanici.id);
-    (zv || []).forEach(z => benimZiyaretlerim.add(z.yer_id));
+    const [{data: zv}, {data: zn}] = await Promise.all([
+      sb.from('turbedar_ziyaretler').select('yer_id,created_at').eq('kullanici_id', kullanici.id),
+      sb.from('turbedar_ziyaret_notlari').select('yer_id,tarih,icerik').eq('kullanici_id', kullanici.id),
+    ]);
+    benimZiyaretTarihleri = new Map(); benimZiyaretAnilari = new Map();
+    (zv || []).forEach(z => { benimZiyaretlerim.add(z.yer_id); benimZiyaretTarihleri.set(z.yer_id, z.created_at); });
+    (zn || []).forEach(n => benimZiyaretAnilari.set(n.yer_id, n));
   }
   const {data: ist} = await sb.from('turbedar_istatistik').select('*');
   istatistik = ist || [];
@@ -2135,8 +2161,8 @@ function kisiselIstatistikCiz(){
       <summary>Ziyaret Ettiklerim (${ziyaretYerleri.length})</summary>
       <div class="kisisel-liste">${ziyaretYerleri.map(y => `
         <div class="il-satir" data-yer="${y.id}" style="gap:8px">
-          <b style="width:auto;flex:1">${kacir(y.baslik)}</b>
-          <span style="width:auto;font-size:12px;color:var(--soluk);font-weight:600">${kacir(y.il||'')}</span>
+          <b style="width:auto;flex:1;min-width:0">${kacir(y.baslik)}${benimZiyaretAnilari.get(y.id)?.icerik ? `<span style="display:block;font-weight:500;font-size:12px;color:var(--soluk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📝 ${kacir(benimZiyaretAnilari.get(y.id).icerik)}</span>` : ''}</b>
+          <span style="width:auto;font-size:12px;color:var(--soluk);font-weight:600;text-align:right">${kacir(y.il||'')}${benimZiyaretAnilari.get(y.id)?.tarih ? `<br>${kacir(tarihYazisi(benimZiyaretAnilari.get(y.id).tarih))}` : ''}</span>
         </div>`).join('')}</div>
     </details>` : ''}
     ${ilerleme.length ? `<details class="kisisel-detay">
@@ -2232,7 +2258,7 @@ async function detayAc(id){
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
       <b id="d-ziyaret-metin">${benimZiyaretlerim.has(y.id) ? 'Ziyaret Ettim' : 'Ziyaret Ettim İşaretle'}</b>
       <span class="sayi" id="d-ziyaret-sayi">${ziyaretSayisi(y) ? ziyaretSayisi(y) + ' ziyaretçi' : 'İlk ziyaretçi sen ol'}</span>
-    </button>` : ''}
+    </button><div id="d-ziyaret-ani"></div>` : ''}
     ${y.aciklama ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div><p class="detay-aciklama">${kacir(y.aciklama)}</p>` : ''}
     ${(() => {
       const ks = (y.kaynaklar && y.kaynaklar.length) ? y.kaynaklar : (y.kaynak ? [{baslik: y.kaynak, url: null}] : []);
@@ -2291,12 +2317,21 @@ async function detayAc(id){
     else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
   });
   const zbtn = $('#d-ziyaret');
+  ziyaretAniCiz(y);
   if (zbtn) zbtn.addEventListener('click', async () => {
     if (!kullanici) return girisIste();
-    zbtn.disabled = true;
     const vardi = benimZiyaretlerim.has(y.id);
+    if (vardi && benimZiyaretAnilari.has(y.id)){
+      const onay = await sor('İşareti Kaldır', 'Bu ziyarete yazdığın anı notu da silinecek. Emin misin?', {evetMetin:'Kaldır', tehlike:true});
+      if (!onay) return;
+    }
+    zbtn.disabled = true;
     let hata;
     if (vardi){
+      if (benimZiyaretAnilari.has(y.id)){
+        await sb.from('turbedar_ziyaret_notlari').delete().eq('yer_id', y.id).eq('kullanici_id', kullanici.id);
+        benimZiyaretAnilari.delete(y.id);
+      }
       ({error: hata} = await sb.from('turbedar_ziyaretler').delete().eq('yer_id', y.id).eq('kullanici_id', kullanici.id));
     } else {
       ({error: hata} = await sb.from('turbedar_ziyaretler').insert({yer_id: y.id, kullanici_id: kullanici.id}));
@@ -2304,6 +2339,8 @@ async function detayAc(id){
     zbtn.disabled = false;
     if (hata) return bildir('İşaretlenemedi: ' + hata.message, true);
     vardi ? benimZiyaretlerim.delete(y.id) : benimZiyaretlerim.add(y.id);
+    if (vardi) benimZiyaretTarihleri.delete(y.id); else benimZiyaretTarihleri.set(y.id, new Date().toISOString());
+    ziyaretAniCiz(y);
     const kayit = yerler.find(x => x.id === y.id);
     const yeniSayi = Math.max(0, ziyaretSayisi(kayit || y) + (vardi ? -1 : 1));
     if (kayit) kayit.ziyaretler = [{count: yeniSayi}];
@@ -2956,6 +2993,53 @@ function yzAlaniUygula(anahtar){
 }
 $('#btn-yz-oner').addEventListener('click', yzOneriGetir);
 $('#yzo-kapat').addEventListener('click', () => yzOturumKapat());
+
+/* Ziyaret anısı: işaretlenmiş ziyarete tarih + kişisel not (turbedar_ziyaret_notlari, RLS: sadece sahibi) */
+const tarihYazisi = t => t ? new Date(t + (String(t).length === 10 ? 'T12:00:00' : '')).toLocaleDateString('tr-TR', {day:'numeric', month:'long', year:'numeric'}) : '';
+function ziyaretAniCiz(y){
+  const kutu = $('#d-ziyaret-ani'); if (!kutu) return;
+  if (!kullanici || !benimZiyaretlerim.has(y.id)){ kutu.innerHTML = ''; return; }
+  const ani = benimZiyaretAnilari.get(y.id);
+  kutu.innerHTML = ani
+    ? `<div class="ziyaret-ani" id="d-ani-ac"><span>📝</span><div><small>${kacir(tarihYazisi(ani.tarih) || 'Ziyaret anın')} · sadece sen görürsün</small>${ani.icerik ? `<p>${kacir(ani.icerik)}</p>` : ''}</div></div>`
+    : `<div class="ziyaret-ani" id="d-ani-ac"><span>📝</span><div class="ani-bos">Bu ziyarete tarih ve not ekle (sadece sen görürsün)</div></div>`;
+  $('#d-ani-ac').addEventListener('click', () => ziyaretAniAc(y));
+}
+let aniYer = null;
+function ziyaretAniAc(y){
+  aniYer = y;
+  const ani = benimZiyaretAnilari.get(y.id);
+  const varsayilan = (benimZiyaretTarihleri.get(y.id) || new Date().toISOString()).slice(0, 10);
+  $('#ani-yer').textContent = y.baslik;
+  $('#ani-tarih').value = ani?.tarih || varsayilan;
+  $('#ani-tarih').max = new Date().toISOString().slice(0, 10);
+  $('#ani-icerik').value = ani?.icerik || '';
+  $('#ani-sil').style.display = ani ? 'block' : 'none';
+  $('#kip-ziyaret-ani').classList.add('acik');
+}
+$('#ani-vazgec').addEventListener('click', () => $('#kip-ziyaret-ani').classList.remove('acik'));
+$('#ani-kaydet').addEventListener('click', async () => {
+  if (!aniYer || !kullanici) return;
+  const btn = $('#ani-kaydet'); if (btn.disabled) return;
+  const satir = {yer_id: aniYer.id, kullanici_id: kullanici.id, tarih: $('#ani-tarih').value || null,
+                 icerik: $('#ani-icerik').value.trim() || null, updated_at: new Date().toISOString()};
+  btn.disabled = true;
+  const {error} = await sb.from('turbedar_ziyaret_notlari').upsert(satir);
+  btn.disabled = false;
+  if (error) return bildir('Kaydedilemedi: ' + error.message, true);
+  benimZiyaretAnilari.set(aniYer.id, satir);
+  $('#kip-ziyaret-ani').classList.remove('acik');
+  bildir('Anın kaydedildi');
+  ziyaretAniCiz(aniYer); kisiselIstatistikCiz();
+});
+$('#ani-sil').addEventListener('click', async () => {
+  if (!aniYer || !kullanici) return;
+  const {error} = await sb.from('turbedar_ziyaret_notlari').delete().eq('yer_id', aniYer.id).eq('kullanici_id', kullanici.id);
+  if (error) return bildir('Silinemedi: ' + error.message, true);
+  benimZiyaretAnilari.delete(aniYer.id);
+  $('#kip-ziyaret-ani').classList.remove('acik');
+  ziyaretAniCiz(aniYer); kisiselIstatistikCiz();
+});
 
 /* YZ taslak oturumu (Yönetim > Eksik Kayıtlar): eksik kayıtlar tek tek gezilir,
    YZ yalnızca BOŞ alanlar için öneri verir, yönetici düzeltip kaydeder. Dolu alan ezilmez.

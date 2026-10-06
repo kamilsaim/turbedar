@@ -12,7 +12,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
 [![Türbe Rehberi](https://img.shields.io/badge/il%20il-t%C3%BCrbe%20rehberi-233129?style=for-the-badge)](https://turbedar.web.app/turbeler/)
 
-![Version](https://img.shields.io/badge/v1.8.0-B8923E)
+![Version](https://img.shields.io/badge/v1.9.0-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
@@ -109,6 +109,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **1.9.0** | Ziyaret anısı: ziyaret ettiğin yere tarih ve yalnızca senin görebileceğin bir not ekleyebilirsin; notlar Ziyaret Ettiklerim listesinde de görünür |
 | **1.8.0** | İstatistik: illere göre ziyaret ilerlemen ve her ilde henüz gitmediğin yerler; Yakınımdaki Yerler penceresinde "sadece ziyaret etmediklerim" seçeneği |
 | **1.7.0** | Yönetim > Eksik Kayıtlar: yapay zekâ taslak oturumu — açıklaması/kaynağı eksik kayıtlar tek tek gezilir, öneri düzeltilip kaydedilir |
 | **1.6.1** | Apple ile giriş (web, Android ve ileride iPhone uygulamasında) |
