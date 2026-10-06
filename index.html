@@ -577,6 +577,26 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .yz-alan p{font-size:13px;line-height:1.5;color:var(--murekkep)}
 .yz-uyari{font-size:11.5px;color:var(--soluk);margin-top:8px;font-style:italic}
 .yz-hata{font-size:12.5px;color:var(--kirmizi);margin-top:8px}
+.yzo-kutu{max-width:520px}
+.yzo-baslik{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.yzo-baslik span{font-size:12.5px;font-weight:800;color:var(--soluk);flex:none}
+.yzo-yer{display:flex;gap:12px;align-items:center;margin:4px 0 12px}
+.yzo-yer img{width:72px;height:72px;object-fit:cover;border-radius:10px;flex:none}
+.yzo-yer b{display:block;font-family:var(--display);font-size:19px;color:var(--murekkep);line-height:1.2}
+.yzo-yer small{font-size:12.5px;color:var(--soluk)}
+.yzo-alan{border-top:1px solid var(--cizgi);padding:10px 0}
+.yzo-alan>label{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;color:var(--soluk);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.yzo-alan textarea,.yzo-alan input:not([type=checkbox]){width:100%;box-sizing:border-box}
+.yzo-alan textarea{min-height:130px}
+.yzo-alan input[type=checkbox]{width:auto}
+.yzo-kapat{font-size:20px;color:var(--soluk);padding:0 4px;flex:none}
+.yzo-kisi{display:flex;gap:6px;margin-bottom:6px}
+.yzo-kisi input.yzo-kisi-ad{flex:2;min-width:0}
+.yzo-kisi input.yzo-kisi-vefat{flex:1;min-width:0}
+.yzo-kisi button{flex:none;color:var(--kirmizi);font-weight:800;padding:0 6px}
+.yzo-kaynak a{font-size:12px;word-break:break-all}
+.yzo-durum{padding:24px 4px;text-align:center;color:var(--soluk);font-size:14px}
+.yzo-baslat{width:100%;margin-bottom:12px}
 .onay-kart{padding:14px;margin-bottom:12px}
 .onay-kart .ust{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
 .onay-kart h3{font-family:var(--display);font-size:20px;font-weight:700;color:var(--zumrut)}
@@ -1011,6 +1031,15 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   </div>
 </div>
 
+<!-- Yönetim > Eksik Kayıtlar: YZ taslak oturumu (tek tek, sıralı) -->
+<div class="kip" id="kip-yz-oturum">
+  <div class="kip-kutu yzo-kutu">
+    <div class="yzo-baslik"><h3>✨ Taslak Oturumu</h3><span id="yzo-sayac" style="margin-left:auto"></span><button type="button" class="yzo-kapat" id="yzo-kapat" aria-label="Bitir">✕</button></div>
+    <div id="yzo-icerik"></div>
+    <div class="kip-butonlar" id="yzo-butonlar"></div>
+  </div>
+</div>
+
 <!-- ============ GİRİŞ KİPİ ============ -->
 <div class="kip" id="kip-giris">
   <div class="kip-kutu" style="text-align:center">
@@ -1075,7 +1104,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.6.4';
+const SURUM = '1.7.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2888,6 +2917,161 @@ function yzAlaniUygula(anahtar){
   if (dugme){ dugme.textContent = '✓ Kullanıldı'; dugme.disabled = true; }
 }
 $('#btn-yz-oner').addEventListener('click', yzOneriGetir);
+$('#yzo-kapat').addEventListener('click', () => yzOturumKapat());
+
+/* YZ taslak oturumu (Yönetim > Eksik Kayıtlar): eksik kayıtlar tek tek gezilir,
+   YZ yalnızca BOŞ alanlar için öneri verir, yönetici düzeltip kaydeder. Dolu alan ezilmez.
+   Sıradaki kaydın önerisi, mevcut kayıt hazır olunca önceden istenir (aynı anda tek istek). */
+const yzOturum = {kuyruk: [], i: 0, oneriler: new Map(), sira: 0};
+function yzOturumBaslat(liste){
+  // Fotoğraflı kayıtlar önce: Gemini fotoğrafı görünce daha isabetli
+  const fotolu = y => (y.fotograflar && y.fotograflar.length) ? 1 : 0;
+  yzOturum.kuyruk = [...liste].sort((a, b) => fotolu(b) - fotolu(a));
+  yzOturum.i = 0;
+  yzOturum.oneriler = new Map();
+  yzOturum.sira++;
+  $('#kip-yz-oturum').classList.add('acik');
+  yzOturumGoster();
+}
+function yzOturumKapat(){
+  yzOturum.sira++; // uçuştaki isteklerin sonucu artık çizilmesin
+  $('#kip-yz-oturum').classList.remove('acik');
+  yonetimRozetiGuncelle();
+  yonetimCiz();
+}
+async function blobBase64(blob){
+  const veriUrl = await new Promise((res, rej) => {
+    const okuyucu = new FileReader();
+    okuyucu.onload = () => res(okuyucu.result);
+    okuyucu.onerror = rej;
+    okuyucu.readAsDataURL(blob);
+  });
+  return veriUrl.slice(veriUrl.indexOf(',') + 1);
+}
+function yzOturumOneri(y){
+  if (yzOturum.oneriler.has(y.id)) return yzOturum.oneriler.get(y.id);
+  const is = (async () => {
+    const govde = {baslik: y.baslik || '', il: y.il || '', ilce: y.ilce || '', mahalle: y.mahalle || '', ulke: y.ulke || ''};
+    const kapak = y.fotograflar && y.fotograflar[0];
+    if (kapak){
+      try{
+        const blob = await fetch(fotoUrl(kapak.yol)).then(r => r.blob());
+        govde.foto_base64 = await blobBase64(blob);
+        govde.foto_mime = blob.type || 'image/webp';
+      }catch(e){ /* fotoğrafsız devam */ }
+    }
+    try{ return await yzIstekYap(govde); }
+    catch(ilkHata){
+      if (!String(ilkHata.message || '').includes('503')) throw ilkHata;
+      await new Promise(r => setTimeout(r, 1500));
+      return await yzIstekYap(govde);
+    }
+  })();
+  // Hata olursa önbellekte kalmasın, "Tekrar dene" yeniden istesin
+  is.catch(() => yzOturum.oneriler.delete(y.id));
+  yzOturum.oneriler.set(y.id, is);
+  return is;
+}
+function yzOturumButonlar(html){
+  $('#yzo-butonlar').innerHTML = html;
+  $('#yzo-bitir')?.addEventListener('click', yzOturumKapat);
+  $('#yzo-gec')?.addEventListener('click', () => { yzOturum.i++; yzOturumGoster(); });
+}
+async function yzOturumGoster(){
+  const sira = yzOturum.sira;
+  const {kuyruk, i} = yzOturum;
+  const icerik = $('#yzo-icerik');
+  if (i >= kuyruk.length){
+    $('#yzo-sayac').textContent = '';
+    icerik.innerHTML = '<div class="yzo-durum"><b>Liste bitti</b><br>Bu filtredeki bütün kayıtlara bakıldı.</div>';
+    yzOturumButonlar('<button class="btn" id="yzo-bitir">Kapat</button>');
+    return;
+  }
+  const y = kuyruk[i];
+  $('#yzo-sayac').textContent = `${i + 1} / ${kuyruk.length}`;
+  const kapak = y.fotograflar && y.fotograflar[0];
+  icerik.innerHTML = `<div class="yzo-yer">
+      ${kapak ? `<img src="${fotoUrl(kapak.yol)}" alt="">` : ''}
+      <div><b>${kacir(y.baslik)}</b><small>${KATEGORILER[y.kategori] || ''} • ${kacir(konumYazisi(y, 'Konumsuz'))}</small></div>
+    </div><div id="yzo-govde"><div class="yzo-durum">Öneri hazırlanıyor...<br><small>Yapay zeka yoğunsa bir dakikaya kadar sürebilir.</small></div></div>`;
+  yzOturumButonlar(`<button class="btn-ghost btn" id="yzo-bitir" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Bitir</button>
+    <button class="btn-ghost btn" id="yzo-gec" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Geç</button>`);
+  let oneri;
+  try{ oneri = await yzOturumOneri(y); }
+  catch(err){
+    if (sira !== yzOturum.sira || yzOturum.i !== i) return;
+    $('#yzo-govde').innerHTML = `<p class="yz-hata">Öneri alınamadı: ${kacir(err.message || String(err))}</p>`;
+    yzOturumButonlar(`<button class="btn-ghost btn" id="yzo-gec" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Geç</button>
+      <button class="btn" id="yzo-tekrar">Tekrar dene</button>`);
+    $('#yzo-tekrar').addEventListener('click', yzOturumGoster);
+    return;
+  }
+  if (sira !== yzOturum.sira || yzOturum.i !== i) return; // kullanıcı bu arada geçti/kapattı
+  // Sıradakini önceden iste
+  if (kuyruk[i + 1]) yzOturumOneri(kuyruk[i + 1]).catch(() => {});
+
+  const bosAciklama = aciklamasizMi(y);
+  const bosKisi = !(y.kisiler && y.kisiler.length);
+  const bosKaynak = kaynaksizMi(y);
+  const aciklama = bosAciklama ? String(oneri?.aciklama || '').trim() : '';
+  const kisiler = bosKisi ? (oneri?.mekan_sahipleri || []).map(k => ({ad: String(k?.ad || '').trim(), vefat: String(k?.vefat || '').trim()})).filter(k => k.ad) : [];
+  const kBaslik = bosKaynak ? String(oneri?.kaynak_baslik || '').trim() : '';
+  const kUrl = kBaslik && /^https?:\/\//i.test(String(oneri?.kaynak_url || '').trim()) ? String(oneri.kaynak_url).trim() : '';
+  if (!aciklama && !kisiler.length && !kBaslik){
+    $('#yzo-govde').innerHTML = '<div class="yzo-durum">YZ bu yer hakkında eksik alanları dolduracak bilgi bulamadı.</div>';
+    return;
+  }
+  $('#yzo-govde').innerHTML = `
+    ${aciklama ? `<div class="yzo-alan"><label><input type="checkbox" id="yzo-k-aciklama" checked> Açıklama</label>
+      <textarea id="yzo-aciklama" maxlength="5000">${kacir(aciklama)}</textarea></div>` : ''}
+    ${kisiler.length ? `<div class="yzo-alan"><label><input type="checkbox" id="yzo-k-kisiler" checked> Mekan Sahipleri</label>
+      <div id="yzo-kisiler">${kisiler.map(k => `<div class="yzo-kisi"><input class="yzo-kisi-ad" value="${kacir(k.ad)}" placeholder="Ad">
+        <input class="yzo-kisi-vefat" value="${kacir(k.vefat)}" placeholder="Vefat"><button type="button" data-yzo-kisi-sil>✕</button></div>`).join('')}</div></div>` : ''}
+    ${kBaslik ? `<div class="yzo-alan yzo-kaynak"><label><input type="checkbox" id="yzo-k-kaynak" checked> Kaynak</label>
+      <input id="yzo-kaynak-baslik" value="${kacir(kBaslik)}" placeholder="Kaynak adı" style="margin-bottom:6px">
+      <input id="yzo-kaynak-url" value="${kacir(kUrl)}" placeholder="https://... (isteğe bağlı)" inputmode="url">
+      ${kUrl ? `<a href="${kacir(kUrl)}" target="_blank" rel="noopener noreferrer">Bağlantıyı açıp kontrol et ↗</a>` : ''}</div>` : ''}
+    <p class="yz-uyari">Yapay zeka yanılabilir — kaydetmeden önce doğruluğunu kontrol et. Yanlış alanın işaretini kaldır.</p>`;
+  $$('#yzo-govde [data-yzo-kisi-sil]').forEach(b => b.addEventListener('click', () => b.parentElement.remove()));
+  yzOturumButonlar(`<button class="btn-ghost btn" id="yzo-gec" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Geç</button>
+    <button class="btn" id="yzo-kaydet">Kaydet ve sıradaki</button>`);
+  $('#yzo-kaydet').addEventListener('click', () => yzOturumKaydet(y));
+}
+async function yzOturumKaydet(y){
+  const btn = $('#yzo-kaydet');
+  if (btn.disabled) return;
+  const guncelle = {};
+  const alanlar = [];
+  if ($('#yzo-k-aciklama')?.checked){
+    const v = $('#yzo-aciklama').value.trim();
+    if (v){ guncelle.aciklama = v; alanlar.push('aciklama'); }
+  }
+  if ($('#yzo-k-kaynak')?.checked){
+    const baslik = $('#yzo-kaynak-baslik').value.trim();
+    let url = $('#yzo-kaynak-url').value.trim();
+    if (url && !/^https?:\/\//i.test(url)) url = '';
+    if (baslik){ guncelle.kaynaklar = [{baslik, url}]; alanlar.push('kaynak'); }
+  }
+  const kisiler = $('#yzo-k-kisiler')?.checked
+    ? $$('#yzo-kisiler .yzo-kisi').map(s => ({ad: trBasHarf(s.querySelector('.yzo-kisi-ad').value.trim()), vefat: s.querySelector('.yzo-kisi-vefat').value.trim() || null})).filter(k => k.ad)
+    : [];
+  if (kisiler.length) alanlar.push('kisiler');
+  if (!alanlar.length) return bildir('Kaydedilecek alan seçilmedi — istemiyorsan Geç', true);
+  btn.disabled = true; btn.textContent = 'Kaydediliyor...';
+  guncelle.yz_destekli = true;
+  const {error} = await sb.from('turbedar_yerler').update(guncelle).eq('id', y.id);
+  if (error){ btn.disabled = false; btn.textContent = 'Kaydet ve sıradaki'; return bildir('Kaydedilemedi: ' + error.message, true); }
+  if (kisiler.length){
+    const {data: eklenen, error: ke} = await sb.from('turbedar_kisiler').insert(kisiler.map(k => ({...k, yer_id: y.id}))).select('id,ad,unvan,vefat,biyografi');
+    if (ke) bildir('Açıklama kaydedildi ama kişiler eklenemedi: ' + ke.message, true);
+    else y.kisiler = [...(y.kisiler || []), ...(eklenen || [])];
+  }
+  Object.assign(y, guncelle);
+  gunlukYaz('yz_taslak', 'yer', y.id, y.baslik, {alanlar});
+  bildir('Kaydedildi');
+  yzOturum.i++;
+  yzOturumGoster();
+}
 function fotoHucresi(src, silAttr, tip, i){
   const kapak = kapakMi(tip, i);
   return `<div class="foto-hucre ${kapak ? 'kapak' : ''}">
@@ -3902,6 +4086,7 @@ async function yonetimCiz(){
       not_onayla:'✅ Ek bilgi onayladı', not_reddet:'❌ Ek bilgi reddetti',
       mesaj_sil:'🗑️ Mesaj sildi',
       yorum_sil:'🗑️ Yorum sildi',
+      yz_taslak:'✨ YZ taslağıyla doldurdu',
       bilgi_ekle:'➕ Bilgi ekledi', bilgi_duzenle:'✎ Bilgi düzenledi', bilgi_sil:'🗑️ Bilgi sildi',
     };
     k.innerHTML = ozetHtml + kayitlar.map(kg => `<div class="kart" style="padding:11px 13px;margin-bottom:8px">
@@ -3933,12 +4118,14 @@ async function yonetimCiz(){
       Onaylı ${yerler.filter(y => y.durum === 'onaylandi').length} kaydın ${sayilar.hepsi} tanesinde kaynak veya açıklama eksik; ${sayilar.yz} tanesi YZ önerisiyle dolduruldu. Karta dokunarak kaydı açabilirsin.</p>
       <div class="sekmeler">${Object.keys(etiket).map(a =>
         `<button class="eksik-filtre${a === eksikSuzgec ? ' aktif' : ''}" data-eksik="${a}">${etiket[a]} (${sayilar[a]})</button>`).join('')}</div>
+      ${eksikSuzgec !== 'yz' && liste.length ? `<button class="btn-altin btn btn-kucuk yzo-baslat" id="yzo-baslat">✨ Taslak oturumu başlat (${liste.length} kayıt)</button>` : ''}
       ${!liste.length ? '<div class="bos-durum"><b>Bu filtrede kayıt yok</b>Hepsi tamamlanmış.</div>' : liste.map(y => `<div class="kart eksik-kart" data-yer="${y.id}">
         <div class="eksik-ust"><b>${kacir(y.baslik)}</b>
           <div class="eksik-rozetler">${kaynaksizMi(y) ? '<span class="eksik-rozet">kaynak yok</span>' : ''}${aciklamasizMi(y) ? '<span class="eksik-rozet">açıklama yok</span>' : ''}${y.yz_destekli ? '<span class="eksik-rozet eksik-rozet-yz">✨ YZ</span>' : ''}</div></div>
         <div class="meta">${KATEGORILER[y.kategori]} • ${kacir(konumYazisi(y, 'Konumsuz'))} • ${kacir(y.ekleyen?.ad || '?')}</div>
       </div>`).join('')}`;
     k.querySelectorAll('[data-eksik]').forEach(b => b.addEventListener('click', () => { eksikSuzgec = b.dataset.eksik; yonetimCiz(); }));
+    $('#yzo-baslat')?.addEventListener('click', () => yzOturumBaslat(liste));
     k.querySelectorAll('[data-yer]').forEach(el => el.addEventListener('click', () => detayAc(el.dataset.yer)));
     return;
   }
