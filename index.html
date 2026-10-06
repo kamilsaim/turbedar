@@ -960,6 +960,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
       </div>
       <div class="sihirbaz-alt">
         <button class="btn-ghost btn" id="adim3-geri" style="background:transparent;color:var(--murekkep);border:1px solid var(--cizgi)">← Geri</button>
+        <button class="btn-ghost btn" id="btn-taslak-sakla" title="İnternet zayıfsa telefona kaydet, sonra gönder" style="background:transparent;color:var(--zumrut);border:1px solid var(--cizgi);flex:none;padding:0 12px">📥</button>
         <button class="btn" id="btn-kaydet">Kaydet</button>
       </div>
     </div>
@@ -1156,7 +1157,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '1.10.2';
+const SURUM = '1.11.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1689,6 +1690,7 @@ async function veriYukle(){
   const {data: kt} = await sb.from('turbedar_katki_istatistik').select('*');
   katkilar = kt || [];
   haritaCiz(); kesfetCiz(); istatistikCiz(); suzgecleriDoldur();
+  if (kullanici && typeof taslakSayisiGuncelle === 'function') taslakSayisiGuncelle();
 }
 async function bilgileriYukle(){
   const {data} = await sb.from('turbedar_bilgiler').select('*').order('sira').order('created_at');
@@ -2812,6 +2814,7 @@ function sihirbazAc(yer = null, baslangicKonum = null){
   $('#yz-oneri-kutu').innerHTML = '';
   fotoIzgaraCiz();
   adimaGit(1);
+  $('#btn-taslak-sakla').style.display = yer ? 'none' : '';
   $('#sihirbaz-sayfa').classList.add('acik'); $('#sihirbaz-ortulu').classList.add('acik');
   if (!yer && baslangicKonum){
     // haritadan başlatıldı: konum hazır, il/ilçe/ülkeyi arka planda doldur
@@ -3606,6 +3609,135 @@ function kisileriOku(){
   })).filter(k => k.ad);
 }
 
+/* ====== ÇEVRİMDIŞI TASLAK (sadece YENİ kayıt) ======
+   Uygulama açıkken çekim düşerse kayıt kaybolmasın: alanlar + sıkıştırılmış fotoğraflar
+   IndexedDB'ye ('turbedar-taslak' / 'taslaklar') yazılır. Profil > Taslaklarım'dan
+   "Devam et" sihirbazı dolu açar, gönderim normal Kaydet akışıyla yapılır, başarıda taslak silinir.
+   Not: uygulamanın kendisi önbelleğe alınmaz — internet hiç yokken uygulama yine açılmaz. */
+function taslakDb(){
+  return new Promise((coz, red) => {
+    const ist = indexedDB.open('turbedar-taslak', 1);
+    ist.onupgradeneeded = () => ist.result.createObjectStore('taslaklar', {keyPath: 'id'});
+    ist.onsuccess = () => coz(ist.result);
+    ist.onerror = () => red(ist.error);
+  });
+}
+async function taslakIslem(mod, is){
+  const db = await taslakDb();
+  return new Promise((coz, red) => {
+    const tx = db.transaction('taslaklar', mod);
+    const sonuc = is(tx.objectStore('taslaklar'));
+    tx.oncomplete = () => { db.close(); coz(sonuc?.result); };
+    tx.onerror = () => { db.close(); red(tx.error); };
+  });
+}
+const taslakYaz = t => taslakIslem('readwrite', st => st.put(t));
+const taslakSil = id => taslakIslem('readwrite', st => st.delete(id));
+async function taslaklariGetir(){
+  if (!kullanici || !window.indexedDB) return [];
+  try{
+    const hepsi = await taslakIslem('readonly', st => st.getAll());
+    return (hepsi || []).filter(t => t.kullanici_id === kullanici.id).sort((a, b) => b.zaman - a.zaman);
+  }catch(e){ return []; }
+}
+function agHatasiMi(err){
+  if (navigator.onLine === false) return true;
+  const m = String(err?.message || err || '');
+  return /Failed to fetch|NetworkError|Load failed|network|ağ|timeout|ERR_INTERNET|ERR_NETWORK/i.test(m);
+}
+async function taslakSakla(mesaj){
+  if (!taslak || taslak.duzenlenen) return;
+  if (!window.indexedDB) return bildir('Bu tarayıcı taslak saklamayı desteklemiyor', true);
+  const baslik = $('#girdi-baslik').value.trim();
+  if (!baslik && !taslak.yeniFotolar.length) return bildir('Saklamak için en az bir fotoğraf ya da yer adı gir', true);
+  yukleniyor(true, 'Taslak saklanıyor...');
+  try{
+    await Promise.allSettled(taslak.exifIsleri);
+    // Fotoğraflar SIKIŞTIRILMIŞ saklanır (telefonda az yer tutsun); gönderirken yeniden sıkıştırmak zararsız
+    const fotolar = [];
+    for (const f of taslak.yeniFotolar){
+      const blob = await fotoSikistir(f.dosya);
+      fotolar.push(blob || f.dosya);
+    }
+    const kapakI = taslak.kapak?.tip === 'yeni' ? taslak.kapak.i : null;
+    await taslakYaz({
+      id: taslak.taslakId || crypto.randomUUID(),
+      kullanici_id: kullanici.id,
+      zaman: Date.now(),
+      baslik, kategori: $('#girdi-kategori').value,
+      aciklama: $('#girdi-aciklama').value,
+      il: $('#girdi-il').value, ilce: $('#girdi-ilce').value, mahalle: $('#girdi-mahalle').value, ulke: $('#girdi-ulke').value,
+      ulkeKodu: taslak.ulkeKodu, lat: taslak.lat, lng: taslak.lng, konumKaynak: taslak.konumKaynak,
+      kaynaklar: kaynaklariOku(), kisiler: kisileriOku(), videolar: videolariOku(),
+      yzKullanildi: !!taslak.yzKullanildi, kapakI, fotolar,
+    });
+    yukleniyor(false);
+    sihirbazKapat();
+    bildir(mesaj || '📥 Taslak telefonuna saklandı — Profil > Taslaklarım\'dan gönderebilirsin');
+    taslakSayisiGuncelle();
+  }catch(e){
+    yukleniyor(false);
+    bildir('Taslak saklanamadı: ' + (e.message || e), true);
+  }
+}
+$('#btn-taslak-sakla').addEventListener('click', () => taslakSakla());
+async function taslakDevam(id){
+  const t = (await taslaklariGetir()).find(x => x.id === id);
+  if (!t) return bildir('Taslak bulunamadı', true);
+  sihirbazAc();
+  if (!taslak) return; // giriş yoksa sihirbaz açılmadı
+  taslak.taslakId = t.id;
+  if (t.lat){ taslak.lat = t.lat; taslak.lng = t.lng; taslak.konumKaynak = t.konumKaynak || 'Taslaktan'; }
+  taslak.ulkeKodu = t.ulkeKodu || taslak.ulkeKodu;
+  taslak.yzKullanildi = !!t.yzKullanildi;
+  $('#girdi-baslik').value = t.baslik || '';
+  $('#girdi-kategori').value = t.kategori || 'turbe';
+  $('#girdi-aciklama').value = t.aciklama || '';
+  // il/ilçe taslakta doluysa elle sayılsın, ters geokodlama ezmesin
+  [['#girdi-il', t.il], ['#girdi-ilce', t.ilce], ['#girdi-mahalle', t.mahalle], ['#girdi-ulke', t.ulke]].forEach(([sec, v]) => {
+    if (v){ $(sec).value = v; $(sec).dataset.elle = '1'; }
+  });
+  formUlkeyeUyarla(t.ulkeKodu || 'tr');
+  (t.kaynaklar || []).forEach(ky => kaynakFormuEkle(ky));
+  (t.kisiler || []).forEach(k => kisiFormuEkle(k));
+  (t.videolar || []).forEach(v => videoFormuEkle(v));
+  (t.fotolar || []).forEach(b => taslak.yeniFotolar.push({dosya: b, onizleme: URL.createObjectURL(b)}));
+  if (t.kapakI !== null && t.kapakI !== undefined && taslak.yeniFotolar[t.kapakI]) taslak.kapak = {tip: 'yeni', i: t.kapakI};
+  fotoIzgaraCiz();
+  // Taslak çevrimdışı saklandıysa il/ilçe boş kalmış olabilir — şimdi doldur
+  if (t.lat && !t.il && navigator.onLine !== false) ilIlceBul(t.lat, t.lng);
+  bildir('📥 Taslak açıldı — kontrol edip Kaydet\'e bas');
+}
+async function taslaklarimCiz(){
+  const kutu = $('#taslaklarim'); if (!kutu) return;
+  const liste = await taslaklariGetir();
+  if (!liste.length){ kutu.innerHTML = ''; return; }
+  kutu.innerHTML = `<div class="kart" style="padding:14px 16px;margin-bottom:12px;border-color:var(--altin)">
+    <div class="bolum-baslik" style="margin-bottom:2px">📥 Taslaklarım (${liste.length})</div>
+    <p style="font-size:12px;color:var(--soluk);margin-bottom:8px">Telefonunda saklanan, henüz gönderilmemiş kayıtlar. Gönderilene kadar sadece bu cihazda durur.</p>
+    ${liste.map(t => `<div class="il-satir" style="gap:8px;cursor:default">
+      <b style="width:auto;flex:1;min-width:0">${kacir(t.baslik || 'Adsız kayıt')}<span style="display:block;font-weight:500;font-size:12px;color:var(--soluk)">${(t.fotolar || []).length} foto · ${new Date(t.zaman).toLocaleString('tr-TR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span></b>
+      <button class="btn btn-kucuk" data-taslak-devam="${t.id}">Devam et</button>
+      <button class="btn-ghost btn btn-kucuk" style="color:var(--kirmizi)" data-taslak-sil="${t.id}">Sil</button>
+    </div>`).join('')}
+  </div>`;
+  kutu.querySelectorAll('[data-taslak-devam]').forEach(b => b.addEventListener('click', () => taslakDevam(b.dataset.taslakDevam)));
+  kutu.querySelectorAll('[data-taslak-sil]').forEach(b => b.addEventListener('click', async () => {
+    const onay = await sor('Taslağı Sil', 'Bu taslak ve fotoğrafları telefonundan silinecek. Geri alınamaz.', {evetMetin:'Sil', tehlike:true});
+    if (!onay) return;
+    await taslakSil(b.dataset.taslakSil);
+    taslaklarimCiz();
+  }));
+}
+// Profil açıksa listeyi tazele; açılışta bekleyen taslak varsa oturum başına bir kez hatırlat
+let taslakHatirlatildi = false;
+async function taslakSayisiGuncelle(){
+  if ($('.gorunum[data-gorunum="profil"]')?.classList.contains('aktif')) taslaklarimCiz();
+  if (taslakHatirlatildi || !kullanici) return;
+  const n = (await taslaklariGetir()).length;
+  if (n){ taslakHatirlatildi = true; bildir(`📥 Gönderilmemiş ${n} taslağın var — Profil > Taslaklarım`); }
+}
+
 /* Kaydet */
 $('#btn-kaydet').addEventListener('click', async () => {
   const kaydetBtn = $('#btn-kaydet');
@@ -3628,6 +3760,12 @@ $('#btn-kaydet').addEventListener('click', async () => {
     videolar: videolariOku(),
   };
   const kisiler = kisileriOku();
+  // Yeni kayıtta internet yoksa hiç denemeden telefona taslak olarak sakla
+  if (!taslak.duzenlenen && navigator.onLine === false){
+    kaydetBtn.disabled = false;
+    return taslakSakla('İnternet yok — kayıt telefonuna taslak olarak saklandı. Bağlantı gelince Profil > Taslaklarım\'dan gönder.');
+  }
+  let sunucudaOlustu = false;
   try{
     yukleniyor(true, 'Kaydediliyor...');
     if (!taslak.duzenlenen){
@@ -3635,6 +3773,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
       const {data: yeni, error} = await sb.from('turbedar_yerler')
         .insert({...alanlar, durum:'beklemede', ekleyen_id: kullanici.id, yz_destekli: !!taslak.yzKullanildi}).select().single();
       if (error) throw error;
+      sunucudaOlustu = true;
       await fotolariYukle(yeni.id);
       if (kisiler.length){
         const {error: ke} = await sb.from('turbedar_kisiler').insert(kisiler.map(k => ({...k, yer_id: yeni.id})));
@@ -3681,12 +3820,17 @@ $('#btn-kaydet').addEventListener('click', async () => {
       bildir('Kayıt güncellendi');
     }
     const yeniKayitMi = !taslak.duzenlenen;
+    if (taslak.taslakId) taslakSil(taslak.taslakId).then(taslakSayisiGuncelle);
     kaydetBtn.disabled = false;
     yukleniyor(false); sihirbazKapat(); await veriYukle(); yonetimRozetiGuncelle();
     if (yeniKayitMi){ kayitKilometreKontrol(); bildirimOnerisiGoster(); }
   }catch(err){
     kaydetBtn.disabled = false;
     yukleniyor(false);
+    // Bağlantı hatası ve kayıt sunucuda HENÜZ oluşmadıysa taslağa düş (oluştuysa tekrar göndermek mükerrer yaratır)
+    if (!taslak.duzenlenen && !sunucudaOlustu && agHatasiMi(err)){
+      return taslakSakla('Bağlantı koptu — kayıt telefonuna taslak olarak saklandı. Profil > Taslaklarım\'dan tekrar gönderebilirsin.');
+    }
     bildir('Kaydedilemedi: ' + (err.message || err), true);
   }
 });
@@ -3894,7 +4038,7 @@ async function profilCiz(){
     const {data} = await sb.from('turbedar_revizyonlar').select('*, yer:turbedar_yerler(baslik)').eq('ekleyen_id', kullanici.id).order('created_at', {ascending:false}).limit(20);
     revlerim = data || [];
   }catch(e){ /* revizyonlar yüklenemese de profil çizilsin */ }
-  k.innerHTML = markaBasi() + `
+  k.innerHTML = markaBasi() + `<div id="taslaklarim"></div>
     <div class="profil-ust kart">
       <img src="${profil?.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
       <div class="pad">
@@ -3929,6 +4073,7 @@ async function profilCiz(){
     <button class="btn-ghost btn btn-tam" id="btn-cikis" style="margin-top:14px;color:var(--kirmizi)">Çıkış Yap</button>
     ${!profil?.kurucu ? `<button class="btn-ghost btn btn-tam" id="btn-hesap-sil" style="margin-top:8px;color:var(--soluk);font-size:12.5px">Hesabımı Sil</button>` : ''}`;
   $('#profil-istatistik-git').addEventListener('click', () => gorunumAc('istatistik'));
+  taslaklarimCiz();
   $('#profil-kaydet').addEventListener('click', async () => {
     const ad = $('#profil-ad').value.trim();
     if (ad.length < 2) return bildir('Ad çok kısa', true);
