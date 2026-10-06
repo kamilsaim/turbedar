@@ -1157,7 +1157,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.2';
+const SURUM = '2.0.3';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2943,12 +2943,25 @@ async function yzKapakBase64(){
 async function yzIstekYap(govde){
   const {data, error} = await sb.functions.invoke('yer-oner', {body: govde});
   if (error){
-    let mesaj = error.message;
-    try{ const govdeHata = await error.context?.json(); if (govdeHata?.error) mesaj = govdeHata.error; }catch(e){}
-    throw new Error(mesaj);
+    let mesaj = error.message, gecici = false;
+    // FunctionsFetchError = istek cevap gelmeden koptu (Gemini zinciri uzun sürdü / bağlantı düştü)
+    if (error.name === 'FunctionsFetchError'){ mesaj = 'Bağlantı koptu ya da yapay zeka çok geç yanıt verdi'; gecici = true; }
+    const durum = error.context?.status;
+    if ([502, 503, 504, 546].includes(durum)) gecici = true;
+    try{ const govdeHata = await error.context?.json(); if (govdeHata?.error) mesaj = govdeHata.error; if (govdeHata?.yogun) gecici = true; }catch(e){}
+    const h = new Error(mesaj); h.gecici = gecici; throw h;
   }
   if (data?.error) throw new Error(data.error);
   return data;
+}
+// Geçici hatada (Gemini yoğun / bağlantı koptu) 3 sn bekleyip sessizce bir kez daha dene
+async function yzIstekYapTekrarli(govde){
+  try{ return await yzIstekYap(govde); }
+  catch(ilkHata){
+    if (!ilkHata.gecici && !String(ilkHata.message || '').includes('503')) throw ilkHata;
+    await new Promise(r => setTimeout(r, 3000));
+    return await yzIstekYap(govde);
+  }
 }
 async function yzOneriGetir(){
   const btn = $('#btn-yz-oner');
@@ -2965,16 +2978,7 @@ async function yzOneriGetir(){
       ulke: $('#girdi-ulke').value.trim(),
     };
     if (foto){ govde.foto_base64 = foto.base64; govde.foto_mime = foto.mime; }
-    let data;
-    try{
-      data = await yzIstekYap(govde);
-    }catch(ilkHata){
-      // Gemini geçici aşırı yükte 503 dönebilir — bir kez sessizce tekrar dene
-      if (String(ilkHata.message||'').includes('503')){
-        await new Promise(r => setTimeout(r, 1500));
-        data = await yzIstekYap(govde);
-      } else throw ilkHata;
-    }
+    const data = await yzIstekYapTekrarli(govde);
     yzSonuc = data;
     yzOneriKutusuCiz();
   }catch(err){
@@ -3152,12 +3156,7 @@ function yzOturumOneri(y){
         govde.foto_mime = blob.type || 'image/webp';
       }catch(e){ /* fotoğrafsız devam */ }
     }
-    try{ return await yzIstekYap(govde); }
-    catch(ilkHata){
-      if (!String(ilkHata.message || '').includes('503')) throw ilkHata;
-      await new Promise(r => setTimeout(r, 1500));
-      return await yzIstekYap(govde);
-    }
+    return await yzIstekYapTekrarli(govde);
   })();
   // Hata olursa önbellekte kalmasın, "Tekrar dene" yeniden istesin
   is.catch(() => yzOturum.oneriler.delete(y.id));

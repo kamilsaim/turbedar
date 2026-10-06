@@ -7,6 +7,10 @@ const MODELLER = ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.7-flash", "g
 const GEMINI_URL = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 const bekle = (ms: number) => new Promise((c) => setTimeout(c, ms));
+// Telefonlar ~60 sn'de isteği koparıyor; zincir bundan çok önce bitmeli (6 Eki 2026: 52 sn'lik zincir
+// istemcide "Failed to send a request" olarak düştü). Model başına 15 sn, toplam 35 sn.
+const MODEL_ZAMAN_ASIMI_MS = 15000;
+const BUTCE_MS = 35000;
 
 const CORS_BASLIKLAR = {
   "Access-Control-Allow-Origin": "*",
@@ -18,6 +22,7 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: CORS_BASLIKLAR });
   }
   try {
+    const baslangic = Date.now();
     const govde = await req.json();
     const { baslik, il, ilce, mahalle, ulke, foto_base64, foto_mime } = govde;
 
@@ -61,33 +66,38 @@ Deno.serve(async (req: Request) => {
       },
     };
 
-    // Her modeli 2 kez dene; 503/429/500 gecici hatalarda bir sonraki modele gec.
+    // Modeller sırayla denenir; toplam BUTCE_MS içinde kalınır. 500'de aynı model bir kez daha, diğer hatalarda sonraki model.
     let yanit: Response | null = null;
     let sonHata = "";
     for (const model of MODELLER) {
       for (let deneme = 0; deneme < 2; deneme++) {
+        const kalan = BUTCE_MS - (Date.now() - baslangic);
+        if (kalan < 3000) break; // süre bütçesi bitti — istemci bağlantıyı koparmadan "yoğun" cevabı dön
         if (deneme > 0) await bekle(1200);
         try {
           const r = await fetch(GEMINI_URL(model), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(istek),
+            signal: AbortSignal.timeout(Math.min(MODEL_ZAMAN_ASIMI_MS, kalan)),
           });
           if (r.ok) { yanit = r; console.log("Gemini basarili", model); break; }
           sonHata = `${model}: ${r.status} ${(await r.text()).slice(0, 200)}`;
           console.error("Gemini hatasi", sonHata);
-          if (r.status !== 503 && r.status !== 429 && r.status !== 500) break; // kalici hata -> sonraki model
+          // 500 = aynı modeli bir kez daha dene; 503/429 (aşırı yük) ve kalıcı hatalar = hemen sonraki model
+          if (r.status !== 500) break;
         } catch (e) {
           sonHata = `${model}: ${String((e as Error)?.message || e)}`;
           console.error("Gemini istek hatasi", sonHata);
         }
       }
       if (yanit) break;
+      if (BUTCE_MS - (Date.now() - baslangic) < 3000) break;
     }
     if (!yanit) {
       return new Response(
-        JSON.stringify({ error: "Yapay zeka servisi şu an çok yoğun (Google tarafında geçici aşırı yük). Lütfen birkaç dakika sonra tekrar deneyin.", ayrinti: sonHata }),
-        { status: 502, headers: { ...CORS_BASLIKLAR, "Content-Type": "application/json" } },
+        JSON.stringify({ error: "Yapay zeka servisi şu an çok yoğun (Google tarafında geçici aşırı yük). Lütfen birkaç dakika sonra tekrar deneyin.", yogun: true, ayrinti: sonHata }),
+        { status: 503, headers: { ...CORS_BASLIKLAR, "Content-Type": "application/json" } },
       );
     }
     const veri = await yanit.json();
