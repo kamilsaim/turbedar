@@ -1157,7 +1157,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.0';
+const SURUM = '2.0.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1637,7 +1637,9 @@ function realtimeGenelBaslat(){
         guncellemeBildir({surum: yeni.surum, zorunlu: yeni.zorunlu, not: yeni.not_metni});
       }
     })
-    .subscribe();
+    // Kanal her (yeniden) kurulduğunda sürümü bir de DB'den kontrol et: ekran kilitliyken/arka plandayken
+    // websocket kopar, o arada yapılan turbedar_surum UPDATE'i olay olarak hiç gelmez (2.0.0'da yaşandı).
+    .subscribe(durum => { if (durum === 'SUBSCRIBED') guncellemeKontrol(); });
 }
 
 /* Kişisel kanal: sadece giriş yapmış kullanıcı için — anlık bildirim toast'ı ve zil. */

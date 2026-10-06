@@ -12,7 +12,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
 [![Türbe Rehberi](https://img.shields.io/badge/il%20il-t%C3%BCrbe%20rehberi-233129?style=for-the-badge)](https://turbedar.web.app/turbeler/)
 
-![Version](https://img.shields.io/badge/v2.0.0-B8923E)
+![Version](https://img.shields.io/badge/v2.0.1-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
@@ -109,6 +109,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **2.0.1** | Güncelleme bildirimi artık ekran kilitliyken/arka plandayken yayınlanan sürümleri de kaçırmıyor (uygulama öne gelince kontrol ediliyor) |
 | **2.0.0** | Sürüm numarası 2.0’a taşındı (1.42’den sonra 1.5’e geçiş numaranın düşmüş görünmesine yol açıyordu). 1.7–1.11 ile gelenlerin toplamı: YZ taslak oturumu, illere göre ziyaret ilerlemesi, ziyaret anısı, hata bildir, çevrimdışı taslak |
 | **1.11.0** | Çevrimdışı taslak: türbede çekim düşerse yeni kayıt fotoğraflarıyla telefona saklanır, Profil > Taslaklarım’dan sonra gönderilir |
 | **1.10.0** | Hata bildir: kayıt detayından yanlış bilgi, yanlış konum, mükerrer veya uygunsuz içerik bildirimi; yöneticilere anlık bildirim ve Yönetim > Bildirilenler sekmesi |
