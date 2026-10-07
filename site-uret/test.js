@@ -68,3 +68,28 @@ test('slugAta kalıcıdır ve çakışmayı çözer', () => {
   assert.strictEqual(slugAta(eslesme, 'f', 'Zeynel Türbe', { ilce: 'Sivas', il: 'Sivas' }), 'zeynel-turbe');
   assert.deepStrictEqual(Object.keys(eslesme), ['a', 'b', 'c', 'd', 'e', 'f']);
 });
+
+test('surumleriAyristir README tablosunu okur, details içini eski sayar', () => {
+  const { surumleriAyristir } = require('./surumler');
+  const md = `## Sürüm Geçmişi
+
+| Sürüm | Öne çıkanlar |
+|---|---|
+| **2.0.1** | Yeni "şey" |
+
+<details>
+
+| **1.0** | İlk sürüm |
+
+</details>
+
+## Katkı
+
+| **9.9** | sayılmaz |
+`;
+  assert.deepStrictEqual(surumleriAyristir(md), [
+    { surum: '2.0.1', metin: 'Yeni "şey"', eski: false },
+    { surum: '1.0', metin: 'İlk sürüm', eski: true },
+  ]);
+  assert.deepStrictEqual(surumleriAyristir('# başka'), []);
+});

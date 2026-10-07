@@ -407,6 +407,26 @@ function kartSayfasi(y){
 `;
 }
 
+/* ---------- Sürüm notları (kaynak: README > Sürüm Geçmişi) ---------- */
+function surumNotlariSayfasi(surumler){
+  const gz = gezinti([{ ad: 'Hakkında', yol: '/turbedar-nedir/' }, { ad: 'Sürüm Notları', yol: '/surum-notlari/' }]);
+  const satir = s => `<li id="v${kacir(s.surum)}"><b>${kacir(s.surum)}</b><span>${kacir(s.metin)}</span></li>`;
+  const yeni = surumler.filter(s => !s.eski);
+  const eski = surumler.filter(s => s.eski);
+  return bas({
+    baslik: 'Sürüm Notları | Türbedar',
+    aciklama: `Türbedar uygulamasının sürüm geçmişi: son sürüm ${surumler[0].surum} ve önceki sürümlerle gelen yenilikler.`,
+    yol: '/surum-notlari/', ld: [gz.ld],
+  }) + `<main class="kap">
+${gz.html}
+<h1>Sürüm Notları</h1>
+<p class="oncul">Türbedar'a gelen yenilikler, en yeniden eskiye. Güncel sürüm: <b>${kacir(surumler[0].surum)}</b>. Uygulama web üzerinden güncellendiği için yeni sürüm telefonuna kendiliğinden gelir.</p>
+<ul class="surumler">${yeni.map(satir).join('')}</ul>
+${eski.length ? `<details class="surum-eski"><summary>Daha eski sürümler (${kacir(eski.at(-1).surum)} – ${kacir(eski[0].surum)})</summary><ul class="surumler">${eski.map(satir).join('')}</ul></details>` : ''}
+${cagri()}
+</main>` + son();
+}
+
 /* ---------- sitemap.xml + robots.txt ---------- */
 const xml = s => String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 
@@ -419,6 +439,7 @@ function sitemap(yerler, bolgeler){
     url('/', genel),
     url('/turbedar-nedir/', genel),
     url('/turbeler/', genel),
+    url('/surum-notlari/', genel),
     ...bolgeler.map(b => url(bolgeYolu(b), enYeni(b.yerler))),
     ...yerler.map(y => url(yerYolu(y), tarih(y.updated_at),
       y.fotograflar.map(f => `<image:image><image:loc>${xml(fotoUrl(f.yol))}</image:loc></image:image>`).join(''))),
@@ -437,6 +458,6 @@ Sitemap: ${SITE}/sitemap.xml
 `;
 
 module.exports = {
-  yerSayfasi, bolgeSayfasi, hubSayfasi, tanitimSayfasi, kartSayfasi, sitemap, robots,
+  yerSayfasi, bolgeSayfasi, hubSayfasi, tanitimSayfasi, kartSayfasi, surumNotlariSayfasi, sitemap, robots,
   yerYolu, bolgeYolu, bulunmaEki, bildirmeEki,
 };

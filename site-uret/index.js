@@ -4,6 +4,7 @@
  * KULLANIM:  node site-uret          (sonra: node yayin.js)
  * Çıktı:     _yayin/public/ altına
  *   turbedar-nedir/index.html   tanıtım
+ *   surum-notlari/index.html    sürüm notları (README > Sürüm Geçmişi'nden)
  *   turbeler/index.html         il/ülke listesi
  *   turbeler/<bolge>/index.html il veya ülke sayfası
  *   yer/<slug>/index.html       kayıt sayfası
@@ -23,9 +24,10 @@ const { slugYap, yurtdisiMi } = require('./yardimci');
 const { onayliYerleriCek, bilgileriCek } = require('./veri');
 const { sluglariOku, sluglariYaz, slugAta } = require('./sluglar');
 const S = require('./sayfalar');
+const { surumleriOku } = require('./surumler');
 
 const CIKTI = path.join(__dirname, '..', '_yayin', 'public');
-const URETILEN_KLASORLER = ['y', 'yer', 'turbeler', 'turbedar-nedir'];
+const URETILEN_KLASORLER = ['y', 'yer', 'turbeler', 'turbedar-nedir', 'surum-notlari'];
 
 function yaz(goreli, icerik){
   const hedef = path.join(CIKTI, goreli);
@@ -64,7 +66,7 @@ function denetle(){
     const p = path.join(d, f.name);
     if (f.isDirectory()) gez(p); else if (p.endsWith('.html')) dosyalar.push(p);
   }};
-  for (const k of ['yer', 'turbeler', 'turbedar-nedir']) gez(path.join(CIKTI, k));
+  for (const k of ['yer', 'turbeler', 'turbedar-nedir', 'surum-notlari']) gez(path.join(CIKTI, k));
 
   // Yayın setinde olacak ama burada üretilmeyen statik dosyalar
   const statik = new Set(['/', '/index.html', '/gizlilik-politikasi.html', '/icon-192.webp', '/icon-512.webp', '/og-kart.png', '/logo.png']);
@@ -90,6 +92,8 @@ function denetle(){
 async function main(){
   const [yerler, bilgiler] = await Promise.all([onayliYerleriCek(), bilgileriCek()]);
   if (!yerler.length) throw new Error('Hiç onaylı kayıt gelmedi — yayın iptal (boş site yayınlanmasın).');
+  const surumler = surumleriOku();
+  if (!surumler.length) throw new Error('README.md > Sürüm Geçmişi tablosu okunamadı — yayın iptal.');
 
   const sluglar = sluglariOku();
   // Eski kayıtlar önce: aynı adlı yerlerde yalın adres ilk ekleneni kalır
@@ -104,6 +108,7 @@ async function main(){
 
   yaz('turbedar-nedir/index.html', S.tanitimSayfasi(yerler, bolgeler, bilgiler));
   yaz('turbeler/index.html', S.hubSayfasi(bolgeler, yerler));
+  yaz('surum-notlari/index.html', S.surumNotlariSayfasi(surumler));
   for (const b of bolgeler) yaz(`turbeler/${b.slug}/index.html`, S.bolgeSayfasi(b, bolgeler));
   for (const y of yerler){
     yaz(`yer/${y.slug}/index.html`, S.yerSayfasi(y, bolgeler));

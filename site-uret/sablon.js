@@ -68,6 +68,7 @@ function son(){
       <a href="/">Haritayı aç</a> ·
       <a href="/turbeler/">Tüm türbeler</a> ·
       <a href="/turbedar-nedir/">Türbedar nedir?</a> ·
+      <a href="/surum-notlari/">Sürüm notları</a> ·
       <a href="${PLAY_URL}" rel="noopener">Google Play</a> ·
       <a href="/gizlilik-politikasi.html">Gizlilik</a>
     </p>
