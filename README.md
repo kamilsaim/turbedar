@@ -12,7 +12,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
 [![Türbe Rehberi](https://img.shields.io/badge/il%20il-t%C3%BCrbe%20rehberi-233129?style=for-the-badge)](https://turbedar.web.app/turbeler/)
 
-![Version](https://img.shields.io/badge/v2.0.5-B8923E)
+![Version](https://img.shields.io/badge/v2.0.6-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
@@ -109,6 +109,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **2.0.6** | Google arama sonuçlarında Türbedar logosu görünsün diye site simgesi gerçek dosyaya taşındı |
 | **2.0.5** | Açılış hızlandı: harita için gereken veriler artık aynı anda çekiliyor, harita daha erken açılıyor |
 | **2.0.4** | Sürüm notları artık kendi sayfasında: turbedar.web.app/surum-notlari/ (Hakkında > Sürüm Notları oraya açılıyor) |
 | **2.0.3** | Yapay zekâ önerisi: Google yoğunken istek artık telefonda kopmuyor (35 sn sınırı) ve geçici hatada kendiliğinden bir kez daha deneniyor |
