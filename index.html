@@ -1157,7 +1157,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.4';
+const SURUM = '2.0.5';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1657,7 +1657,10 @@ function realtimeBaslat(){
     .subscribe();
 }
 
-async function veriYukle(){
+/* Açılış hızı (v2.0.5): kayıtlar ve yan sorgular (ziyaretler, istatistik, bilgiler, katkı) eskiden
+   art arda bekleniyordu — telefonda 6 gidiş-dönüş harita çizilmeden önce birikiyordu. Artık hepsi
+   aynı anda istenir; harita en yavaş sorgu kadar bekler, toplamı kadar değil. */
+async function yerleriCek(){
   const tum = [];
   let bas = 0; const boy = 1000;
   while (true){
@@ -1674,30 +1677,37 @@ async function veriYukle(){
     if (data.length < boy) break;
     bas += boy;
   }
+  return tum;
+}
+async function veriYukle(){
+  const bos = Promise.resolve({data: null});
+  const [tum, {data: zv}, {data: zn}, {data: ist}, , {data: kt}] = await Promise.all([
+    yerleriCek(),
+    kullanici ? sb.from('turbedar_ziyaretler').select('yer_id,created_at').eq('kullanici_id', kullanici.id) : bos,
+    kullanici ? sb.from('turbedar_ziyaret_notlari').select('yer_id,tarih,icerik').eq('kullanici_id', kullanici.id) : bos,
+    sb.from('turbedar_istatistik').select('*'),
+    bilgileriYukle(),
+    sb.from('turbedar_katki_istatistik').select('*'),
+  ]);
   yerler = tum;
   yerler.forEach(y => { y.fotograflar = fotoSirala(y.fotograflar); });
   benimZiyaretlerim = new Set();
   if (kullanici){
-    const [{data: zv}, {data: zn}] = await Promise.all([
-      sb.from('turbedar_ziyaretler').select('yer_id,created_at').eq('kullanici_id', kullanici.id),
-      sb.from('turbedar_ziyaret_notlari').select('yer_id,tarih,icerik').eq('kullanici_id', kullanici.id),
-    ]);
     benimZiyaretTarihleri = new Map(); benimZiyaretAnilari = new Map();
     (zv || []).forEach(z => { benimZiyaretlerim.add(z.yer_id); benimZiyaretTarihleri.set(z.yer_id, z.created_at); });
     (zn || []).forEach(n => benimZiyaretAnilari.set(n.yer_id, n));
   }
-  const {data: ist} = await sb.from('turbedar_istatistik').select('*');
   istatistik = ist || [];
-  await bilgileriYukle();
-  const {data: kt} = await sb.from('turbedar_katki_istatistik').select('*');
   katkilar = kt || [];
   haritaCiz(); kesfetCiz(); istatistikCiz(); suzgecleriDoldur();
   if (kullanici && typeof taslakSayisiGuncelle === 'function') taslakSayisiGuncelle();
 }
 async function bilgileriYukle(){
-  const {data} = await sb.from('turbedar_bilgiler').select('*').order('sira').order('created_at');
+  const [{data}, {data: kur}] = await Promise.all([
+    sb.from('turbedar_bilgiler').select('*').order('sira').order('created_at'),
+    sb.from('turbedar_profiller').select('whatsapp').eq('kurucu', true).limit(1).maybeSingle(),
+  ]);
   bilgiler = data || [];
-  const {data: kur} = await sb.from('turbedar_profiller').select('whatsapp').eq('kurucu', true).limit(1).maybeSingle();
   iletisimWhatsapp = (kur && kur.whatsapp && kur.whatsapp.trim()) ? kur.whatsapp.trim() : null;
 }
 
