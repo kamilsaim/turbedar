@@ -66,6 +66,24 @@ console.log('Toplandı:', PUBLIC);
 
 if (process.argv.includes('--kuru')) process.exit(0);
 
+// Kimlik: repo kökündeki servis hesabı anahtarı (*firebase-adminsdk*.json,
+// .gitignore'da). `firebase login` oturumu zamanla düşüyor ve haftalık
+// TurbedarSite görevi sessizce HATA veriyordu (12 Eki 2026); anahtarın süresi
+// dolmaz. Kişisel giriş boş bir yapılandırma klasörüyle gizlenir — ikisi
+// birden görünürse CLI bayat kişisel girişi seçebiliyor. Anahtar yoksa eski
+// yol (firebase login) kullanılır.
+const env = { ...process.env };
+const anahtar = fs.readdirSync(KOK).find(d => /firebase-adminsdk.*\.json$/.test(d)
+  && JSON.parse(fs.readFileSync(path.join(KOK, d), 'utf8')).project_id === 'turbedar-c512b');
+if (anahtar) {
+  env.GOOGLE_APPLICATION_CREDENTIALS = path.join(KOK, anahtar);
+  env.XDG_CONFIG_HOME = path.join(YAYIN, '.firebase-yapilandirma');
+  fs.mkdirSync(env.XDG_CONFIG_HOME, { recursive: true });
+  console.log('Kimlik: servis hesabı (' + anahtar + ')');
+} else {
+  console.log('Kimlik: firebase login (servis hesabı anahtarı bulunamadı)');
+}
+
 execSync('firebase deploy --only hosting:turbedar --project turbedar-c512b', {
-  cwd: YAYIN, stdio: 'inherit',
+  cwd: YAYIN, stdio: 'inherit', env,
 });
