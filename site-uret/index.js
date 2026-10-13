@@ -116,7 +116,7 @@ async function main(){
   }
   fs.copyFileSync(path.join(__dirname, 'y-yonlendirici.html'), path.join(CIKTI, 'y', 'index.html'));
   fs.copyFileSync(path.join(__dirname, 'seo.css'), path.join(CIKTI, 'seo.css'));
-  yaz('sitemap.xml', S.sitemap(yerler, bolgeler));
+  for (const [ad, icerik] of Object.entries(S.sitemap(yerler, bolgeler))) yaz(ad, icerik);
   yaz('robots.txt', S.robots());
 
   const { hatalar, sayfa } = denetle();

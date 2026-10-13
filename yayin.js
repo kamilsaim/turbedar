@@ -45,7 +45,7 @@ const FIREBASE_JSON = {
       { source: '/yer/**', headers: [{ key: 'Cache-Control', value: 'public, max-age=1800' }] },
       { source: '/turbeler/**', headers: [{ key: 'Cache-Control', value: 'public, max-age=1800' }] },
       { source: '/turbedar-nedir/**', headers: [{ key: 'Cache-Control', value: 'public, max-age=1800' }] },
-      { source: '/sitemap.xml', headers: [{ key: 'Cache-Control', value: 'public, max-age=3600' }] },
+      { source: '/*sitemap*.xml', headers: [{ key: 'Cache-Control', value: 'public, max-age=3600' }] },
     ],
   },
 };

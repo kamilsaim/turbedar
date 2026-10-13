@@ -435,26 +435,38 @@ function sitemap(yerler, bolgeler){
   const enYeni = liste => liste.map(y => tarih(y.updated_at)).sort().at(-1) ?? tarih(new Date().toISOString());
   const genel = enYeni(yerler);
   const url = (yol, lastmod, ek = '') => `<url><loc>${xml(SITE + yol)}</loc><lastmod>${lastmod}</lastmod>${ek}</url>`;
-  const satirlar = [
-    url('/', genel),
-    url('/turbedar-nedir/', genel),
-    url('/turbeler/', genel),
-    url('/surum-notlari/', genel),
-    ...bolgeler.map(b => url(bolgeYolu(b), enYeni(b.yerler))),
-    ...yerler.map(y => url(yerYolu(y), tarih(y.updated_at),
-      y.fotograflar.map(f => `<image:image><image:loc>${xml(fotoUrl(f.yol))}</image:loc></image:image>`).join(''))),
-  ];
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  const urlset = (satirlar, gorselli) => `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${gorselli ? ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' : ''}>
 ${satirlar.join('\n')}
 </urlset>
 `;
+  // Alt haritalar: sayfa / bölge / yer (Rank Math düzeni gibi) — hepsi sitemap_index.xml'den bağlanır
+  const altlar = {
+    'sayfa-sitemap.xml': { lastmod: genel, icerik: urlset([
+      url('/', genel),
+      url('/turbedar-nedir/', genel),
+      url('/turbeler/', genel),
+      url('/surum-notlari/', genel),
+    ]) },
+    'bolge-sitemap.xml': { lastmod: genel, icerik: urlset(bolgeler.map(b => url(bolgeYolu(b), enYeni(b.yerler)))) },
+    'yer-sitemap.xml': { lastmod: genel, icerik: urlset(yerler.map(y => url(yerYolu(y), tarih(y.updated_at),
+      y.fotograflar.map(f => `<image:image><image:loc>${xml(fotoUrl(f.yol))}</image:loc></image:image>`).join(''))), true) },
+  };
+  const dizin = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${Object.entries(altlar).map(([ad, a]) => `<sitemap><loc>${xml(`${SITE}/${ad}`)}</loc><lastmod>${a.lastmod}</lastmod></sitemap>`).join('\n')}
+</sitemapindex>
+`;
+  // sitemap.xml eski adres (Search Console'a önce o gönderildi) — aynı dizini taşır
+  const dosyalar = { 'sitemap_index.xml': dizin, 'sitemap.xml': dizin };
+  for (const [ad, a] of Object.entries(altlar)) dosyalar[ad] = a.icerik;
+  return dosyalar;
 }
 
 const robots = () => `User-agent: *
 Allow: /
 
-Sitemap: ${SITE}/sitemap.xml
+Sitemap: ${SITE}/sitemap_index.xml
 `;
 
 module.exports = {
