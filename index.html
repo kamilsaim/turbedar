@@ -1161,7 +1161,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.7';
+const SURUM = '2.0.8';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -3378,7 +3378,7 @@ function konumOnerAc(y){
   setTimeout(() => {
     if (!konumOnerHarita){
       konumOnerHarita = L.map('ko-harita', {zoomControl:true});
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(konumOnerHarita);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:21, maxNativeZoom:19, attribution:'© OpenStreetMap'}).addTo(konumOnerHarita);
       konumOnerMarker = L.marker([y.lat, y.lng], {draggable:true}).addTo(konumOnerHarita);
       konumOnerHarita.on('click', e => konumOnerMarker.setLatLng(e.latlng));
     } else {
@@ -3414,9 +3414,9 @@ $('#ko-gonder').addEventListener('click', async () => {
 function sihirbazHaritaHazirla(){
   if (!sihirbazHarita){
     sihirbazHarita = L.map('sihirbaz-harita', {zoomControl:true});
-    const sSokak = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'});
-    const sUydu = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:19, attribution:'Tiles © Esri'});
-    const sUyduEtiket = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {maxZoom:19});
+    const sSokak = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:21, maxNativeZoom:19, attribution:'© OpenStreetMap'});
+    const sUydu = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:21, maxNativeZoom:19, attribution:'Tiles © Esri'});
+    const sUyduEtiket = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {maxZoom:21, maxNativeZoom:19});
     sSokak.addTo(sihirbazHarita);
     sihirbazHarita.uyduAcik = false;
     $('#sihirbaz-uydu').addEventListener('click', () => {
