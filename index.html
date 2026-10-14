@@ -571,7 +571,9 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 /* Yönetim ana sekmeleri kaydırırken üstte kalır. Kapsayıcı .gorunum scroll
    ettiği için top:0 ona göredir; alttaki filtre şeritleri yapışık DEĞİL,
    yoksa ikisi üst üste binerdi. */
-.sekmeler.yapisik{position:sticky;top:calc(env(safe-area-inset-top) - 4px);z-index:6;box-shadow:0 7px 9px -7px rgba(35,49,41,.22)}
+/* top: .gorunum padding-top'u çentik payını zaten veriyor, burada tekrar ekleme (iPhone'da şerit iki kat aşağıda kalıyordu).
+   Yukarı taşan krem gölge, şeridin üstünden (çentik/saat alanından) akan kartları örter — overflow-x:auto yüzünden ::before kırpılırdı. */
+.sekmeler.yapisik{position:sticky;top:-4px;z-index:6;box-shadow:0 7px 9px -7px rgba(35,49,41,.22),0 calc(-1 * (env(safe-area-inset-top) + 8px)) 0 calc(env(safe-area-inset-top) + 8px) var(--krem)}
 .sekme{flex:1 0 auto;min-width:max-content;padding:9px 11px;border-radius:9px;font-size:12.5px;font-weight:800;color:var(--soluk);text-align:center;white-space:nowrap}
 .sekme.aktif{background:var(--kart);color:var(--zumrut);box-shadow:var(--golge)}
 .eksik-filtre{flex:1 0 auto;min-width:max-content;padding:9px 11px;border-radius:9px;font-size:12.5px;font-weight:800;color:var(--soluk);text-align:center;white-space:nowrap;background:none;border:none;cursor:pointer}
@@ -1159,7 +1161,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.6';
+const SURUM = '2.0.7';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
