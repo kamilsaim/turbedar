@@ -4,7 +4,9 @@ const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
 // Model zinciri: Google tarafinda 503 (asiri yuk) sik yasandigi icin tek modele bagli kalmiyoruz.
 // Sirayla denenir, ilk basarili yanit kullanilir. Liste 3 Eyl 2026'da ListModels ile dogrulandi.
 // 6 Eki 2026: 3.6 ücretsiz günlük kotası (429) doldu, 3.8 sürekli 503 veriyor; o gün yanıt veren tek model 3.7 olduğu için başa alındı.
-const MODELLER = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash"];
+// 14 Eki 2026: flash modellerin hepsinin günlük kotası (20) aynı gün doldu → ayrı kotalı lite modeller sona eklendi.
+// gemini-4-argon listede var ama ücretsiz kotası 0 (faturalandırma ister); gemini-2.5-flash-lite artık yeni kullanıcıya 404.
+const MODELLER = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]; // lite modeller son çare: ayrı günlük kota, hızlı ama daha kısa cevap
 const GEMINI_URL = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 const bekle = (ms: number) => new Promise((c) => setTimeout(c, ms));
