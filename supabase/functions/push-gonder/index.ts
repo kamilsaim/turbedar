@@ -203,9 +203,10 @@ async function apnsIstek(sunucu: string, token: string, jwt: string, govde: stri
 // Xcode'dan kurulan geliştirme sürümünün jetonu sandbox'a, TestFlight/App Store
 // sürümününki production'a aittir; istemci hangisi olduğunu bilmez. Önce production
 // denenir, "BadDeviceToken" gelirse sandbox.
-async function apnsGonder(sb: SupabaseClient, token: string, baslik: string, govdeMetin: string, yerId: string | null) {
+async function apnsGonder(sb: SupabaseClient, token: string, baslik: string, govdeMetin: string, yerId: string | null, rozet: number | null = null) {
   const govde = JSON.stringify({
-    aps: { alert: { title: baslik, body: govdeMetin }, sound: 'default' },
+    // badge: uygulama simgesindeki kırmızı sayı = kullanıcının okunmamış bildirim sayısı
+    aps: { alert: { title: baslik, body: govdeMetin }, sound: 'default', ...(rozet !== null ? { badge: rozet } : {}) },
     yer_id: yerId || '',   // Capacitor bunu notification.data.yer_id olarak verir
   });
   let jwt = await apnsJwt(sb);
@@ -322,7 +323,10 @@ Deno.serve(async (req: Request) => {
     /* --- 3) iPhone uygulaması (APNs) --- */
     if (p?.push_ios) {
       try {
-        const r = await apnsGonder(sb, p.push_ios, b.baslik, b.govde || '', b.yer_id);
+        const { count: okunmamis } = await sb.from('turbedar_bildirimler')
+          .select('id', { count: 'exact', head: true })
+          .eq('kullanici_id', b.kullanici_id).eq('okundu', false);
+        const r = await apnsGonder(sb, p.push_ios, b.baslik, b.govde || '', b.yer_id, okunmamis ?? null);
         // 410 Unregistered = uygulama silinmiş / bildirim kapatılmış; iki ortamda da
         // BadDeviceToken = jeton bu uygulamaya ait değil → ikisinde de temizle
         if (r.durum === 410 || (r.durum === 400 && r.neden === 'BadDeviceToken')) {

@@ -1171,7 +1171,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.11';
+const SURUM = '2.0.12';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1522,13 +1522,21 @@ async function puanlamaIste(){
 /* ====================== BİLDİRİMLER ====================== */
 async function bildirimleriYukle(){
   const zil = $('#btn-bildirim'), sayi = $('#bildirim-zil-sayi');
-  if (!kullanici){ zil.style.display = 'none'; bildirimlerim = []; return; }
+  if (!kullanici){ zil.style.display = 'none'; bildirimlerim = []; simgeRozeti(0); return; }
   const {data} = await sb.from('turbedar_bildirimler').select('*').order('created_at', {ascending:false}).limit(50);
   bildirimlerim = data || [];
   const okunmamis = bildirimlerim.filter(b => !b.okundu).length;
   zil.style.display = 'flex';
   sayi.style.display = okunmamis ? 'flex' : 'none';
   sayi.textContent = okunmamis;
+  simgeRozeti(okunmamis);
+}
+/* iOS uygulama simgesindeki kırmızı sayı (@capawesome/capacitor-badge). Push gelince sunucu
+   aps.badge ile okunmamış sayısını yazar; uygulama açıkken burada zil sayısıyla eşitlenir. */
+function simgeRozeti(n){
+  if (!eklentiVar('Badge')) return;
+  const b = window.Capacitor.Plugins.Badge;
+  (n > 0 ? b.set({count: n}) : b.clear()).catch(() => {});
 }
 function bildirimListeCiz(){
   const k = $('#bildirim-liste');
@@ -1551,6 +1559,7 @@ async function bildirimleriOkunduYap(){
   const okunmamis = bildirimlerim.filter(b => !b.okundu).map(b => b.id);
   if (!okunmamis.length) return;
   bildirimlerim.forEach(b => b.okundu = true);
+  simgeRozeti(0);
   $('#bildirim-zil-sayi').style.display = 'none';
   bildirimListeCiz();
   await sb.from('turbedar_bildirimler').update({okundu: true}).in('id', okunmamis);
@@ -3366,6 +3375,19 @@ function yolTarifiAc(apple){
 $('#yt-apple').addEventListener('click', () => yolTarifiAc(true));
 $('#yt-google').addEventListener('click', () => yolTarifiAc(false));
 $('#yt-vazgec').addEventListener('click', () => $('#kip-yol-tarifi').classList.remove('acik'));
+/* iOS ana ekran kısayolları (simgeye basılı tut): com.kamilsaim.turbedar://kisayol/<yakin|ekle>.
+   Soğuk açılışta hem getLaunchUrl hem appUrlOpen gelebilir → 3 sn içinde aynı kısayol tekrar işlenmez.
+   gecikme: soğuk açılışta karşılama ekranı (2.8 sn) kalkıp oturum yüklensin diye. */
+let sonKisayol = {ad: null, zaman: 0};
+function kisayolIsle(url, gecikme){
+  const ad = url.split('://kisayol/')[1]?.split(/[?#/]/)[0];
+  if (!ad || (sonKisayol.ad === ad && Date.now() - sonKisayol.zaman < 3000)) return;
+  sonKisayol = {ad, zaman: Date.now()};
+  setTimeout(() => {
+    if (ad === 'yakin'){ gorunumAc('harita'); $('#btn-yakin').click(); }
+    else if (ad === 'ekle') $('#btn-ekle').click();
+  }, gecikme);
+}
 function fotoKaynakSor(){
   // iOS'ta Safari zaten kendi native menüsünü açar (Fotoğraf Arşivi / Fotoğraf Çek / Dosyalar)
   // — bizim ek pencere üstüne binerse iki katmanlı karışıklık olur, doğrudan galeriye bırakıyoruz.
@@ -4810,6 +4832,7 @@ function yukleSeridiKapat(tur){
     const {App} = Capacitor.Plugins;
     const {Browser} = Capacitor.Plugins;
     App.addListener('appUrlOpen', async ({url}) => {
+      if (url && url.includes('://kisayol/')){ kisayolIsle(url, 0); return; }
       if (url && url.includes('auth-callback')){
         try{ await Browser.close(); }catch(e){}
         // URL'deki token'ları çıkar ve oturumu kur
@@ -4829,6 +4852,9 @@ function yukleSeridiKapat(tur){
         }
       }
     });
+
+    // iOS ana ekran kısayoluyla soğuk açılış: bağlantı dinleyiciden önce gelmiş olabilir
+    App.getLaunchUrl?.().then(r => { if (r?.url?.includes('://kisayol/')) kisayolIsle(r.url, 3000); }).catch(() => {});
 
     // Push bildirimleri: token al, Supabase'e kaydet, dokununca ilgili kayda git
     pushBildirimBaslat();
