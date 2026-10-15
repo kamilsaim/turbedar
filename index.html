@@ -1029,6 +1029,16 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   </div>
 </div>
 
+<div class="kip" id="kip-yol-tarifi">
+  <div class="kip-kutu" style="max-width:340px">
+    <h3>Yol Tarifi</h3>
+    <p style="margin-bottom:14px;font-size:13px;color:var(--soluk)">Hangi uygulamayla açılsın?</p>
+    <button class="btn btn-tam" id="yt-apple" style="margin-bottom:8px">Apple Haritalar</button>
+    <button class="btn-ghost btn btn-tam" id="yt-google" style="border:1px solid var(--cizgi);color:var(--murekkep);margin-bottom:8px">Google Maps</button>
+    <button class="btn-ghost btn btn-tam" id="yt-vazgec" style="background:transparent;color:var(--soluk)">Vazgeç</button>
+  </div>
+</div>
+
 <div class="kip" id="kip-konum-oner">
   <div class="kip-kutu" style="max-width:420px">
     <h3>Konum Öner</h3>
@@ -1161,7 +1171,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.9';
+const SURUM = '2.0.10';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2371,10 +2381,12 @@ async function detayAc(id){
   // olaylar
   const fotolar = (y.fotograflar||[]).map(f => fotoUrl(f.yol));
   k.querySelectorAll('[data-buyuk]').forEach((img, i) => img.addEventListener('click', () => galeriAc(fotolar, i)));
-  // iPhone/iPad'de Apple Haritalar (maps.apple.com evrensel bağlantısı uygulamayı açar), diğerlerinde Google Maps
-  $('#d-yoltarifi').addEventListener('click', () => window.open(iosMu()
-    ? `https://maps.apple.com/?daddr=${y.lat},${y.lng}&dirflg=d`
-    : `https://www.google.com/maps/dir/?api=1&destination=${y.lat},${y.lng}`, '_blank'));
+  // iPhone/iPad'de Apple Haritalar mı Google Maps mi diye sorulur (#kip-yol-tarifi), diğerlerinde doğrudan Google Maps
+  $('#d-yoltarifi').addEventListener('click', () => {
+    if (!iosMu()){ window.open(googleYolTarifi(y.lat, y.lng), '_blank'); return; }
+    yolTarifiHedef = {lat: y.lat, lng: y.lng};
+    $('#kip-yol-tarifi').classList.add('acik');
+  });
   $('#d-paylas').addEventListener('click', async () => {
     /* Hash sunucuya gitmediği için botlar kayda özel kartı hash'li adreste
        göremez. Bu yüzden paylaşımda `kart-uret.js`in ürettiği statik kart
@@ -3336,6 +3348,18 @@ function fotoIzgaraCiz(){
 const KAYNAK_EXIF = 'Fotoğrafın GPS verisinden bulundu';
 const KAYNAK_CIHAZ = 'Cihaz konumundan alındı';
 const KAYNAK_ARAMA = 'Aranarak bulundu';
+let yolTarifiHedef = null;
+function googleYolTarifi(lat, lng){ return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`; }
+function yolTarifiAc(apple){
+  $('#kip-yol-tarifi').classList.remove('acik');
+  if (!yolTarifiHedef) return;
+  const {lat, lng} = yolTarifiHedef;
+  // maps.apple.com evrensel bağlantısı Apple Haritalar uygulamasını açar
+  window.open(apple ? `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d` : googleYolTarifi(lat, lng), '_blank');
+}
+$('#yt-apple').addEventListener('click', () => yolTarifiAc(true));
+$('#yt-google').addEventListener('click', () => yolTarifiAc(false));
+$('#yt-vazgec').addEventListener('click', () => $('#kip-yol-tarifi').classList.remove('acik'));
 function fotoKaynakSor(){
   // iOS'ta Safari zaten kendi native menüsünü açar (Fotoğraf Arşivi / Fotoğraf Çek / Dosyalar)
   // — bizim ek pencere üstüne binerse iki katmanlı karışıklık olur, doğrudan galeriye bırakıyoruz.
