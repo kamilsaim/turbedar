@@ -1171,7 +1171,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.12';
+const SURUM = '2.0.13';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -3418,8 +3418,6 @@ async function eklentiIleGaleridenSec(){
     dosyalar.push(new File([bayt], `galeri-${Date.now()}-${i}.jpg`, {type: 'image/jpeg'}));
     konumlar.push(typeof f.lat === 'number' ? {latitude: f.lat, longitude: f.lng} : null);
     if (/sinirli|izin-yok/.test(f.ayrinti || '')) taslak.exifIpucu = 'izin';
-    // GEÇİCİ DEBUG (FotoKonum testi): hangi yolun çalıştığını sadece kurucu görür — test bitince sil
-    if (kurucu()) bildir(`📷 [test] ${f.kaynak}${f.ayrinti ? ' · ' + f.ayrinti : ''}`);
   });
   fotoDosyalariEkle(dosyalar, konumlar);
 }
