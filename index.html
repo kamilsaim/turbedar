@@ -1022,7 +1022,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 <div class="kip" id="kip-foto-kaynak">
   <div class="kip-kutu" style="max-width:340px">
     <h3>Fotoğraf Nereden?</h3>
-    <p style="margin-bottom:14px;font-size:13px;color:var(--soluk)">Konumun otomatik ve doğru bulunması için kamerayla anlık çekim önerilir — galeriden seçilen fotoğraflarda Android güvenlik nedeniyle konum bilgisi silinebiliyor.</p>
+    <p id="fk-metin" style="margin-bottom:14px;font-size:13px;color:var(--soluk)">Konumun otomatik ve doğru bulunması için kamerayla anlık çekim önerilir — galeriden seçilen fotoğraflarda Android güvenlik nedeniyle konum bilgisi silinebiliyor.</p>
     <button class="btn btn-tam" id="fk-kamera" style="margin-bottom:8px">📷 Kamerayla Çek</button>
     <button class="btn-ghost btn btn-tam" id="fk-galeri" style="border:1px solid var(--cizgi);color:var(--murekkep);margin-bottom:8px">🖼️ Galeriden Seç</button>
     <button class="btn-ghost btn btn-tam" id="fk-vazgec" style="background:transparent;color:var(--soluk)">Vazgeç</button>
@@ -1171,7 +1171,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.10';
+const SURUM = '2.0.11';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1344,6 +1344,12 @@ async function gunlukYaz(eylem, hedefTur, hedefId, hedefBaslik = null, detay = n
   });
 }
 
+/* Native eklenti bu derlemede gerçekten var mı? Capacitor.Plugins.X olmayan eklenti için de
+   nesne döndürebilir (çağrı "not implemented" ile reddedilir) — o yüzden HEP isPluginAvailable. */
+function eklentiVar(ad){
+  try{ return !!(window.Capacitor?.isNativePlatform?.() && window.Capacitor.isPluginAvailable?.(ad)); }
+  catch(e){ return false; }
+}
 /* Dokunma titreşimi. iOS'ta navigator.vibrate YOK — iOS uygulamasında
    @capacitor/haptics eklentisi (Taptic Engine) kullanılır; eklentisi olmayan
    eski iOS derlemesi ve ana ekran PWA'sında sessizce hiçbir şey olmaz.
@@ -1351,7 +1357,7 @@ async function gunlukYaz(eylem, hedefTur, hedefId, hedefBaslik = null, detay = n
    (≤12 hafif, üstü orta), dizi = kutlama (başarı titreşimi). */
 function titret(desen = 18){
   try{
-    const haptik = window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins?.Haptics;
+    const haptik = eklentiVar('Haptics') && window.Capacitor.Plugins.Haptics;
     if (haptik){
       if (Array.isArray(desen)) haptik.notification({ type: 'SUCCESS' }).catch(() => {});
       else haptik.impact({ style: desen <= 12 ? 'LIGHT' : 'MEDIUM' }).catch(() => {});
@@ -2826,7 +2832,7 @@ function sihirbazAc(yer = null, baslangicKonum = null){
     lng: yer ? yer.lng : (baslangicKonum ? baslangicKonum.lng : null),
     konumKaynak: yer ? 'Kayıtlı konum' : (baslangicKonum ? 'Haritadan seçildi' : null),
     exifIsleri: [],
-    exifSonuc: null,
+    exifSonuc: null, exifIpucu: null,
     kapak: null,
     ulke: yer ? (yer.ulke || 'Türkiye') : null,
     ulkeKodu: yer ? (yer.ulke_kodu || 'tr') : null,
@@ -3365,20 +3371,51 @@ function fotoKaynakSor(){
   // — bizim ek pencere üstüne binerse iki katmanlı karışıklık olur, doğrudan galeriye bırakıyoruz.
   // iosMu() kullan — iPadOS kendini "Macintosh" olarak tanıttığı için elle yazılan
   // /ipad/ regex'i iPad'i KAÇIRIR ve kip Safari'nin native menüsünün üstüne biner.
-  if (iosMu()){ $('#foto-girdi').click(); return; }
+  const eklenti = eklentiVar('FotoKonum');
+  if (iosMu() && !eklenti){ $('#foto-girdi').click(); return; }
+  // FotoKonum eklentili derlemede (iOS ve Android) galeriden seçilen fotoğrafın konumu native taraftan okunur
+  $('#fk-metin').textContent = eklenti
+    ? 'Galeriden seçtiğin fotoğrafın çekildiği konum da otomatik okunur. Yerinde çekeceksen kamera en doğrusudur.'
+    : 'Konumun otomatik ve doğru bulunması için kamerayla anlık çekim önerilir — galeriden seçilen fotoğraflarda Android güvenlik nedeniyle konum bilgisi silinebiliyor.';
   $('#kip-foto-kaynak').classList.add('acik');
 }
+/* Galeriden seçim, FotoKonum native eklentisiyle: eklenti fotoğrafı 1600px JPEG (base64) ve
+   varsa konumuyla döndürür. Eklenti hata verirse normal dosya seçiciye düşülür. */
+async function eklentiIleGaleridenSec(){
+  const kalan = FOTO_LIMIT - taslak.mevcutFotolar.length - taslak.yeniFotolar.length;
+  if (kalan <= 0) return bildir(`En fazla ${FOTO_LIMIT} fotoğraf`, true);
+  let sonuc;
+  try{ sonuc = await window.Capacitor.Plugins.FotoKonum.sec({limit: kalan}); }
+  catch(e){ $('#foto-girdi').click(); return; }
+  const fotolar = (sonuc?.fotolar || []).filter(f => f.veri);
+  if (!fotolar.length) return;
+  const dosyalar = [], konumlar = [];
+  fotolar.forEach((f, i) => {
+    const ham = atob(f.veri), bayt = new Uint8Array(ham.length);
+    for (let j = 0; j < ham.length; j++) bayt[j] = ham.charCodeAt(j);
+    dosyalar.push(new File([bayt], `galeri-${Date.now()}-${i}.jpg`, {type: 'image/jpeg'}));
+    konumlar.push(typeof f.lat === 'number' ? {latitude: f.lat, longitude: f.lng} : null);
+    if (/sinirli|izin-yok/.test(f.ayrinti || '')) taslak.exifIpucu = 'izin';
+    // GEÇİCİ DEBUG (FotoKonum testi): hangi yolun çalıştığını sadece kurucu görür — test bitince sil
+    if (kurucu()) bildir(`📷 [test] ${f.kaynak}${f.ayrinti ? ' · ' + f.ayrinti : ''}`);
+  });
+  fotoDosyalariEkle(dosyalar, konumlar);
+}
 $('#fk-kamera')?.addEventListener('click', () => { $('#kip-foto-kaynak').classList.remove('acik'); $('#foto-kamera-girdi').click(); });
-$('#fk-galeri')?.addEventListener('click', () => { $('#kip-foto-kaynak').classList.remove('acik'); $('#foto-girdi').click(); });
+$('#fk-galeri')?.addEventListener('click', () => {
+  $('#kip-foto-kaynak').classList.remove('acik');
+  if (eklentiVar('FotoKonum')) eklentiIleGaleridenSec(); else $('#foto-girdi').click();
+});
 $('#fk-vazgec')?.addEventListener('click', () => $('#kip-foto-kaynak').classList.remove('acik'));
-function fotoDosyalariEkle(dosyalar){
-  for (const d of dosyalar){
+function fotoDosyalariEkle(dosyalar, hazirKonumlar = null){
+  // hazirKonumlar: FotoKonum eklentisinin native okuduğu konumlar (dosyalarla aynı sırada; null = konum yok)
+  for (const [di, d] of dosyalar.entries()){
     if (taslak.mevcutFotolar.length + taslak.yeniFotolar.length >= FOTO_LIMIT){ bildir(`En fazla ${FOTO_LIMIT} fotoğraf`, true); break; }
     taslak.yeniFotolar.push({dosya: d, onizleme: URL.createObjectURL(d)});
     // EXIF GPS arka planda okunur; cihaz konumundan her zaman önceliklidir
     taslak.exifIsleri.push((async () => {
       try{
-        const gps = await exifr.gps(d);
+        const gps = hazirKonumlar ? hazirKonumlar[di] : await exifr.gps(d);
         if (gps && gps.latitude){
           taslak.exifSonuc = 'bulundu';
           if (!taslak.lat || taslak.konumKaynak === KAYNAK_CIHAZ){
@@ -3509,8 +3546,13 @@ function konumKaynakYaz(){
   const ana = taslak.lat
     ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> ${kacir(taslak.konumKaynak||'Konum seçildi')}`
     : '⚠️ Henüz konum yok — haritaya dokun veya cihaz konumunu kullan';
+  const uyariMetni = taslak.exifIpucu === 'izin'
+    ? `Seçilen fotoğrafın konumu okunamadı: fotoğraflara tam erişim izni yok. Ayarlar › Türbedar › Fotoğraflar'dan “Tam Erişim” verirsen konum otomatik bulunur — şimdilik iğneyi haritada elle doğru yere taşıyabilirsin.`
+    : eklentiVar('FotoKonum')
+      ? 'Seçilen fotoğrafta konum bilgisi yok (fotoğraf konum kapalıyken çekilmiş olabilir) — iğneyi haritada elle doğru yere taşıyabilirsin.'
+      : `Seçilen fotoğrafta konum bilgisi bulunamadı. Not: iPhone'lar gizlilik gereği fotoğrafın konumunu tarayıcıya vermez — iğneyi haritada elle doğru yere taşıyabilirsin.`;
   const uyari = taslak.exifSonuc === 'yok'
-    ? `<div style="flex-basis:100%;color:var(--amber);font-weight:600;font-size:12px;line-height:1.5;margin-top:2px">⚠️ Seçilen fotoğrafta konum bilgisi bulunamadı. Not: iPhone'lar gizlilik gereği fotoğrafın konumunu tarayıcıya vermez — iğneyi haritada elle doğru yere taşıyabilirsin.</div>`
+    ? `<div style="flex-basis:100%;color:var(--amber);font-weight:600;font-size:12px;line-height:1.5;margin-top:2px">⚠️ ${kacir(uyariMetni)}</div>`
     : '';
   $('#konum-kaynak').innerHTML = ana + uyari;
 }
