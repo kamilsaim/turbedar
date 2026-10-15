@@ -1161,7 +1161,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.8';
+const SURUM = '2.0.9';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1334,9 +1334,21 @@ async function gunlukYaz(eylem, hedefTur, hedefId, hedefBaslik = null, detay = n
   });
 }
 
-// Dokunma titreşimi — sadece Android/Chrome destekler, iOS Safari'de sessizce yok sayılır.
+/* Dokunma titreşimi. iOS'ta navigator.vibrate YOK — iOS uygulamasında
+   @capacitor/haptics eklentisi (Taptic Engine) kullanılır; eklentisi olmayan
+   eski iOS derlemesi ve ana ekran PWA'sında sessizce hiçbir şey olmaz.
+   Android/Chrome navigator.vibrate ile devam eder. Desen: sayı = tek dokunuş
+   (≤12 hafif, üstü orta), dizi = kutlama (başarı titreşimi). */
 function titret(desen = 18){
-  try{ navigator.vibrate?.(desen); }catch(e){ /* desteklenmiyor, sorun değil */ }
+  try{
+    const haptik = window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins?.Haptics;
+    if (haptik){
+      if (Array.isArray(desen)) haptik.notification({ type: 'SUCCESS' }).catch(() => {});
+      else haptik.impact({ style: desen <= 12 ? 'LIGHT' : 'MEDIUM' }).catch(() => {});
+      return;
+    }
+    navigator.vibrate?.(desen);
+  }catch(e){ /* desteklenmiyor, sorun değil */ }
 }
 function bildir(metin, hata=false){
   if (hata) titret();
@@ -2359,7 +2371,10 @@ async function detayAc(id){
   // olaylar
   const fotolar = (y.fotograflar||[]).map(f => fotoUrl(f.yol));
   k.querySelectorAll('[data-buyuk]').forEach((img, i) => img.addEventListener('click', () => galeriAc(fotolar, i)));
-  $('#d-yoltarifi').addEventListener('click', () => window.open(`https://www.google.com/maps/dir/?api=1&destination=${y.lat},${y.lng}`, '_blank'));
+  // iPhone/iPad'de Apple Haritalar (maps.apple.com evrensel bağlantısı uygulamayı açar), diğerlerinde Google Maps
+  $('#d-yoltarifi').addEventListener('click', () => window.open(iosMu()
+    ? `https://maps.apple.com/?daddr=${y.lat},${y.lng}&dirflg=d`
+    : `https://www.google.com/maps/dir/?api=1&destination=${y.lat},${y.lng}`, '_blank'));
   $('#d-paylas').addEventListener('click', async () => {
     /* Hash sunucuya gitmediği için botlar kayda özel kartı hash'li adreste
        göremez. Bu yüzden paylaşımda `kart-uret.js`in ürettiği statik kart
