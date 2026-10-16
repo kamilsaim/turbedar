@@ -1198,7 +1198,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.16';
+const SURUM = '2.0.17';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -3406,16 +3406,14 @@ $('#yt-vazgec').addEventListener('click', () => $('#kip-yol-tarifi').classList.r
    Soğuk açılışta hem getLaunchUrl hem appUrlOpen gelebilir → 3 sn içinde aynı kısayol tekrar işlenmez.
    gecikme: soğuk açılışta karşılama ekranı (2.8 sn) kalkıp oturum yüklensin diye. */
 let sonKisayol = {ad: null, zaman: 0};
-/* GEÇİCİ DEBUG (kısayol teşhisi, 16 Eki 2026): sadece kısayol bağlantısı gelince yazar —
-   kısayollar yalnız TestFlight derlemesinde var. Açılış karşılaması (2.8 sn) kalksın diye ertelenir. */
-function kisayolDebug(m){ setTimeout(() => bildir('🔧 ' + m), Math.max(0, 3600 - performance.now())); }
 function kisayolIsle(url, gecikme){
   const ad = url.split('://kisayol/')[1]?.split(/[?#/]/)[0];
-  kisayolDebug('kisayolIsle: ' + ad + ' / gecikme ' + gecikme);
   if (!ad || (sonKisayol.ad === ad && Date.now() - sonKisayol.zaman < 3000)) return;
   sonKisayol = {ad, zaman: Date.now()};
+  // getLaunchUrl son bağlantıyı süreç boyunca hatırlar; sayfa yenilenince (Güncelle) aynı kısayol
+  // yeniden açılmasın diye işlenen adres sessionStorage'da tutulur (uygulama kapanınca silinir)
+  try{ sessionStorage.setItem('turbedar_kisayol_islendi', url); }catch(e){}
   setTimeout(() => {
-    kisayolDebug('düğmeye basılıyor: ' + ad + ' (yakin:' + !!$('#btn-yakin') + ' ekle:' + !!$('#btn-ekle') + ')');
     if (ad === 'yakin'){ gorunumAc('harita'); $('#btn-yakin').click(); }
     else if (ad === 'ekle') $('#btn-ekle').click();
   }, gecikme);
@@ -4862,7 +4860,7 @@ function yukleSeridiKapat(tur){
     const {App} = Capacitor.Plugins;
     const {Browser} = Capacitor.Plugins;
     App.addListener('appUrlOpen', async ({url}) => {
-      if (url && url.includes('://kisayol/')){ kisayolDebug('appUrlOpen geldi: ' + url); kisayolIsle(url, 0); return; }
+      if (url && url.includes('://kisayol/')){ kisayolIsle(url, 0); return; }
       if (url && url.includes('auth-callback')){
         try{ await Browser.close(); }catch(e){}
         // URL'deki token'ları çıkar ve oturumu kur
@@ -4884,7 +4882,12 @@ function yukleSeridiKapat(tur){
     });
 
     // iOS ana ekran kısayoluyla soğuk açılış: bağlantı dinleyiciden önce gelmiş olabilir
-    App.getLaunchUrl?.().then(r => { if (r?.url?.includes('://kisayol/')){ kisayolDebug('getLaunchUrl: ' + r.url); kisayolIsle(r.url, 3000); } }).catch(() => {});
+    App.getLaunchUrl?.().then(r => {
+      if (!r?.url?.includes('://kisayol/')) return;
+      let islendi = null;
+      try{ islendi = sessionStorage.getItem('turbedar_kisayol_islendi'); }catch(e){}
+      if (islendi !== r.url) kisayolIsle(r.url, 3000);
+    }).catch(() => {});
 
     // Push bildirimleri: token al, Supabase'e kaydet, dokununca ilgili kayda git
     pushBildirimBaslat();
