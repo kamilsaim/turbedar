@@ -176,6 +176,12 @@ img{display:block}
 /* Detay/sihirbaz sayfası veya bir kip açıkken arka plan kaymasın (dokunmatik kaydırma sızması) */
 body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .icerik{max-width:760px;margin:0 auto;padding:16px}
+.site-altbilgi{border-top:1px solid rgba(184,146,62,.3);margin-top:8px;text-align:center;color:var(--murekkep);opacity:.75;font-size:12.5px;line-height:1.55}
+.site-altbilgi h1{font-family:var(--display);font-size:17px;font-weight:700;color:var(--zumrut);margin-bottom:6px}
+.site-altbilgi p{margin-bottom:10px}
+.site-altbilgi nav{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;margin-bottom:8px}
+.site-altbilgi a{color:var(--zumrut);text-decoration:none;font-weight:600}
+.site-altbilgi-iller a{font-weight:500;opacity:.85}
 
 /* Harita görünümü */
 #gorunum-harita{padding-top:0;padding-bottom:0;position:relative}
@@ -829,6 +835,27 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   <!-- ============ PROFİL ============ -->
   <section class="gorunum" data-gorunum="profil">
     <div class="icerik" id="profil-icerik"></div>
+    <!-- Sabit HTML (JS çizmez): arama motorları ana sayfadan SEO sayfalarına buradan ulaşır -->
+    <footer class="icerik site-altbilgi">
+      <h1>Türbedar: Türkiye'deki türbe, kümbet ve mezarların haritası</h1>
+      <p>Türbedar; Türkiye ve dünyadaki evliya, sultan, alim ve önemli şahsiyetlerin türbe, kümbet ve mezarlarını bir araya getiren ortak bir envanterdir. Haritada yakınındaki türbeleri bul, ziyaretini işaretle, bildiğin yerleri fotoğrafı ve bilgisiyle ekle.</p>
+      <nav aria-label="Site sayfaları">
+        <a href="https://turbedar.web.app/turbedar-nedir/" target="_blank" rel="noopener">Türbedar nedir?</a>
+        <a href="https://turbedar.web.app/turbeler/" target="_blank" rel="noopener">Tüm türbeler</a>
+        <a href="https://turbedar.web.app/surum-notlari/" target="_blank" rel="noopener">Sürüm notları</a>
+        <a href="https://turbedar.web.app/gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik</a>
+      </nav>
+      <nav aria-label="İllere göre türbeler" class="site-altbilgi-iller">
+        <a href="https://turbedar.web.app/turbeler/kayseri/" target="_blank" rel="noopener">Kayseri türbeleri</a>
+        <a href="https://turbedar.web.app/turbeler/istanbul/" target="_blank" rel="noopener">İstanbul türbeleri</a>
+        <a href="https://turbedar.web.app/turbeler/konya/" target="_blank" rel="noopener">Konya türbeleri</a>
+        <a href="https://turbedar.web.app/turbeler/bursa/" target="_blank" rel="noopener">Bursa türbeleri</a>
+        <a href="https://turbedar.web.app/turbeler/ankara/" target="_blank" rel="noopener">Ankara türbeleri</a>
+        <a href="https://turbedar.web.app/turbeler/sivas/" target="_blank" rel="noopener">Sivas türbeleri</a>
+        <a href="https://turbedar.web.app/turbeler/elazig/" target="_blank" rel="noopener">Elazığ türbeleri</a>
+        <a href="https://turbedar.web.app/turbeler/afyonkarahisar/" target="_blank" rel="noopener">Afyonkarahisar türbeleri</a>
+      </nav>
+    </footer>
   </section>
 
   <!-- ============ YÖNETİM ============ -->
@@ -1171,7 +1198,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.13';
+const SURUM = '2.0.14';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
