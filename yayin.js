@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Türbedar — Firebase Hosting yayını (turbedar.web.app)
+/* Türbedar — Firebase Hosting yayını (turbedar.org + turbedar.web.app)
  *
  * NEDEN VAR: eskiden yayın klasörü %TEMP%\turbedar-deploy altındaydı ve
  * Windows disk temizliği onu sildi. Artık repo içinde, git'e girmeyen

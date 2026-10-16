@@ -15,7 +15,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 ![Version](https://img.shields.io/badge/v2.0.15-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
-[![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
+[![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://turbedar.org/gizlilik-politikasi.html)
 
 <sub>Geliştiricinin diğer uygulamaları için: [kamilsaim.web.app](https://kamilsaim.web.app)</sub>
 
@@ -196,7 +196,7 @@ Kaynak, bir kaydı iddiadan bilgiye çeviren şeydir. Bir türbe hakkında kitap
 
 ## Gizlilik
 
-Hangi bilgilerin toplandığı, kimlerle paylaşıldığı ve hesabını nasıl silebileceğin [Gizlilik Politikası](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html) sayfasında açıkça yazılıdır. Özetle:
+Hangi bilgilerin toplandığı, kimlerle paylaşıldığı ve hesabını nasıl silebileceğin [Gizlilik Politikası](https://turbedar.org/gizlilik-politikasi.html) sayfasında açıkça yazılıdır. Özetle:
 
 - Reklam ve analitik takip **yoktur**
 - E-posta adresin hiçbir kullanıcıya gösterilmez
