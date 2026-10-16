@@ -1,7 +1,7 @@
 /* Ortak yardımcılar — KATEGORILER ve konumYazisi index.html'den KOPYALANMIŞTIR.
  * Kategori listesi değişirse index.html + DB CHECK kısıtı + burası birlikte güncellenmeli. */
 
-const SITE = 'https://turbedar.web.app';
+const SITE = 'https://turbedar.org';
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar';
 

@@ -160,7 +160,7 @@ function cagri(){
 <h2>Türbedar'ı Telefonuna Kur</h2>
 <p>Haritada yakınındaki türbeleri bul, ziyaret ettiklerini işaretle, bildiğin yerleri ekle. Ücretsiz ve reklamsız.</p>
 <div class="btn-grup">${playRozeti()}<a class="btn btn-ana" href="/">Tarayıcıda Aç</a></div>
-<p style="font-size:13px;margin:0">iPhone: Safari ile turbedar.web.app'i aç → Paylaş → Ana Ekrana Ekle</p>
+<p style="font-size:13px;margin:0">iPhone: Safari ile turbedar.org'u aç → Paylaş → Ana Ekrana Ekle</p>
 </section>`;
 }
 
@@ -258,7 +258,7 @@ const SSS = [
   ['Türbedar ücretli mi?', 'Hayır. Türbedar tamamen ücretsizdir; reklam ve analitik takip içermez.'],
   ['Hesap açmadan kullanabilir miyim?', 'Evet. Haritayı, kayıtları ve fotoğrafları görmek için giriş yapmanız gerekmez. Yer eklemek, ziyaret işaretlemek ve yorum yazmak için Google ya da Apple hesabıyla tek dokunuşla giriş yapılır.'],
   ['Nasıl türbe eklerim?', 'Uygulamada “Ekle” düğmesine dokunun: önce fotoğrafları seçin (fotoğrafın konum bilgisi varsa pin otomatik yerleşir), sonra haritada konumu doğrulayın, en son adı, türü ve mekan sahiplerini yazın. Kayıt yönetici onayından sonra herkese görünür.'],
-  ['iPhone\'da Türbedar\'ı nasıl kullanırım?', 'iPhone ve iPad\'de Safari ile turbedar.web.app adresini açın, alttaki Paylaş simgesine dokunup “Ana Ekrana Ekle”yi seçin. Türbedar bir uygulama gibi ana ekranınıza yerleşir ve bildirim alabilir.'],
+  ['iPhone\'da Türbedar\'ı nasıl kullanırım?', 'iPhone ve iPad\'de Safari ile turbedar.org adresini açın, alttaki Paylaş simgesine dokunup “Ana Ekrana Ekle”yi seçin. Türbedar bir uygulama gibi ana ekranınıza yerleşir ve bildirim alabilir.'],
   ['Yakınımdaki türbeleri nasıl bulurum?', 'Harita ekranındaki “yakınımdaki yerler” düğmesi konumunuza en yakın türbeleri mesafeleriyle listeler. Uydu görünümüyle yerin çevresini de görebilirsiniz.'],
   ['Bilgiler ne kadar güvenilir?', 'Her yeni kayıt ve her düzenleme önerisi yayına girmeden önce yöneticiler tarafından incelenir. Kayıtlarda kaynak bağlantıları gösterilir; hatalı bir bilgi gördüğünüzde uygulama içinden düzeltme önerebilirsiniz.'],
 ];
@@ -344,8 +344,8 @@ ${bilgiler.map(b => `<details class="sss"><summary>${kacir(b.baslik)}</summary><
 <h2>Türbedar'ı Nasıl Kurarım?</h2>
 <div class="izgara">
   <div class="kutu"><h3>Android</h3><p>Google Play Store'dan “Türbedar” uygulamasını ücretsiz indir.</p><div class="btn-grup" style="margin-bottom:0">${playRozeti('Google Play')}</div></div>
-  <div class="kutu"><h3>iPhone ve iPad</h3><p>Safari ile <b>turbedar.web.app</b> adresini aç, Paylaş simgesine dokun ve “Ana Ekrana Ekle”yi seç.</p></div>
-  <div class="kutu"><h3>Bilgisayar</h3><p>Herhangi bir tarayıcıdan <a href="/">turbedar.web.app</a> adresine gir; kurulum gerekmez.</p></div>
+  <div class="kutu"><h3>iPhone ve iPad</h3><p>Safari ile <b>turbedar.org</b> adresini aç, Paylaş simgesine dokun ve “Ana Ekrana Ekle”yi seç.</p></div>
+  <div class="kutu"><h3>Bilgisayar</h3><p>Herhangi bir tarayıcıdan <a href="/">turbedar.org</a> adresine gir; kurulum gerekmez.</p></div>
 </div>
 
 <h2>Sıkça Sorulan Sorular</h2>

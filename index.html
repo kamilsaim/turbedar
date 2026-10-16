@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <script>
   /* GitHub Pages'ten TARAYICIYLA gelenleri asıl adrese taşı. APK (window.Capacitor)
-     hariç: eski APK'ların izin listesinde turbedar.web.app yok, yönlendirilirse
+     hariç: eski APK'ların izin listesinde turbedar.web.app/turbedar.org yok, yönlendirilirse
      uygulama dış tarayıcıya fırlardı. Pages bu yüzden açık kalmalı. Capacitor
      köprüsü bu satırda henüz hazır olmayabilir diye Android WebView işareti
      ("; wv)") de ayrıca dışlanır. */
   if (location.hostname === 'kamilsaim.github.io' && !window.Capacitor && !/; wv\)/.test(navigator.userAgent))
-    location.replace('https://turbedar.web.app/' + location.search + location.hash);
+    location.replace('https://turbedar.org/' + location.search + location.hash);
 </script>
 <title>Türbedar — Türbe, Kümbet ve Mezar Haritası</title>
 <meta name="description" content="Türkiye ve dünyadaki türbe, kümbet ve mezarların ortak haritası. Yakınındaki türbeleri bul, ziyaretini işaretle, bildiğin yerleri ekle. Emanet, Hizmet, Sadakat.">
-<link rel="canonical" href="https://turbedar.web.app/">
+<link rel="canonical" href="https://turbedar.org/">
 <meta name="theme-color" content="#1E4D38">
 <meta name="google-site-verification" content="W9UWJ7EpKgBWKdJEKEfUSpdGFuKLmL9zkjTGQ8eHAUM">
 <!-- Sosyal paylaşım kartı (WhatsApp, X, Facebook, Telegram...) -->
@@ -23,15 +23,15 @@
 <meta property="og:locale" content="tr_TR">
 <meta property="og:title" content="Türbedar — Türbe ve Mezar Envanteri">
 <meta property="og:description" content="Türbe, kümbet ve mezarların ortak envanteri. Emanet • Hizmet • Sadakat">
-<meta property="og:url" content="https://turbedar.web.app/">
-<meta property="og:image" content="https://turbedar.web.app/og-kart.png">
+<meta property="og:url" content="https://turbedar.org/">
+<meta property="og:image" content="https://turbedar.org/og-kart.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Türbedar — Emanet, Hizmet, Sadakat">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Türbedar — Türbe ve Mezar Envanteri">
 <meta name="twitter:description" content="Türbe, kümbet ve mezarların ortak envanteri. Emanet • Hizmet • Sadakat">
-<meta name="twitter:image" content="https://turbedar.web.app/og-kart.png">
+<meta name="twitter:image" content="https://turbedar.org/og-kart.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -39,7 +39,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <!-- Favicon gerçek dosya olmalı: Google arama sonucundaki site simgesini data: URI'dan okumaz. Göreli yol — Pages alt dizinde, Firebase kökte. -->
 <link rel="icon" type="image/webp" sizes="192x192" href="icon-192.webp">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Türbedar","alternateName":"Türbedar — Türbe, Kümbet ve Mezar Haritası","url":"https://turbedar.web.app/"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Türbedar","alternateName":"Türbedar — Türbe, Kümbet ve Mezar Haritası","url":"https://turbedar.org/"}</script>
 <link rel="apple-touch-icon" href="data:image/webp;base64,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">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -840,20 +840,20 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
       <h1>Türbedar: Türkiye'deki türbe, kümbet ve mezarların haritası</h1>
       <p>Türbedar; Türkiye ve dünyadaki evliya, sultan, alim ve önemli şahsiyetlerin türbe, kümbet ve mezarlarını bir araya getiren ortak bir envanterdir. Haritada yakınındaki türbeleri bul, ziyaretini işaretle, bildiğin yerleri fotoğrafı ve bilgisiyle ekle.</p>
       <nav aria-label="Site sayfaları">
-        <a href="https://turbedar.web.app/turbedar-nedir/" target="_blank" rel="noopener">Türbedar nedir?</a>
-        <a href="https://turbedar.web.app/turbeler/" target="_blank" rel="noopener">Tüm türbeler</a>
-        <a href="https://turbedar.web.app/surum-notlari/" target="_blank" rel="noopener">Sürüm notları</a>
-        <a href="https://turbedar.web.app/gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik</a>
+        <a href="https://turbedar.org/turbedar-nedir/" target="_blank" rel="noopener">Türbedar nedir?</a>
+        <a href="https://turbedar.org/turbeler/" target="_blank" rel="noopener">Tüm türbeler</a>
+        <a href="https://turbedar.org/surum-notlari/" target="_blank" rel="noopener">Sürüm notları</a>
+        <a href="https://turbedar.org/gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik</a>
       </nav>
       <nav aria-label="İllere göre türbeler" class="site-altbilgi-iller">
-        <a href="https://turbedar.web.app/turbeler/kayseri/" target="_blank" rel="noopener">Kayseri türbeleri</a>
-        <a href="https://turbedar.web.app/turbeler/istanbul/" target="_blank" rel="noopener">İstanbul türbeleri</a>
-        <a href="https://turbedar.web.app/turbeler/konya/" target="_blank" rel="noopener">Konya türbeleri</a>
-        <a href="https://turbedar.web.app/turbeler/bursa/" target="_blank" rel="noopener">Bursa türbeleri</a>
-        <a href="https://turbedar.web.app/turbeler/ankara/" target="_blank" rel="noopener">Ankara türbeleri</a>
-        <a href="https://turbedar.web.app/turbeler/sivas/" target="_blank" rel="noopener">Sivas türbeleri</a>
-        <a href="https://turbedar.web.app/turbeler/elazig/" target="_blank" rel="noopener">Elazığ türbeleri</a>
-        <a href="https://turbedar.web.app/turbeler/afyonkarahisar/" target="_blank" rel="noopener">Afyonkarahisar türbeleri</a>
+        <a href="https://turbedar.org/turbeler/kayseri/" target="_blank" rel="noopener">Kayseri türbeleri</a>
+        <a href="https://turbedar.org/turbeler/istanbul/" target="_blank" rel="noopener">İstanbul türbeleri</a>
+        <a href="https://turbedar.org/turbeler/konya/" target="_blank" rel="noopener">Konya türbeleri</a>
+        <a href="https://turbedar.org/turbeler/bursa/" target="_blank" rel="noopener">Bursa türbeleri</a>
+        <a href="https://turbedar.org/turbeler/ankara/" target="_blank" rel="noopener">Ankara türbeleri</a>
+        <a href="https://turbedar.org/turbeler/sivas/" target="_blank" rel="noopener">Sivas türbeleri</a>
+        <a href="https://turbedar.org/turbeler/elazig/" target="_blank" rel="noopener">Elazığ türbeleri</a>
+        <a href="https://turbedar.org/turbeler/afyonkarahisar/" target="_blank" rel="noopener">Afyonkarahisar türbeleri</a>
       </nav>
     </footer>
   </section>
@@ -1198,7 +1198,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.14';
+const SURUM = '2.0.15';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2433,9 +2433,9 @@ async function detayAc(id){
     /* Hash sunucuya gitmediği için botlar kayda özel kartı hash'li adreste
        göremez. Bu yüzden paylaşımda `kart-uret.js`in ürettiği statik kart
        sayfası verilir; o sayfa insanı hash'li adrese yönlendirir.
-       Adres bilerek SABİT turbedar.web.app — APK ya da Pages üzerinden
+       Adres bilerek SABİT turbedar.org — APK ya da Pages üzerinden
        paylaşılsa bile kullanıcıya asıl adres gitsin diye. */
-    const url = `https://turbedar.web.app/y/${y.id}.html`;
+    const url = `https://turbedar.org/y/${y.id}.html`;
     if (navigator.share){ try{ await navigator.share({title: y.baslik, url}); }catch(e){} }
     else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
   });
@@ -4064,16 +4064,16 @@ function hakkindaAc(){
     </div>
     <div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
     <div class="bolum-baslik" style="margin-bottom:8px">Uygulamayı Paylaş</div>
-    <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-bottom:10px">Bilgisayardan veya iPhone'dan açmak isteyenlerle <b>turbedar.web.app</b> bağlantısını paylaş.</p>
+    <p style="font-size:13px;color:var(--soluk);line-height:1.6;margin-bottom:10px">Bilgisayardan veya iPhone'dan açmak isteyenlerle <b>turbedar.org</b> bağlantısını paylaş.</p>
     <button class="btn btn-kucuk btn-tam" id="hakkinda-paylas">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>
       Bağlantıyı Paylaş
     </button>
-    <a class="btn-ghost btn btn-kucuk" href="https://turbedar.web.app/surum-notlari/" target="_blank" rel="noopener" style="display:block;margin-top:8px;text-align:center;text-decoration:none">
+    <a class="btn-ghost btn btn-kucuk" href="https://turbedar.org/surum-notlari/" target="_blank" rel="noopener" style="display:block;margin-top:8px;text-align:center;text-decoration:none">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
       Sürüm Notları (v${SURUM})
     </a>
-    <a class="btn-ghost btn btn-kucuk" href="https://turbedar.web.app/turbeler/" target="_blank" rel="noopener" style="display:block;margin-top:8px;text-align:center;text-decoration:none">
+    <a class="btn-ghost btn btn-kucuk" href="https://turbedar.org/turbeler/" target="_blank" rel="noopener" style="display:block;margin-top:8px;text-align:center;text-decoration:none">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2zM20 19v3H6"/></svg>
       İl İl Türbe Rehberi
     </a>
@@ -4085,7 +4085,7 @@ function hakkindaAc(){
       <div style="font-size:12.5px;color:var(--soluk);line-height:1.75;padding:4px 2px 2px">
         Türbedar iPhone ve iPad'de <b>Safari</b> üzerinden ana ekrana eklenerek uygulama gibi kullanılır (App Store sürümü yoktur).
         <ol style="margin:8px 0 0;padding-left:18px">
-          <li><b>Safari</b> ile <b>turbedar.web.app</b> adresini aç.</li>
+          <li><b>Safari</b> ile <b>turbedar.org</b> adresini aç.</li>
           <li>Alttaki ${paylasSimgesi()} <b>paylaş</b> simgesine dokun.</li>
           <li>Listeyi kaydırıp <b>Ana Ekrana Ekle</b>'yi seç, sonra <b>Ekle</b> de.</li>
           <li>Uygulamayı artık ana ekrandaki Türbedar simgesinden aç.</li>
@@ -4097,7 +4097,7 @@ function hakkindaAc(){
     <p style="text-align:center;font-size:11px;color:var(--soluk);margin-top:16px;letter-spacing:.06em">Türbedar v${SURUM} • Edeple gelen, lütufla gider</p>`;
   $('#kip-hakkinda').classList.add('acik');
   $('#hakkinda-paylas').addEventListener('click', async () => {
-    const url = 'https://turbedar.web.app';
+    const url = 'https://turbedar.org';
     if (navigator.share){ try{ await navigator.share({title:'Türbedar', text:'Türbedar — türbe ve mezar envanteri', url}); }catch(e){} }
     else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
   });

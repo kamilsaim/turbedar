@@ -8,11 +8,11 @@
 
 _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü ortak envanteri_
 
-[![Uygulama](https://img.shields.io/badge/uygulamay%C4%B1%20a%C3%A7-turbedar.web.app-1E4D38?style=for-the-badge)](https://turbedar.web.app)
+[![Uygulama](https://img.shields.io/badge/uygulamay%C4%B1%20a%C3%A7-turbedar.org-1E4D38?style=for-the-badge)](https://turbedar.org)
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
-[![Türbe Rehberi](https://img.shields.io/badge/il%20il-t%C3%BCrbe%20rehberi-233129?style=for-the-badge)](https://turbedar.web.app/turbeler/)
+[![Türbe Rehberi](https://img.shields.io/badge/il%20il-t%C3%BCrbe%20rehberi-233129?style=for-the-badge)](https://turbedar.org/turbeler/)
 
-![Version](https://img.shields.io/badge/v2.0.14-B8923E)
+![Version](https://img.shields.io/badge/v2.0.15-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://kamilsaim.github.io/turbedar/gizlilik-politikasi.html)
@@ -67,7 +67,7 @@ Aynı yerin tekrar tekrar eklenmesini önlemek için uygulama, yakındaki kayıt
 | | |
 |---|---|
 | 🗺️ **Harita** | Sokak ve uydu görünümü, kubbe biçimli işaretler, konum tabanlı keşif, yer ve adres arama |
-| 📖 **İl il türbe rehberi** | [turbedar.web.app/turbeler](https://turbedar.web.app/turbeler/) — her il ve her kayıt için ayrı, aramada bulunabilir sayfa |
+| 📖 **İl il türbe rehberi** | [turbedar.org/turbeler](https://turbedar.org/turbeler/) — her il ve her kayıt için ayrı, aramada bulunabilir sayfa |
 | 📷 **Akıllı konum** | Fotoğraftan otomatik GPS, cihaz konumu veya elle iğne yerleştirme |
 | 👥 **Mekân sahipleri** | Her yere birden çok kişi, unvanları ve vefat tarihleriyle |
 | ✨ **Yapay zekâ önerisi** | Kayıt eklerken açıklama, mekân sahipleri ve kaynak için taslak öneri — kullanmadan hiçbir şey forma yazılmaz |
@@ -97,7 +97,7 @@ Türbedar uygulaması **tek bir HTML dosyasından** oluşan, derleme adımı ger
 | Güvenlik | Tüm yetkilendirme veritabanı seviyesinde (Row Level Security) |
 | Giriş | Google ve Apple ile kimlik doğrulama |
 | Bildirim | Android'de Firebase Cloud Messaging, iOS/masaüstünde Web Push (VAPID) |
-| Yayın | [Firebase Hosting](https://firebase.google.com/products/hosting) (turbedar.web.app) + [GitHub Pages](https://pages.github.com) (eski Android sürümleri için) |
+| Yayın | [Firebase Hosting](https://firebase.google.com/products/hosting) (turbedar.org, turbedar.web.app) + [GitHub Pages](https://pages.github.com) (eski Android sürümleri için) |
 | Yapay zekâ | Google Gemini (sunucu tarafında, Supabase Edge Function üzerinden) |
 | Mobil | [Capacitor](https://capacitorjs.com) ile Android paketi |
 
@@ -109,6 +109,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **2.0.15** | Yeni adres: turbedar.org. Paylaşım bağlantıları ve site sayfaları artık bu adresi kullanıyor; eski adres de çalışmaya devam ediyor |
 | **2.0.14** | Profil sayfasının altına tanıtım ve site sayfalarına bağlantılar eklendi (arama motorlarında daha iyi görünmek için) |
 | **2.0.13** | Fotoğraftan konum testinin geçici bildirimi kaldırıldı |
 | **2.0.12** | iPhone uygulaması için hazırlık: simgede okunmamış bildirim sayısı ve ana ekran kısayolları |
@@ -189,7 +190,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 Türbedar bir gönül işidir. Bir yeri ziyaret ettiğinde fotoğraflayıp eklemen, bilgi düzeltmen ya da eksik bir kaynağı tamamlaman, bu ortak hafızaya katkıdır.
 
-[**Google hesabınla giriş yap ve başla →**](https://turbedar.web.app)
+[**Google hesabınla giriş yap ve başla →**](https://turbedar.org)
 
 Kaynak, bir kaydı iddiadan bilgiye çeviren şeydir. Bir türbe hakkında kitap, kitabe, makale ya da güvenilir bir bağlantı biliyorsan, o kaydın **Ek Bilgi** bölümünden paylaşabilirsin — en değerli katkı budur.
 
