@@ -1205,7 +1205,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.18';
+const SURUM = '2.0.19';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2113,11 +2113,34 @@ async function adresAramaCalistir(sorgu){
     haritaAramaCiz(sorgu, []); // adres bulunamadı gibi davran, kayıtlar yine görünsün
   }
 }
+/* Hassas cihaz konumu: getCurrentPosition iPhone'da ilk (Wi-Fi/baz istasyonu) tahmini
+   verip bırakıyor, GPS düzeltmesi hiç gelmiyordu — arazide onlarca metre sapma.
+   watchPosition ile konum iyileştikçe guncelle(p, bitti) çağrılır; hata payı hedefe
+   inince ya da süre dolunca izleme biter. Dönen fonksiyon izlemeyi elle durdurur. */
+function hassasKonum(guncelle, hata, {hedef = 20, sure = 15000} = {}){
+  let enIyi = null, kimlik = null, zaman = null, bitti = false;
+  const durdur = () => {
+    if (kimlik !== null) navigator.geolocation.clearWatch(kimlik);
+    clearTimeout(zaman); kimlik = null;
+  };
+  const bitir = () => {
+    if (bitti) return; bitti = true; durdur();
+    if (enIyi) guncelle(enIyi, true); else if (hata) hata();
+  };
+  kimlik = navigator.geolocation.watchPosition(p => {
+    if (bitti) return;
+    if (enIyi && p.coords.accuracy >= enIyi.coords.accuracy) return;
+    enIyi = p;
+    if (p.coords.accuracy <= hedef) bitir(); else guncelle(p, false);
+  }, () => { if (!enIyi) bitir(); }, {enableHighAccuracy:true, timeout:sure, maximumAge:0});
+  zaman = setTimeout(bitir, sure);
+  return () => { bitti = true; durdur(); };
+}
 let konumKatman = null;
 $('#btn-konumum').addEventListener('click', () => {
   if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
   bildir('Konumun bulunuyor...');
-  navigator.geolocation.getCurrentPosition(
+  hassasKonum(
     p => {
       const {latitude: lat, longitude: lng, accuracy: dgr} = p.coords;
       if (konumKatman) harita.removeLayer(konumKatman);
@@ -2133,8 +2156,7 @@ $('#btn-konumum').addEventListener('click', () => {
       const z = (dgr && dgr > 80) ? 16 : 18;
       harita.setView([lat, lng], z, {animate:true});
     },
-    () => bildir('Konum alınamadı — izin verildiğinden emin ol', true),
-    {enableHighAccuracy:true, timeout:10000, maximumAge:0}
+    () => bildir('Konum alınamadı — izin verildiğinden emin ol', true)
   );
 });
 
@@ -3477,6 +3499,7 @@ function fotoDosyalariEkle(dosyalar, hazirKonumlar = null){
           taslak.exifSonuc = 'bulundu';
           if (!taslak.lat || taslak.konumKaynak === KAYNAK_CIHAZ){
             taslak.lat = gps.latitude; taslak.lng = gps.longitude; taslak.konumKaynak = KAYNAK_EXIF;
+            delete taslak.konumDogruluk;
             if (sihirbazHarita){
               pinKoy(gps.latitude, gps.longitude, KAYNAK_EXIF);
               sihirbazHarita.setView([gps.latitude, gps.longitude], 16);
@@ -3524,10 +3547,10 @@ function konumOnerAc(y){
 $('#ko-vazgec').addEventListener('click', () => $('#kip-konum-oner').classList.remove('acik'));
 $('#ko-cihaz-konumu').addEventListener('click', () => {
   if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
-  navigator.geolocation.getCurrentPosition(pos => {
+  hassasKonum(pos => {
     const {latitude, longitude} = pos.coords;
     konumOnerMarker.setLatLng([latitude, longitude]);
-    konumOnerHarita.setView([latitude, longitude], 16);
+    konumOnerHarita.setView([latitude, longitude], 17);
   }, () => bildir('Konum alınamadı, izin verildiğinden emin ol', true));
 });
 $('#ko-gonder').addEventListener('click', async () => {
@@ -3565,21 +3588,38 @@ function sihirbazHaritaHazirla(){
   if (taslak.lat){ pinKoy(taslak.lat, taslak.lng, taslak.konumKaynak, false); sihirbazHarita.setView([taslak.lat, taslak.lng], 16); }
   else {
     sihirbazHarita.setView([39.2, 35.5], 6);
-    if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => {
-      if (!taslak || taslak.lat) return;
-      pinKoy(p.coords.latitude, p.coords.longitude, KAYNAK_CIHAZ);
-      sihirbazHarita.setView([p.coords.latitude, p.coords.longitude], 16);
-    }, ()=>{}, {enableHighAccuracy:true, timeout:8000});
+    if (navigator.geolocation) sihirbazCihazKonumu(false, 16, ()=>{});
   }
   konumKaynakYaz();
 }
+/* Sihirbaz pinini cihaz konumuna koyar ve konum iyileştikçe kaydırır.
+   ustuneYaz=false: pin zaten varsa dokunmaz (açılıştaki otomatik konum).
+   Arada pin elle/EXIF/aramayla değişirse ya da sihirbaz kapanırsa izleme bırakılır.
+   Adres en fazla iki kez sorgulanır: ilk konumda ve son (en iyi) konumda. */
+let cihazKonumDurdur = null;
+function sihirbazCihazKonumu(ustuneYaz, zoom, hata){
+  if (cihazKonumDurdur) cihazKonumDurdur();
+  const t = taslak;
+  let ilk = true;
+  const durdur = cihazKonumDurdur = hassasKonum((p, bitti) => {
+    const birak = taslak !== t || (ilk ? (!ustuneYaz && t.lat) : t.konumKaynak !== KAYNAK_CIHAZ);
+    if (birak){ durdur(); return; }
+    const {latitude: lat, longitude: lng, accuracy} = p.coords;
+    t.konumDogruluk = Math.round(accuracy);
+    pinKoy(lat, lng, KAYNAK_CIHAZ, ilk || bitti);
+    if (ilk) sihirbazHarita.setView([lat, lng], zoom); else sihirbazHarita.panTo([lat, lng]);
+    ilk = false;
+  }, hata);
+}
 function pinKoy(lat, lng, kaynak, geokodla = true){
   taslak.lat = lat; taslak.lng = lng; taslak.konumKaynak = kaynak;
+  if (kaynak !== KAYNAK_CIHAZ) delete taslak.konumDogruluk;
   if (!sihirbazPin){
     sihirbazPin = L.marker([lat, lng], {draggable:true, icon: pinIkon({durum:'onaylandi'})}).addTo(sihirbazHarita);
     sihirbazPin.on('dragend', () => {
       const p = sihirbazPin.getLatLng();
       taslak.lat = p.lat; taslak.lng = p.lng; taslak.konumKaynak = 'Elle ayarlandı';
+      delete taslak.konumDogruluk;
       // Pin sürüklendiğinde adres alanları yeni konuma göre tazelensin
       delete $('#girdi-il').dataset.elle;
       delete $('#girdi-ilce').dataset.elle;
@@ -3601,7 +3641,7 @@ function pinKoy(lat, lng, kaynak, geokodla = true){
 }
 function konumKaynakYaz(){
   const ana = taslak.lat
-    ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> ${kacir(taslak.konumKaynak||'Konum seçildi')}`
+    ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> ${kacir(taslak.konumKaynak||'Konum seçildi')}${taslak.konumDogruluk ? ` (±${taslak.konumDogruluk} m)` : ''}`
     : '⚠️ Henüz konum yok — haritaya dokun veya cihaz konumunu kullan';
   const uyariMetni = taslak.exifIpucu === 'izin'
     ? `Seçilen fotoğrafın konumu okunamadı: fotoğraflara tam erişim izni yok. Ayarlar › Türbedar › Fotoğraflar'dan “Tam Erişim” verirsen konum otomatik bulunur — şimdilik iğneyi haritada elle doğru yere taşıyabilirsin.`
@@ -3615,10 +3655,7 @@ function konumKaynakYaz(){
 }
 $('#btn-cihaz-konum').addEventListener('click', () => {
   if (!navigator.geolocation) return bildir('Cihaz konumu desteklenmiyor', true);
-  navigator.geolocation.getCurrentPosition(p => {
-    pinKoy(p.coords.latitude, p.coords.longitude, KAYNAK_CIHAZ);
-    sihirbazHarita.setView([p.coords.latitude, p.coords.longitude], 17);
-  }, () => bildir('Konum alınamadı — izin verildiğinden emin ol', true), {enableHighAccuracy:true, timeout:10000});
+  sihirbazCihazKonumu(true, 17, () => bildir('Konum alınamadı — izin verildiğinden emin ol', true));
 });
 
 /* Adım 2: konum arama (Nominatim forward geocoding) */
