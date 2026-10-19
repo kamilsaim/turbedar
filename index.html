@@ -1205,7 +1205,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.0.19';
+const SURUM = '2.1.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1536,7 +1536,7 @@ $('#kutlama-kapat').addEventListener('click', () => {
   setTimeout(puanlamaIste, 600); // kutlamanın hemen ardındaki olumlu an
 });
 
-/* Play Store uygulama içi puanlama istemi (SADECE Android APK).
+/* Uygulama içi puanlama istemi (Android: Play, iOS: App Store — eklenti iki pakette de var).
    Google kotalı gösterir (yılda birkaç kez) ve istemin çıkıp çıkmadığı ÖĞRENİLEMEZ —
    bu yüzden sonuç kontrol edilmez, sadece bir kez denenip bırakılır.
    Kullanıcı puan vermeye ZORLANAMAZ (politika ihlali): kendi düğmemiz/uyarımız yok.
@@ -1544,7 +1544,7 @@ $('#kutlama-kapat').addEventListener('click', () => {
 const PUANLAMA_ANAHTAR = 'turbedar_puanlama_istendi';
 async function puanlamaIste(){
   try{
-    if (!window.Capacitor?.isNativePlatform?.()) return;      // web/iOS'ta Play yok
+    if (!window.Capacitor?.isNativePlatform?.()) return;      // tarayıcıda/PWA'da mağaza istemi yok
     const eklenti = window.Capacitor.Plugins?.InAppReview;
     if (!eklenti) return;
     if (localStorage.getItem(PUANLAMA_ANAHTAR)) return;       // bir kez dene, bir daha sorma
