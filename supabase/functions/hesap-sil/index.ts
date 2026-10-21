@@ -9,10 +9,18 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { SignJWT, importPKCS8 } from 'npm:jose@5';
 
+// Tarayıcı/uygulama (turbedar.org, web.app, Capacitor) farklı kökenden çağırır: ön kontrol (OPTIONS)
+// ve her yanıt CORS başlığı taşımalı, yoksa istek hiç gönderilmez ("Load failed").
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 function cevap(obj: unknown, durum = 200) {
   return new Response(JSON.stringify(obj), {
     status: durum,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...CORS, 'Content-Type': 'application/json' },
   });
 }
 
@@ -55,6 +63,7 @@ async function appleJetonIptal(jeton: string) {
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   try {
     const authHeader = req.headers.get('Authorization') || '';
     const jwt = authHeader.replace('Bearer ', '').trim();
