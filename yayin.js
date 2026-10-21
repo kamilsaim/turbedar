@@ -84,6 +84,8 @@ if (anahtar) {
   console.log('Kimlik: firebase login (servis hesabı anahtarı bulunamadı)');
 }
 
-execSync('firebase deploy --only hosting:turbedar --project turbedar-c512b', {
+// --debug: CLI ayrıntılı günlüğü _yayin/firebase-debug.log'a yazar (yükleme hatası teşhisi)
+const ekBayrak = process.argv.includes('--debug') ? ' --debug' : '';
+execSync('firebase deploy --only hosting:turbedar --project turbedar-c512b' + ekBayrak, {
   cwd: YAYIN, stdio: 'inherit', env,
 });
