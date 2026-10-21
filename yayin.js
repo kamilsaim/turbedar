@@ -23,7 +23,7 @@ const PUBLIC = path.join(YAYIN, 'public');
 
 // Yayınlanan statik dosya seti (CLAUDE.md ile aynı tutulmalı)
 const DOSYALAR = [
-  'index.html', 'gizlilik-politikasi.html', 'logo.png', 'sw.js',
+  'index.html', 'gizlilik-politikasi.html', 'kullanim-kosullari.html', 'logo.png', 'sw.js',
   'manifest.webmanifest', 'icon-192.webp', 'icon-512.webp', 'og-kart.png',
   'google164315b3fe8acefa.html',  // Search Console doğrulama dosyası (silme)
 ];

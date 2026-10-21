@@ -462,6 +462,8 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .yorum:last-child{border:none}
 .yorum img{width:32px;height:32px;border-radius:50%;flex:none;object-fit:cover}
 .yorum .y-bas{font-size:13px;font-weight:800}
+.yorum-eylem{display:flex;gap:12px;margin-top:5px}
+.yorum-eylem button{font-size:11.5px;font-weight:700;color:var(--soluk);padding:2px 0}
 .yorum .y-bas time{font-weight:500;color:var(--soluk);font-size:11.5px;margin-left:6px}
 .yorum p{font-size:14px;line-height:1.5;margin-top:2px;white-space:pre-wrap}
 .yorum-yaz{display:flex;gap:8px;margin-top:10px}
@@ -844,6 +846,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
         <a href="https://turbedar.org/turbeler/" target="_blank" rel="noopener">Tüm türbeler</a>
         <a href="https://turbedar.org/surum-notlari/" target="_blank" rel="noopener">Sürüm notları</a>
         <a href="https://turbedar.org/gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik</a>
+        <a href="https://turbedar.org/kullanim-kosullari.html" target="_blank" rel="noopener">Kullanım koşulları</a>
       </nav>
       <nav aria-label="İllere göre türbeler" class="site-altbilgi-iller">
         <a href="https://turbedar.org/turbeler/kayseri/" target="_blank" rel="noopener">Kayseri türbeleri</a>
@@ -1152,6 +1155,25 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 </div>
 
 <!-- ============ GENEL ONAY KİPİ ============ -->
+<!-- Kullanım koşulları: giriş yapan herkes bir kez kabul eder (App Store 1.2) -->
+<div class="kip" id="kip-kosullar">
+  <div class="kip-kutu">
+    <h3>Topluluk Kuralları</h3>
+    <p style="margin-bottom:10px">Türbedar'a katkıda bulunmadan önce kullanım koşullarını kabul etmen gerekiyor. Özetle:</p>
+    <ul style="font-size:13.5px;line-height:1.65;color:#3d4a41;padding-left:18px;margin:0 0 10px">
+      <li>Hakaret, küfür, nefret söylemi, taciz, spam ve uygunsuz içeriğe <b>hiçbir şekilde izin verilmez</b>.</li>
+      <li>Yalnızca hakkına sahip olduğun fotoğrafları ve doğru bildiğin bilgileri paylaş.</li>
+      <li>Uygunsuz içerik 🚩 ile bildirilebilir; yöneticiler bildirimleri en geç 24 saat içinde inceler, içeriği kaldırır ve kuralları çiğneyen hesapları uzaklaştırır.</li>
+      <li>Rahatsız eden bir kullanıcıyı engelleyebilirsin; yorumlarını artık görmezsin.</li>
+    </ul>
+    <p style="font-size:13px"><a href="https://turbedar.org/kullanim-kosullari.html" target="_blank" rel="noopener" style="color:var(--zumrut);font-weight:700">Kullanım Koşulları'nın tamamı</a> · <a href="https://turbedar.org/gizlilik-politikasi.html" target="_blank" rel="noopener" style="color:var(--zumrut);font-weight:700">Gizlilik Politikası</a></p>
+    <div class="kip-butonlar">
+      <button class="btn-ghost btn" id="kosullar-red" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Kabul Etmiyorum</button>
+      <button class="btn" id="kosullar-kabul">Kabul Ediyorum</button>
+    </div>
+  </div>
+</div>
+
 <div class="kip" id="kip-onay">
   <div class="kip-kutu">
     <h3 id="kip-onay-baslik"></h3>
@@ -1205,7 +1227,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.1.1';
+const SURUM = '2.1.2';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1220,6 +1242,13 @@ let istatistik = [];
 let harita, kume, sihirbazHarita, sihirbazPin;
 let suzgec = {arama:'', ulke:'', il:'', ilce:'', kategori:''};
 let benimZiyaretlerim = new Set();   // giriş yapan kullanıcının ziyaret ettiği yer id'leri
+let benimEngellediklerim = new Set(); // engellediğim kullanıcı id'leri (yorumları gizlenir)
+async function engellemeleriYukle(){
+  benimEngellediklerim = new Set();
+  if (!kullanici) return;
+  const {data} = await sb.from('turbedar_engellemeler').select('engellenen_id').eq('engelleyen_id', kullanici.id);
+  (data || []).forEach(e => benimEngellediklerim.add(e.engellenen_id));
+}
 let benimZiyaretTarihleri = new Map(); // yer_id → işaretleme zamanı (anı tarihinin varsayılanı)
 let benimZiyaretAnilari = new Map();   // yer_id → {tarih, icerik} — turbedar_ziyaret_notlari, sadece sahibi görür
 let bildirimlerim = [];              // okunmamış/okunmuş bildirimler
@@ -1438,7 +1467,7 @@ $('#kip-onay-hayir').addEventListener('click', () => kipOnayCb && kipOnayCb(fals
 /* ====================== OTURUM ====================== */
 /* Bildirim jetonları (push_token/push_web/push_ios) istemciye KAPALI — DB'de sütun
  * SELECT yetkisi geri alındı; select('*') "permission denied" verir, hep bu listeyi kullan. */
-const PROFIL_KOLONLARI = 'id,ad,avatar_url,hakkinda,rol,kurucu,created_at,whatsapp';
+const PROFIL_KOLONLARI = 'id,ad,avatar_url,hakkinda,rol,kurucu,created_at,whatsapp,kosullar_kabul';
 async function profilGetir(){
   if (!kullanici){ profil = null; return; }
   let {data} = await sb.from('turbedar_profiller').select(PROFIL_KOLONLARI).eq('id', kullanici.id).maybeSingle();
@@ -1461,6 +1490,7 @@ if (!APPLE_GIRIS_ACIK) document.documentElement.classList.add('apple-kapali');
 
 /* Google ve Apple aynı OAuth akışını kullanır (saglayici: 'google' | 'apple') */
 async function oauthGiris(saglayici){
+  try{ sessionStorage.setItem('turbedar_oauth', saglayici); }catch(e){}
   if (window.Capacitor){
     // APK/iOS: WebView'da OAuth engelli — sistem tarayıcısında aç, deep link ile dön
     const redirectTo = 'com.kamilsaim.turbedar://auth-callback';
@@ -1488,20 +1518,61 @@ $('#btn-apple-giris').addEventListener('click', () => oauthGiris('apple'));
  * ki bir daha sorulmasın. */
 async function appleAdiniSor(){
   if (kullanici?.app_metadata?.provider !== 'apple' || kullanici.user_metadata?.full_name) return;
-  const ad = await sor('Hoş geldin', 'Türbedar\'da adın nasıl görünsün? (Kayıtlarında ve yorumlarında bu ad yazar; sonra Profil\'den değiştirebilirsin.)',
-    {girdi:true, girdiZorunlu:true, girdiYerTutucu:'Adın ve soyadın', girdiHata:'Bir ad yazman gerekiyor', evetMetin:'Kaydet'});
+  // İSTEĞE BAĞLI (App Store 4: Apple girişinden sonra ad zorunlu tutulamaz) — geçen bir daha sorulmaz
+  const anahtar = 'turbedar_apple_ad_soruldu_' + kullanici.id;
+  try{ if (localStorage.getItem(anahtar)) return; localStorage.setItem(anahtar, '1'); }catch(e){}
+  const ad = await sor('Hoş geldin', 'İstersen Türbedar\'da görünecek adını yaz (kayıtlarında ve yorumlarında bu ad yazar). Boş geçebilirsin; sonra Profil\'den de değiştirebilirsin.',
+    {girdi:true, girdiYerTutucu:'Adın (isteğe bağlı)', evetMetin:'Kaydet'});
   if (!ad || ad.length < 2) return;
   await sb.auth.updateUser({data:{full_name: ad}});
   const {error} = await sb.from('turbedar_profiller').update({ad}).eq('id', kullanici.id);
   if (!error && profil){ profil.ad = ad; if ($('.gorunum[data-gorunum="profil"]').classList.contains('aktif')) profilCiz(); }
 }
+/* Apple yenileme jetonu: hesap silinirken Apple'da iptal edilir (App Store 5.1.1(v)).
+ * Sütun istemciye OKUNAMAZ, sadece yazılır; hesap-sil Edge Function'ı okur. */
+let bekleyenAppleJeton = null;
+async function appleJetonKaydet(){
+  if (!bekleyenAppleJeton || !kullanici) return;
+  const jeton = bekleyenAppleJeton; bekleyenAppleJeton = null;
+  await sb.from('turbedar_profiller').update({apple_jeton: jeton}).eq('id', kullanici.id);
+}
+/* Kullanım koşulları onayı: kabul edilmeden oturum açık kalmaz */
+function kosullarOnayiIste(){
+  if (!kullanici || !profil || profil.kosullar_kabul || profil.ad === 'Silinmiş Kullanıcı') return Promise.resolve(true);
+  return new Promise(coz => {
+    const kip = $('#kip-kosullar');
+    const bitir = async kabul => {
+      kip.classList.remove('acik');
+      $('#kosullar-kabul').onclick = $('#kosullar-red').onclick = null;
+      if (kabul){
+        const zaman = new Date().toISOString();
+        const {error} = await sb.from('turbedar_profiller').update({kosullar_kabul: zaman}).eq('id', kullanici.id);
+        if (error) bildir('Kaydedilemedi: ' + error.message, true); else profil.kosullar_kabul = zaman;
+        coz(true);
+      } else {
+        await cikisYap();
+        bildir('Katkıda bulunmak için koşulları kabul etmen gerekiyor');
+        coz(false);
+      }
+    };
+    $('#kosullar-kabul').onclick = () => bitir(true);
+    $('#kosullar-red').onclick = () => bitir(false);
+    kip.classList.add('acik');
+  });
+}
 async function cikisYap(){
+  benimEngellediklerim = new Set();
   await sb.auth.signOut();
   bildir('Çıkış yapıldı');
 }
 sb.auth.onAuthStateChange((_olay, oturum) => {
   const onceki = kullanici?.id;
   kullanici = oturum?.user || null;
+  // Web akışı: Apple dönüşünde oturum Apple'ın yenileme jetonunu taşır (APK/iOS'ta appUrlOpen yakalar)
+  if (oturum?.provider_refresh_token){
+    let s = null; try{ s = sessionStorage.getItem('turbedar_oauth'); sessionStorage.removeItem('turbedar_oauth'); }catch(e){}
+    if (s === 'apple') bekleyenAppleJeton = oturum.provider_refresh_token;
+  }
   if (kullanici?.id !== onceki){
     // Açık kalmış "giriş yap" penceresi varsa (özellikle APK'da sistem tarayıcısından
     // dönüşte) oturum başarıyla açıldığında otomatik kapat
@@ -1510,6 +1581,9 @@ sb.auth.onAuthStateChange((_olay, oturum) => {
     // kendini kilitler — bu yüzden işler setTimeout ile dışarı ertelenir.
     setTimeout(async () => {
       await profilGetir();
+      appleJetonKaydet();
+      if (!(await kosullarOnayiIste())) return;
+      await engellemeleriYukle();
       yonetimRozetiGuncelle();
       bildirimleriYukle();
       if (pushTokenBekleyen){ pushTokenKaydet(pushTokenBekleyen); pushTokenBekleyen = null; }
@@ -2769,19 +2843,42 @@ $('#not-gonder').addEventListener('click', async () => {
     katkiNotlariYukle(yerId); yonetimRozetiGuncelle();
   }catch(err){ yukleniyor(false); bildir('Gönderilemedi: ' + (err.message||err), true); }
 });
+/* Kullanıcı engelleme (App Store 1.2): engellenenin yorumları gizlenir, yöneticilere bildirim gider */
+async function kullaniciEngelle(id, ad, yerId){
+  if (!kullanici) return girisIste();
+  const onay = await sor('Kullanıcıyı Engelle', `${ad || 'Bu kullanıcı'} engellenecek: yorumlarını artık görmeyeceksin ve yöneticiler incelemesi için bilgilendirilecek. Profil sayfasından engeli kaldırabilirsin.`, {evetMetin:'Engelle', tehlike:true});
+  if (!onay) return;
+  const {error} = await sb.from('turbedar_engellemeler').insert({engelleyen_id: kullanici.id, engellenen_id: id});
+  if (error && error.code !== '23505') return bildir('Engellenemedi: ' + error.message, true);
+  benimEngellediklerim.add(id);
+  bildir('Kullanıcı engellendi 🚫');
+  if (yerId) yorumlariYukle(yerId);
+}
 async function yorumlariYukle(yerId){
-  const {data} = await sb.from('turbedar_yorumlar')
+  let {data} = await sb.from('turbedar_yorumlar')
     .select('*, yazan:turbedar_profiller!turbedar_yorumlar_yazan_id_fkey(ad,avatar_url)')
     .eq('yer_id', yerId).order('created_at', {ascending:false});
   const kutu = $('#yorum-liste'); if (!kutu) return;
-  if (!data || !data.length){ kutu.innerHTML = '<p style="color:var(--soluk);font-size:13px">İlk yorumu sen yaz.</p>'; return; }
+  const gizlenen = (data || []).filter(yo => benimEngellediklerim.has(yo.yazan_id)).length;
+  data = (data || []).filter(yo => !benimEngellediklerim.has(yo.yazan_id));
+  if (!data.length){ kutu.innerHTML = `<p style="color:var(--soluk);font-size:13px">${gizlenen ? 'Engellediğin kullanıcıların yorumları gizlendi.' : 'İlk yorumu sen yaz.'}</p>`; return; }
   kutu.innerHTML = data.map(yo => `<div class="yorum">
     <img src="${yo.yazan?.avatar_url || VARSAYILAN_AVATAR}" alt="" onerror="this.src='${VARSAYILAN_AVATAR}'">
     <div style="flex:1;min-width:0"><div class="y-bas">${kacir(yo.yazan?.ad || 'Üye')}<time>${tarihYaz(yo.created_at)}</time></div>
     <p>${kacir(yo.icerik)}</p>
     ${yo.video_url ? `<div class="video-liste" style="margin-top:6px">${videoDugmesi({url: yo.video_url})}</div>` : ''}</div>
+    ${kullanici && yo.yazan_id !== kullanici.id ? `<div class="yorum-eylem"><button data-yorum-bildir="${yo.id}" title="Yorumu bildir">🚩 Bildir</button><button data-yorum-engelle="${yo.id}" title="Kullanıcıyı engelle">🚫 Engelle</button></div>` : ''}
     ${kullanici && (yo.yazan_id === kullanici.id || yonetici()) ? `<button data-yorum-sil="${yo.id}" style="color:var(--kirmizi);font-size:12px;font-weight:800;align-self:flex-start">Sil</button>` : ''}
   </div>`).join('');
+  kutu.querySelectorAll('[data-yorum-bildir]').forEach(b => b.addEventListener('click', () => {
+    const yo = data.find(x => x.id === b.dataset.yorumBildir);
+    const yer = yerler.find(y => y.id === yerId) || {id: yerId, baslik: ''};
+    if (yo) raporAc(yer, yo);
+  }));
+  kutu.querySelectorAll('[data-yorum-engelle]').forEach(b => b.addEventListener('click', () => {
+    const yo = data.find(x => x.id === b.dataset.yorumEngelle);
+    if (yo) kullaniciEngelle(yo.yazan_id, yo.yazan?.ad, yerId);
+  }));
   kutu.querySelectorAll('[data-yorum-sil]').forEach(b => b.addEventListener('click', async () => {
     const silinenYorum = data.find(x => x.id === b.dataset.yorumSil);
     const yoneticiSiliyor = kullanici && yonetici() && silinenYorum && silinenYorum.yazan_id !== kullanici.id;
@@ -3075,9 +3172,20 @@ async function yzIstekYapTekrarli(govde){
     return await yzIstekYap(govde);
   }
 }
+/* App Store 5.1.2(i): üçüncü taraf yapay zekaya veri gitmeden önce açık izin (cihaz başına bir kez) */
+async function yzIzniVarMi(){
+  try{ if (localStorage.getItem('turbedar_yz_izin')) return true; }catch(e){}
+  const onay = await sor('Yapay Zeka Önerisi',
+    'Öneri hazırlamak için bu kaydın kapak fotoğrafı ile yer adı ve konum bilgisi (il, ilçe, mahalle, ülke) Google Gemini yapay zeka servisine gönderilir. Adın, e-postan veya hesap bilgilerin gönderilmez; ücretsiz kullanım koşulları gereği Google bu içeriği hizmetlerini geliştirmek için kullanabilir. Önerileri kullanmadan önce gözden geçirebilirsin. Kabul ediyor musun?',
+    {evetMetin:'Kabul Et ve Devam'});
+  if (!onay) return false;
+  try{ localStorage.setItem('turbedar_yz_izin', new Date().toISOString()); }catch(e){}
+  return true;
+}
 async function yzOneriGetir(){
   const btn = $('#btn-yz-oner');
   if (btn.disabled) return;
+  if (!(await yzIzniVarMi())) return;
   btn.disabled = true; const eskiMetin = btn.textContent; btn.textContent = 'Öneri hazırlanıyor...';
   $('#yz-oneri-kutu').innerHTML = '';
   try{
@@ -3154,12 +3262,14 @@ $('#yzo-kapat').addEventListener('click', () => yzOturumKapat());
 
 /* Kayıt bildirme: turbedar_raporlar insert → DB tetikleyicisi tüm yöneticilere bildirim (push dahil) üretir */
 const RAPOR_NEDENLERI = {yanlis_bilgi:'Yanlış veya eksik bilgi', yanlis_konum:'Konum yanlış', mukerrer:'Mükerrer kayıt (aynı yer iki kez)', uygunsuz:'Uygunsuz fotoğraf veya içerik', diger:'Diğer'};
-let raporYer = null;
-function raporAc(y){
+const YORUM_RAPOR_NEDENLERI = {uygunsuz:'Hakaret, küfür, taciz veya uygunsuz içerik', yanlis_bilgi:'Yanlış veya yanıltıcı bilgi', diger:'Spam veya diğer'};
+let raporYer = null, raporYorum = null;
+function raporAc(y, yorum = null){
   if (!kullanici) return girisIste();
-  raporYer = y;
-  $('#rapor-yer').textContent = y.baslik;
-  $('#rapor-nedenler').innerHTML = Object.entries(RAPOR_NEDENLERI).map(([a, e], i) =>
+  raporYer = y; raporYorum = yorum;
+  $('#kip-rapor h3').textContent = yorum ? 'Yorumu Bildir' : 'Hata Bildir';
+  $('#rapor-yer').textContent = yorum ? `${yorum.yazan?.ad || 'Üye'}: “${yorum.icerik.slice(0, 120)}${yorum.icerik.length > 120 ? '…' : ''}”` : y.baslik;
+  $('#rapor-nedenler').innerHTML = Object.entries(yorum ? YORUM_RAPOR_NEDENLERI : RAPOR_NEDENLERI).map(([a, e], i) =>
     `<label class="rapor-neden"><input type="radio" name="rapor-neden" value="${a}"${i === 0 ? ' checked' : ''}> ${e}</label>`).join('');
   $('#rapor-aciklama').value = '';
   $('#kip-rapor').classList.add('acik');
@@ -3170,10 +3280,10 @@ $('#rapor-gonder').addEventListener('click', async () => {
   const btn = $('#rapor-gonder'); if (btn.disabled) return;
   const neden = document.querySelector('input[name="rapor-neden"]:checked')?.value || 'diger';
   btn.disabled = true;
-  const {error} = await sb.from('turbedar_raporlar').insert({yer_id: raporYer.id, raporlayan_id: kullanici.id, neden, aciklama: $('#rapor-aciklama').value.trim() || null});
+  const {error} = await sb.from('turbedar_raporlar').insert({yer_id: raporYer.id, yorum_id: raporYorum?.id || null, raporlayan_id: kullanici.id, neden, aciklama: $('#rapor-aciklama').value.trim() || null});
   btn.disabled = false;
   if (error){
-    if (error.code === '23505') return bildir('Bu kaydı zaten bildirdin — yönetici inceleyecek', true);
+    if (error.code === '23505') return bildir(raporYorum ? 'Bu yorumu zaten bildirdin — yönetici inceleyecek' : 'Bu kaydı zaten bildirdin — yönetici inceleyecek', true);
     return bildir('Gönderilemedi: ' + error.message, true);
   }
   $('#kip-rapor').classList.remove('acik');
@@ -4124,7 +4234,7 @@ function hakkindaAc(){
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right:5px;vertical-align:-3px"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2zM20 19v3H6"/></svg>
       İl İl Türbe Rehberi
     </a>
-    <details class="ios-tarif" style="margin-top:10px">
+    ${window.Capacitor ? '' : `<details class="ios-tarif" style="margin-top:10px">
       <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--zumrut);padding:8px 0;list-style:none">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-3px"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg>
         iPhone / iPad'de nasıl kullanılır?
@@ -4140,7 +4250,8 @@ function hakkindaAc(){
         <p style="margin:8px 0 0">Bildirimler yalnızca <b>ana ekrandan açılan</b> uygulamada çalışır; ekledikten sonra Profil sayfasından bildirimlere izin verebilirsin.</p>
         <p style="margin:8px 0 0">Bağlantıyı Instagram, Facebook ya da X içinden açtıysan önce ⋯ menüsünden <b>Safari'de Aç</b> demelisin — o tarayıcılarda ana ekrana ekleme çıkmaz.</p>
       </div>
-    </details>
+    </details>`}
+    <p style="text-align:center;font-size:12px;margin-top:12px"><a href="https://turbedar.org/kullanim-kosullari.html" target="_blank" rel="noopener" style="color:var(--zumrut)">Kullanım Koşulları</a> · <a href="https://turbedar.org/gizlilik-politikasi.html" target="_blank" rel="noopener" style="color:var(--zumrut)">Gizlilik Politikası</a></p>
     <p style="text-align:center;font-size:11px;color:var(--soluk);margin-top:16px;letter-spacing:.06em">Türbedar v${SURUM} • Edeple gelen, lütufla gider</p>`;
   $('#kip-hakkinda').classList.add('acik');
   $('#hakkinda-paylas').addEventListener('click', async () => {
@@ -4260,6 +4371,10 @@ async function profilCiz(){
         <span class="rozet rozet-${r.durum}" style="width:auto">${r.durum==='beklemede'?'Bekliyor':r.durum==='onaylandi'?'Onaylandı':'Reddedildi'}</span>
       </div>`).join('')}</div>` : ''}
     ${bilgilerHtml()}
+    ${benimEngellediklerim.size ? `<details class="kart" id="engellediklerim" style="padding:14px 16px;margin-top:12px">
+      <summary style="cursor:pointer;font-weight:700;font-size:14px">🚫 Engellediğim kullanıcılar (${benimEngellediklerim.size})</summary>
+      <div id="engel-liste" style="margin-top:8px;font-size:13px;color:var(--soluk)">Yükleniyor...</div>
+    </details>` : ''}
     <button class="btn-ghost btn btn-tam" id="btn-cikis" style="margin-top:14px;color:var(--kirmizi)">Çıkış Yap</button>
     ${!profil?.kurucu ? `<button class="btn-ghost btn btn-tam" id="btn-hesap-sil" style="margin-top:8px;color:var(--soluk);font-size:12.5px">Hesabımı Sil</button>` : ''}`;
   $('#profil-istatistik-git').addEventListener('click', () => gorunumAc('istatistik'));
@@ -4278,6 +4393,22 @@ async function profilCiz(){
     bildir('Profil güncellendi'); profilCiz();
   });
   $('#btn-cikis').addEventListener('click', async () => { await cikisYap(); profilCiz(); });
+  $('#engellediklerim')?.addEventListener('toggle', async e => {
+    if (!e.target.open) return;
+    const {data} = await sb.from('turbedar_engellemeler')
+      .select('engellenen_id, engellenen:turbedar_profiller!turbedar_engellemeler_engellenen_id_fkey(ad)')
+      .eq('engelleyen_id', kullanici.id);
+    const liste = $('#engel-liste'); if (!liste) return;
+    liste.innerHTML = (data || []).map(en => `<div class="il-satir" style="gap:8px;cursor:default">
+      <b style="width:auto;flex:1">${kacir(en.engellenen?.ad || 'Üye')}</b>
+      <button class="btn-ghost btn btn-kucuk" data-engel-kaldir="${en.engellenen_id}" style="width:auto">Engeli kaldır</button></div>`).join('') || 'Kimse yok';
+    liste.querySelectorAll('[data-engel-kaldir]').forEach(b => b.addEventListener('click', async () => {
+      const {error} = await sb.from('turbedar_engellemeler').delete().eq('engelleyen_id', kullanici.id).eq('engellenen_id', b.dataset.engelKaldir);
+      if (error) return bildir('Kaldırılamadı: ' + error.message, true);
+      benimEngellediklerim.delete(b.dataset.engelKaldir);
+      bildir('Engel kaldırıldı'); profilCiz();
+    }));
+  });
   $('#btn-hesap-sil')?.addEventListener('click', async () => {
     const onay1 = await sor(
       'Hesabını Sil',
@@ -4553,7 +4684,7 @@ async function yonetimCiz(){
   }
   else if (aktifSekme === 'rapor'){
     const {data: raporlar, error} = await sb.from('turbedar_raporlar')
-      .select('*, raporlayan:turbedar_profiller!turbedar_raporlar_raporlayan_id_fkey(ad,avatar_url), yer:turbedar_yerler(id,baslik)')
+      .select('*, raporlayan:turbedar_profiller!turbedar_raporlar_raporlayan_id_fkey(ad,avatar_url), yer:turbedar_yerler(id,baslik), yorum:turbedar_yorumlar(id,icerik,yazan:turbedar_profiller!turbedar_yorumlar_yazan_id_fkey(ad))')
       .order('durum', {ascending:true}).order('created_at', {ascending:false}).limit(200);
     if (error){ k.innerHTML = `<p style="color:var(--kirmizi)">${kacir(error.message)}</p>`; return; }
     if (!raporlar.length){ k.innerHTML = '<div class="bos-durum"><b>Bildirilen kayıt yok</b>Kullanıcıların hatalı/mükerrer diye bildirdiği kayıtlar burada listelenir.</div>'; return; }
@@ -4562,18 +4693,29 @@ async function yonetimCiz(){
         <span style="font-size:18px">🚩</span>
         <div style="flex:1;min-width:0">
           <b style="font-size:14px;cursor:pointer;color:var(--zumrut)" data-rapor-yer="${rp.yer?.id || ''}">${kacir(rp.yer?.baslik || 'Silinmiş kayıt')}</b>
-          <div style="font-size:12.5px;color:var(--altin);font-weight:700">${RAPOR_NEDENLERI[rp.neden] || rp.neden}${rp.durum === 'kapandi' ? ' · <span style="color:var(--soluk)">kapatıldı</span>' : ''}</div>
+          <div style="font-size:12.5px;color:var(--altin);font-weight:700">${rp.yorum_id ? 'Yorum · ' + (YORUM_RAPOR_NEDENLERI[rp.neden] || rp.neden) : (RAPOR_NEDENLERI[rp.neden] || rp.neden)}${rp.durum === 'kapandi' ? ' · <span style="color:var(--soluk)">kapatıldı</span>' : ''}</div>
         </div>
         <time style="font-size:11px;color:var(--soluk);flex:none">${tarihYaz(rp.created_at)}</time>
       </div>
+      ${rp.yorum ? `<p style="font-size:13.5px;line-height:1.6;background:var(--krem);border-radius:9px;padding:8px 10px;margin-bottom:6px;white-space:pre-wrap"><b>${kacir(rp.yorum.yazan?.ad || 'Üye')}:</b> ${kacir(rp.yorum.icerik)}</p>` : (rp.yorum_id === null ? '' : '<p style="font-size:12.5px;color:var(--soluk)">(yorum silinmiş)</p>')}
       ${rp.aciklama ? `<p style="font-size:13.5px;line-height:1.6;color:#3d4a41;white-space:pre-wrap">${kacir(rp.aciklama)}</p>` : ''}
       <div style="font-size:12px;color:var(--soluk);margin-top:6px">Bildiren: ${kacir(rp.raporlayan?.ad || 'Üye')}</div>
       <div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap">
+        ${rp.yorum ? `<button class="btn-tehlike btn btn-kucuk" data-rapor-yorum-sil="${rp.id}">Yorumu sil</button>` : ''}
         ${rp.durum === 'acik' ? `<button class="btn btn-kucuk" data-rapor-kapat="${rp.id}">Çözüldü, kapat</button>` : ''}
         <button class="btn-tehlike btn btn-kucuk" data-rapor-sil="${rp.id}">Sil</button>
       </div>
     </div>`).join('');
     k.querySelectorAll('[data-rapor-yer]').forEach(el => el.addEventListener('click', () => { if (el.dataset.raporYer) detayAc(el.dataset.raporYer); }));
+    k.querySelectorAll('[data-rapor-yorum-sil]').forEach(b => b.addEventListener('click', async () => {
+      const rp = raporlar.find(x => x.id === b.dataset.raporYorumSil);
+      const onay = await sor('Yorumu Sil', 'Bildirilen yorum kalıcı olarak silinecek.', {evetMetin:'Sil', tehlike:true});
+      if (!onay) return;
+      const {error: e} = await sb.from('turbedar_yorumlar').delete().eq('id', rp.yorum.id);
+      if (e) return bildir('Silinemedi: ' + e.message, true);
+      gunlukYaz('yorum_sil', 'yorum', rp.yorum.id, rp.yer?.baslik || null, {rapor: rp.id});
+      yonetimRozetiGuncelle(); yonetimCiz();
+    }));
     k.querySelectorAll('[data-rapor-kapat]').forEach(b => b.addEventListener('click', async () => {
       const rp = raporlar.find(x => x.id === b.dataset.raporKapat);
       const {error: e} = await sb.from('turbedar_raporlar').update({durum: 'kapandi'}).eq('id', rp.id);
@@ -4923,6 +5065,8 @@ function yukleSeridiKapat(tur){
           const params = new URLSearchParams(hash);
           const access_token = params.get('access_token');
           const refresh_token = params.get('refresh_token');
+          let saglayici = null; try{ saglayici = sessionStorage.getItem('turbedar_oauth'); }catch(e){}
+          if (saglayici === 'apple' && params.get('provider_refresh_token')) bekleyenAppleJeton = params.get('provider_refresh_token');
           if (access_token && refresh_token){
             const {error} = await sb.auth.setSession({access_token, refresh_token});
             if (error){ bildir('Giriş tamamlanamadı: ' + error.message, true); }
