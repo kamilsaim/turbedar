@@ -12,7 +12,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
 [![Türbe Rehberi](https://img.shields.io/badge/il%20il-t%C3%BCrbe%20rehberi-233129?style=for-the-badge)](https://turbedar.org/turbeler/)
 
-![Version](https://img.shields.io/badge/v2.1.4-B8923E)
+![Version](https://img.shields.io/badge/v2.1.5-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://turbedar.org/gizlilik-politikasi.html)
@@ -109,6 +109,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **2.1.5** | İstatistikte yeni Ülkelere Göre bölümü: İllere Göre listesi yalnızca Türkiye illerini gösteriyor, yurt dışı kayıtlar ülke ülke ayrı listede; ülkeye dokununca Keşfet o ülkeyle açılıyor |
 | **2.1.4** | İstatistikte yurt dışı kayıtlar için ayrı satır: kaç ülkede kaç kayıt olduğu gösteriliyor |
 | **2.1.3** | İstatistikteki il sayısı artık yalnızca Türkiye illerini sayıyor (yurt dışı şehirler dahil edilmiyor) ve 81 ile göre gösteriliyor |
 | **2.1.2** | Topluluk güvenliği: yorumları bildirme ve kullanıcı engelleme, ilk girişte kullanım koşulları onayı, yapay zeka önerisinde açık izin; Apple ile girişte ad sorusu isteğe bağlı oldu |

@@ -818,6 +818,10 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
         <div class="bolum-baslik" style="margin-bottom:8px">İllere Göre</div>
         <div id="il-istatistik"></div>
       </div>
+      <div class="kart" id="ulke-istatistik-kart" style="padding:16px;margin-top:12px;display:none">
+        <div class="bolum-baslik" style="margin-bottom:8px">Ülkelere Göre</div>
+        <div id="ulke-istatistik"></div>
+      </div>
       <div class="kart" style="padding:16px;margin-top:12px">
         <div class="bolum-baslik" style="margin-bottom:8px">Kategorilere Göre</div>
         <div id="kategori-istatistik"></div>
@@ -1227,7 +1231,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.1.4';
+const SURUM = '2.1.5';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2323,16 +2327,29 @@ function istatistikCiz(){
     <div class="ozet-kart kart"><div class="sayi">${kisiSayisi}</div><div class="etiket">Mekan Sahibi</div></div>
     <div class="ozet-kart kart"><div class="sayi">${toplamZiyaret}</div><div class="etiket">Ziyaret</div></div>
     ${yurtdisi.length ? `<div class="ozet-kart kart" style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 10px"><div class="sayi" style="font-size:26px">${ulkeSayisi}</div><div class="etiket" style="margin-top:0">Ülke · ${yurtdisi.length} kayıt yurt dışında</div></div>` : ''}`;
-  // il bazlı
+  // il bazlı (sadece Türkiye; yurt dışı aşağıda ülkelere göre)
   const ilMap = {};
-  istatistik.forEach(s => { const il = s.il || 'Belirtilmemiş'; ilMap[il] = (ilMap[il]||0) + s.adet; });
+  yerler.filter(y => y.durum==='onaylandi' && (y.ulke_kodu||'tr')==='tr')
+    .forEach(y => { const il = y.il || 'Belirtilmemiş'; ilMap[il] = (ilMap[il]||0) + 1; });
   const sirali = Object.entries(ilMap).sort((a,b) => b[1]-a[1]);
   const enCok = sirali[0]?.[1] || 1;
   $('#il-istatistik').innerHTML = sirali.length ? sirali.map(([il, adet]) =>
     `<div class="il-satir" data-il="${kacir(il)}"><b>${kacir(il)}</b><div class="il-cubuk"><i style="width:${Math.max(6, adet/enCok*100)}%"></i></div><span>${adet}</span></div>`
   ).join('') : '<p style="color:var(--soluk);font-size:13.5px">Henüz onaylanmış kayıt yok.</p>';
   $('#il-istatistik').querySelectorAll('.il-satir').forEach(s => s.addEventListener('click', () => {
-    suzgec.il = s.dataset.il === 'Belirtilmemiş' ? '' : s.dataset.il; suzgec.ilce='';
+    suzgec.ulke = ''; suzgec.il = s.dataset.il === 'Belirtilmemiş' ? '' : s.dataset.il; suzgec.ilce='';
+    suzgecleriDoldur(); kesfetCiz(); gorunumAc('kesfet');
+  }));
+  // ülke bazlı (yurt dışı)
+  const ulkeMap = {};
+  yurtdisi.forEach(y => { const u = y.ulke || y.ulke_kodu.toUpperCase(); ulkeMap[u] = (ulkeMap[u]||0) + 1; });
+  const uSirali = Object.entries(ulkeMap).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0],'tr'));
+  $('#ulke-istatistik-kart').style.display = uSirali.length ? '' : 'none';
+  $('#ulke-istatistik').innerHTML = uSirali.map(([u, adet]) =>
+    `<div class="il-satir" data-ulke="${kacir(u)}"><b>${kacir(u)}</b><div class="il-cubuk"><i style="width:${Math.max(6, adet/uSirali[0][1]*100)}%"></i></div><span>${adet}</span></div>`
+  ).join('');
+  $('#ulke-istatistik').querySelectorAll('.il-satir').forEach(s => s.addEventListener('click', () => {
+    suzgec.ulke = s.dataset.ulke; suzgec.il=''; suzgec.ilce='';
     suzgecleriDoldur(); kesfetCiz(); gorunumAc('kesfet');
   }));
   // kategori bazlı
