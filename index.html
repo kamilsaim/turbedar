@@ -1227,7 +1227,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.1.2';
+const SURUM = '2.1.3';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2311,12 +2311,13 @@ function kesfetCiz(){
 /* ====================== İSTATİSTİK ====================== */
 function istatistikCiz(){
   const toplamYer = istatistik.reduce((t,s) => t + s.adet, 0);
-  const ilSayisi = new Set(istatistik.map(s => s.il).filter(Boolean)).size;
+  // Sadece Türkiye illeri: yurt dışında il alanı şehir tutar, sayılmaz
+  const ilSayisi = new Set(yerler.filter(y => y.durum==='onaylandi' && (y.ulke_kodu||'tr')==='tr').map(y => y.il).filter(Boolean)).size;
   const kisiSayisi = yerler.filter(y=>y.durum==='onaylandi').reduce((t,y) => t + (y.kisiler||[]).length, 0);
   const toplamZiyaret = yerler.filter(y=>y.durum==='onaylandi').reduce((t,y) => t + ziyaretSayisi(y), 0);
   $('#ozet-izgara').innerHTML = `
     <div class="ozet-kart kart"><div class="sayi">${toplamYer}</div><div class="etiket">Kayıtlı Yer</div></div>
-    <div class="ozet-kart kart"><div class="sayi">${ilSayisi}</div><div class="etiket">İl</div></div>
+    <div class="ozet-kart kart"><div class="sayi">${ilSayisi}<small style="font-size:17px;color:var(--soluk)">/81</small></div><div class="etiket">İl</div></div>
     <div class="ozet-kart kart"><div class="sayi">${kisiSayisi}</div><div class="etiket">Mekan Sahibi</div></div>
     <div class="ozet-kart kart"><div class="sayi">${toplamZiyaret}</div><div class="etiket">Ziyaret</div></div>`;
   // il bazlı
