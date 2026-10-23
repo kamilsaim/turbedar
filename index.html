@@ -953,7 +953,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
       <button class="btn-altin btn btn-kucuk" id="btn-cihaz-konum" style="margin-bottom:12px">📍 Cihaz konumumu kullan</button>
       <div class="alan" id="ulke-alan" style="display:none"><label>Ülke</label><input id="girdi-ulke" placeholder="Otomatik"><div class="ipucu">Yurtdışı bir kayıt — ülke ve şehir bilgisi yeterli.</div></div>
       <div style="display:flex;gap:10px">
-        <div class="alan" style="flex:1"><label id="girdi-il-label">İl</label><input id="girdi-il" placeholder="Otomatik"></div>
+        <div class="alan" style="flex:1"><label id="girdi-il-label">İl</label><input id="girdi-il" placeholder="Otomatik"><div class="ipucu" id="sehir-ipucu" style="display:none">Türkçe adı bulunamadı — biliyorsan Türkçe yaz.</div></div>
         <div class="alan" style="flex:1" id="ilce-alan"><label>İlçe</label><input id="girdi-ilce" placeholder="Otomatik"></div>
       </div>
       <div class="alan" id="mahalle-alan"><label>Mahalle / Köy</label><input id="girdi-mahalle" placeholder="Otomatik (gerekirse elle yaz)"></div>
@@ -1231,7 +1231,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.1.5';
+const SURUM = '2.1.6';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2978,16 +2978,28 @@ function ilIlceBul(lat, lng){
       formUlkeyeUyarla(ulkeKodu);
       if (ulke && !$('#girdi-ulke').dataset.elle) $('#girdi-ulke').value = ulke;
       if (ulkeKodu === 'tr' || !ulkeKodu){
+        $('#sehir-ipucu').style.display = 'none';
         if (il && !$('#girdi-il').dataset.elle) $('#girdi-il').value = il;
         if (ilce && !$('#girdi-ilce').dataset.elle) $('#girdi-ilce').value = ilce.replace(/ merkez$/i,'');
         if (mahalle && !$('#girdi-mahalle').dataset.elle) $('#girdi-mahalle').value = mahalle.replace(/ (mahallesi|mah\.?)$/i,'');
       } else {
         // yurtdışı: il alanını "şehir" olarak kullan
-        const sehir = a.city || a.town || il || ilce || '';
-        if (sehir && !$('#girdi-il').dataset.elle) $('#girdi-il').value = sehir;
+        const sehir = yurtdisiSehir(a);
+        if (sehir && !$('#girdi-il').dataset.elle){
+          $('#girdi-il').value = sehir;
+          $('#sehir-ipucu').style.display = latinMi(sehir) ? 'none' : '';
+        }
       }
     }catch(e){ /* sessiz */ }
   }, 700);
+}
+/* Yurt dışı şehir adı: OSM'de Türkçe adı olmayan yer yerel alfabeyle gelir (Arapça belediye adı vb.),
+   çoğu zaman üst bölgenin Türkçe adı ise vardır ('Şam İli'). İlk Latin adı seç, ili/Şehri eklerini at. */
+function latinMi(s){ return /^[\p{Script=Latin}\p{M}\s0-9'’.,()\-]+$/u.test(s); }
+function yurtdisiSehir(a){
+  const adaylar = [a.city, a.town, a.province, a.state, a.county].filter(Boolean);
+  const sec = adaylar.find(latinMi) || adaylar[0] || '';
+  return sec.replace(/\s+(ili|İli|il|şehri|vilayeti|valiliği|belediyesi)$/iu, '').trim();
 }
 function formUlkeyeUyarla(ulkeKodu){
   const yurtdisi = ulkeKodu && ulkeKodu !== 'tr';
@@ -2998,7 +3010,7 @@ function formUlkeyeUyarla(ulkeKodu){
   $('#girdi-il').placeholder = yurtdisi ? 'Şehir' : 'Otomatik';
 }
 $('#girdi-ulke').addEventListener('input', e => e.target.dataset.elle = '1');
-$('#girdi-il').addEventListener('input', e => e.target.dataset.elle = '1');
+$('#girdi-il').addEventListener('input', e => { e.target.dataset.elle = '1'; $('#sehir-ipucu').style.display = 'none'; });
 $('#girdi-ilce').addEventListener('input', e => e.target.dataset.elle = '1');
 $('#girdi-mahalle').addEventListener('input', e => e.target.dataset.elle = '1');
 
@@ -3032,6 +3044,7 @@ function sihirbazAc(yer = null, baslangicKonum = null){
   $('#girdi-il').value = yer?.il || ''; $('#girdi-ilce').value = yer?.ilce || '';
   $('#girdi-mahalle').value = yer?.mahalle || '';
   delete $('#girdi-il').dataset.elle; delete $('#girdi-ilce').dataset.elle; delete $('#girdi-mahalle').dataset.elle; delete $('#girdi-ulke').dataset.elle;
+  $('#sehir-ipucu').style.display = 'none';
   if (yer){ $('#girdi-il').dataset.elle='1'; $('#girdi-ilce').dataset.elle='1'; $('#girdi-mahalle').dataset.elle='1'; $('#girdi-ulke').dataset.elle='1'; }
   formUlkeyeUyarla(yer?.ulke_kodu || 'tr');
   taslak.mukerrerOnay = false;
