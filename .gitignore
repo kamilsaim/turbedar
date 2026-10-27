@@ -34,3 +34,9 @@ _yayin/
 y/
 # yerel zamanlayici betigi (TurbedarSite gorevi calistirir)
 site-yayinla.bat
+
+# Tasarım taslak sunucusu (brainstorm)
+.superpowers/
+
+# iOS yerel (SwiftUI) uygulamasi: kendi gizli deposu var (kamilsaim/turbedar-ios-yerel), bu acik depoya GIRMEZ
+ios-yerel/

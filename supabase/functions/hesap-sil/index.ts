@@ -26,11 +26,13 @@ function cevap(obj: unknown, durum = 200) {
 
 const ICERIK_TABLOLARI = ['turbedar_yerler', 'turbedar_revizyonlar', 'turbedar_katki_notlari'];
 const PLACEHOLDER_EMAIL = 'silinmis-kullanici@turbedar.internal';
-// Web akışındaki Apple girişi Services ID ile yapılır; jeton o istemciye aittir
-const APPLE_ISTEMCI = Deno.env.get('APPLE_SERVICES_ID') || 'com.kamilsaim.turbedar.web';
+// Web akışındaki Apple girişi Services ID ile yapılır; yerel iOS girişi (apple-jeton) bundle id ile.
+// Jeton hangi istemciye aitse iptal de o istemciyle yapılmalı (profil.apple_jeton_istemci).
+const APPLE_WEB_ISTEMCI = Deno.env.get('APPLE_SERVICES_ID') || 'com.kamilsaim.turbedar.web';
+const APPLE_IOS_ISTEMCI = Deno.env.get('APPLE_BUNDLE_ID') || 'com.kamilsaim.turbedar';
 
 // Apple istemci sırrı: APNs ile aynı .p8 anahtarı (Sign in with Apple yetkisi de var)
-async function appleIstemciSirri(): Promise<string> {
+async function appleIstemciSirri(istemci: string): Promise<string> {
   const ham = (Deno.env.get('APNS_KEY_P8') || '').trim();
   const keyId = Deno.env.get('APNS_KEY_ID');
   const teamId = Deno.env.get('APNS_TEAM_ID');
@@ -40,17 +42,17 @@ async function appleIstemciSirri(): Promise<string> {
   return await new SignJWT({})
     .setProtectedHeader({ alg: 'ES256', kid: keyId })
     .setIssuer(teamId)
-    .setSubject(APPLE_ISTEMCI)
+    .setSubject(istemci)
     .setAudience('https://appleid.apple.com')
     .setIssuedAt()
     .setExpirationTime('5m')
     .sign(anahtar);
 }
 
-async function appleJetonIptal(jeton: string) {
+async function appleJetonIptal(jeton: string, istemci: string) {
   const govde = new URLSearchParams({
-    client_id: APPLE_ISTEMCI,
-    client_secret: await appleIstemciSirri(),
+    client_id: istemci,
+    client_secret: await appleIstemciSirri(istemci),
     token: jeton,
     token_type_hint: 'refresh_token',
   });
@@ -84,12 +86,13 @@ Deno.serve(async (req: Request) => {
     );
 
     // Kurucu hesap silinemez (güvenlik)
-    const { data: profil } = await sb.from('turbedar_profiller').select('kurucu, apple_jeton').eq('id', uid).maybeSingle();
+    const { data: profil } = await sb.from('turbedar_profiller').select('kurucu, apple_jeton, apple_jeton_istemci').eq('id', uid).maybeSingle();
     if (profil?.kurucu) return cevap({ hata: 'Kurucu hesap silinemez. Önce başka bir kurucu atanmalı.' }, 403);
 
     // Apple jetonunu iptal et — başarısız olsa da silme sürer (kullanıcının silme hakkı engellenmez)
     if (profil?.apple_jeton) {
-      try { await appleJetonIptal(profil.apple_jeton); }
+      const istemci = profil.apple_jeton_istemci === 'ios' ? APPLE_IOS_ISTEMCI : APPLE_WEB_ISTEMCI;
+      try { await appleJetonIptal(profil.apple_jeton, istemci); }
       catch (e) { console.log('Apple jeton iptali hatası', String(e)); }
     }
 
