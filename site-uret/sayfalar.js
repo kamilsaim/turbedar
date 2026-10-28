@@ -14,6 +14,20 @@ const uygulamaLinki = y => `${SITE}/#yer=${y.id}`;
 const yolTarifi = y => `https://www.google.com/maps/dir/?api=1&destination=${y.lat},${y.lng}`;
 
 /* Türkçe bulunma eki: Kayseri'de, İstanbul'da, Sivas'ta, Bağdat'ta */
+/** Kayıt fotoğrafı için schema.org ImageObject: künye ve lisans (Google Görseller'de kaynak/“Lisanslanabilir” bilgisi). */
+function gorselNesnesi(adres) {
+  return {
+    '@type': 'ImageObject',
+    contentUrl: adres,
+    url: adres,
+    creditText: 'Türbedar',
+    creator: { '@type': 'Organization', name: 'Türbedar', url: SITE + '/' },
+    copyrightNotice: 'Türbedar topluluğu',
+    license: SITE + '/kullanim-kosullari.html',
+    acquireLicensePage: SITE + '/turbedar-nedir/',
+  };
+}
+
 function bulunmaEki(ad){
   const kucuk = String(ad).toLocaleLowerCase('tr');
   const unluler = kucuk.match(/[aeıioöuü]/g) ?? ['e'];
@@ -90,7 +104,8 @@ function yerSayfasi(y, tumBolgeler){
     name: y.baslik,
     description: y.aciklama ? kisalt(y.aciklama, 300) : girisCumlesi(y),
     url: SITE + yerYolu(y),
-    ...(gorseller.length ? { image: gorseller } : {}),
+    // Google Görseller kaynağı ve lisansı gösterebilsin diye ImageObject (künye: Türbedar)
+    ...(gorseller.length ? { image: gorseller.map(gorselNesnesi) } : {}),
     ...(y.lat != null && y.lng != null ? { geo: { '@type': 'GeoCoordinates', latitude: y.lat, longitude: y.lng } } : {}),
     address: {
       '@type': 'PostalAddress',

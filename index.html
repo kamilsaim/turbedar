@@ -3388,6 +3388,29 @@ async function yorumGonder(yerId){
 }
 
 /* ====================== FOTOĞRAF SIKIŞTIRMA ====================== */
+/* Uygulamanın kamerasıyla çekilen fotoğraflara sağ alt köşede küçük logolu filigran (logo + turbedar.org).
+   Galeriden seçilenlere EKLENMEZ (başkasına ait olabilir). iOS FotoIslemleri.filigranCiz ile aynı ölçüler. */
+let filigranLogoOnbellek = null;
+async function filigranLogo(){
+  if (filigranLogoOnbellek) return filigranLogoOnbellek;
+  try{ filigranLogoOnbellek = await createImageBitmap(await (await fetch($('.marka img').src)).blob()); }catch(e){ filigranLogoOnbellek = null; }
+  return filigranLogoOnbellek;
+}
+function filigranCiz(c, g, y, logo){
+  const h = Math.max(16, Math.round(Math.min(g, y) * 0.035));     // yazı boyu (kısa kenarın %3,5'i)
+  const pad = Math.round(h * 0.8), lh = Math.round(h * 1.5);
+  const lw = logo ? Math.round(lh * logo.width / logo.height) : 0, bosluk = logo ? Math.round(h * 0.35) : 0;
+  c.save();
+  c.font = `700 ${h}px 'Cormorant Garamond', Georgia, serif`;
+  const tw = c.measureText('turbedar.org').width;
+  const x = g - pad - tw - bosluk - lw, ust = y - pad - lh;
+  c.globalAlpha = 0.78;
+  c.shadowColor = 'rgba(0,0,0,.55)'; c.shadowBlur = Math.round(h * 0.4);
+  if (logo) c.drawImage(logo, x, ust, lw, lh);
+  c.fillStyle = '#fff'; c.textBaseline = 'middle';
+  c.fillText('turbedar.org', x + lw + bosluk, ust + lh / 2);
+  c.restore();
+}
 async function fotoSikistir(dosya, enUzun = 1600){
   // Önce modern yol: createImageBitmap (WebView'da daha dayanıklı, objectURL gerektirmez)
   let img = null;
@@ -3404,6 +3427,7 @@ async function fotoSikistir(dosya, enUzun = 1600){
   if (Math.max(g, y) > enUzun){ const oran = enUzun / Math.max(g, y); g = Math.round(g*oran); y = Math.round(y*oran); }
   const tuval = document.createElement('canvas'); tuval.width = g; tuval.height = y;
   tuval.getContext('2d').drawImage(img, 0, 0, g, y);
+  if (dosya._kamera) filigranCiz(tuval.getContext('2d'), g, y, await filigranLogo());
   if (img.close) img.close();               // ImageBitmap belleği bırak
   else if (img.src) URL.revokeObjectURL(img.src);  // Image yolundaki objectURL'i temizle
   // Safari webp desteklemez ve sessizce PNG üretir (2MB sınırını aşar) — tip kontrolü şart
@@ -4126,6 +4150,7 @@ $('#foto-kamera-girdi').addEventListener('change', e => {
   const dosyalar = [...e.target.files]; e.target.value = '';
   // Kamerayla anlık çekim: Android'in galeri seçicisinin GPS'i sildiği
   // gizlilik kısıtlamasına takılmaz, konum her zaman tam gelir.
+  dosyalar.forEach(d => { d._kamera = true; });   // sıkıştırırken logolu filigran eklenir
   fotoDosyalariEkle(dosyalar);
 });
 
