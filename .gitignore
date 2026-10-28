@@ -40,3 +40,8 @@ site-yayinla.bat
 
 # iOS yerel (SwiftUI) uygulamasi: kendi gizli deposu var (kamilsaim/turbedar-ios-yerel), bu acik depoya GIRMEZ
 ios-yerel/
+
+# ChatGPT pin taslakları (kaynak görsel, yayına girmez)
+*Harita Pimi.png
+*Harita İğnesi.png
+*Konum İmgesi.png
