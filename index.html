@@ -1364,7 +1364,7 @@ function gununYeriSec(yerler, ziyaretler, tarih = new Date()){
   return gununSec(adaylar, tarih);
 }
 function gonulluSayisi(yerler){
-  return new Set(yerler.filter(y => y.durum === 'onaylandi' && y.ekleyen_id).map(y => y.ekleyen_id)).size;
+  return new Set(yerler.filter(y => y.durum === 'onaylandi' && y.ekleyen_id && y.ekleyen?.ad !== 'Silinmiş Kullanıcı').map(y => y.ekleyen_id)).size;
 }
 function ziyaretEdilmeyenlerOnce(liste, ziyaretler, sinir){
   const gidilmemis = liste.filter(x => !ziyaretler.has(x.yer.id));

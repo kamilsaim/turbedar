@@ -93,3 +93,9 @@ test('fotoYoluGuvenli: yalnız {id}/{id}.uzantı biçimi (CSS url() ve özniteli
   assert.equal(f.fotoYoluGuvenli(''), false);
   assert.equal(f.fotoYoluGuvenli(null), false);
 });
+
+test('gonulluSayisi: "Silinmiş Kullanıcı" sistem profili sayılmaz', () => {
+  const a = yer({id: ids[0], ekleyen: 'a'}); a.ekleyen = {id: 'a', ad: 'Kamil'};
+  const s = yer({id: ids[1], ekleyen: 's'}); s.ekleyen = {id: 's', ad: 'Silinmiş Kullanıcı'};
+  assert.equal(f.gonulluSayisi([a, s]), 1);
+});
