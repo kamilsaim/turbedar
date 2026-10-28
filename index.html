@@ -799,6 +799,61 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 /* ortalanmış detay penceresi */
 .sayfa.sayfa-orta{top:50%;left:50%;right:auto;bottom:auto;width:min(94vw,620px);max-height:86dvh;border-radius:22px;border:1px solid var(--cizgi);border-top:2px solid var(--altin);transform:translate(-50%,-46%);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.32,.72,.33,1),opacity .2s}
 .sayfa.sayfa-orta.acik{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+/* ====== Detay sayfası (iOS 3.0 ile aynı düzen) ====== */
+.sayfa.detay-yeni{overflow:hidden;background:var(--krem)}
+.detay-yeni .sayfa-icerik{flex:1;min-height:0;padding:0 0 calc(96px + env(safe-area-inset-bottom));position:relative}
+.d-kapak{position:relative;height:46vh;min-height:280px;max-height:520px;background:var(--kart-koyu)}
+.d-kapak-serit{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.d-kapak-serit::-webkit-scrollbar{display:none}
+.d-kapak-serit img{flex:none;width:100%;height:100%;object-fit:cover;scroll-snap-align:start;cursor:zoom-in}
+.d-kapak-nokta{position:absolute;left:0;right:0;bottom:40px;display:flex;justify-content:center;gap:6px;pointer-events:none}
+.d-kapak-nokta i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.55)}
+.d-kapak-nokta i.aktif{background:#fff}
+.d-kapak-bos{height:100%;display:grid;place-items:center;background:linear-gradient(150deg,#2C6A4E,#163C2B)}
+.d-kapak-bos img{width:110px;opacity:.35}
+.d-govde{position:relative;margin-top:-28px;background:var(--krem);border-radius:28px 28px 0 0;padding:22px 20px 8px}
+.d-etiket{font-size:12.5px;font-weight:800;letter-spacing:.12em;color:var(--altin);text-transform:uppercase}
+.detay-yeni .detay-baslik{font-size:34px;line-height:1.12;margin:8px 0 14px}
+.d-bilgiler{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.d-bilgiler div{background:var(--kart);border-radius:16px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+.d-bilgiler b{display:block;font-size:19px;color:var(--murekkep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-bilgiler span{font-size:13px;color:var(--soluk)}
+.detay-yeni .detay-aciklama{font-size:16px;line-height:1.7;color:var(--murekkep)}
+.d-konum-kart{margin-top:18px;border-radius:20px;overflow:hidden;background:var(--kart);box-shadow:0 5px 14px rgba(0,0,0,.06)}
+.d-mini-harita{height:170px;background:var(--kart-koyu)}
+.d-konum-satir{display:flex;align-items:center;gap:10px;padding:12px 16px;color:var(--altin)}
+.d-konum-satir span{flex:1;font-size:14.5px;color:var(--murekkep)}
+.d-konum-satir button{flex:none;font-size:15px;font-weight:700;color:var(--zumrut-acik);min-height:44px}
+.detay-yeni .detay-butonlar:empty{display:none}
+.detay-yeni .detay-butonlar .btn-ghost{background:var(--kart-koyu);border:0;min-height:50px;border-radius:16px;font-size:15px}
+.d-yuvarlak{position:absolute;top:calc(12px + env(safe-area-inset-top));z-index:8;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,252,245,.82);color:var(--zumrut);box-shadow:0 3px 10px rgba(0,0,0,.15);backdrop-filter:blur(8px)}
+.d-yuvarlak:active{transform:scale(.94)}
+.d-geri{left:14px}.d-paylas{right:14px}
+.d-serit{position:absolute;top:0;left:0;right:0;z-index:7;height:calc(70px + env(safe-area-inset-top));padding:calc(env(safe-area-inset-top) + 12px) 72px 0;
+  display:flex;align-items:center;justify-content:center;background:var(--krem);border-bottom:1px solid var(--cizgi);
+  opacity:0;pointer-events:none;transition:opacity .15s}
+.d-serit.gorunur{opacity:1}
+.d-serit span{font-family:var(--display);font-weight:700;font-size:20px;color:var(--zumrut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-alt{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--krem)}
+.d-alt::before{content:"";position:absolute;left:0;right:0;top:-24px;height:24px;background:linear-gradient(rgba(247,240,230,0),var(--krem));pointer-events:none}
+.d-alt button{flex:1;min-height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:700}
+.d-alt-ikincil{background:var(--kart-koyu);color:var(--zumrut)}
+.d-alt-ana{background:var(--zumrut);color:#fff}
+.d-alt-ana.aktif{background:var(--altin)}
+.d-alt-ana:disabled{opacity:.6}
+.d-fotosuz .d-yuvarlak{background:rgba(255,252,245,.9)}
+/* Telefonda tam sayfa; geniş ekranda ortada pencere */
+@media (max-width:719px){
+  .sayfa.sayfa-orta.detay-yeni{inset:0;width:auto;max-height:none;border:0;border-radius:0;transform:translateY(24px)}
+  .sayfa.sayfa-orta.detay-yeni.acik{transform:none}
+}
+@media (min-width:720px){
+  .sayfa.sayfa-orta.detay-yeni{width:min(94vw,720px);height:90dvh;max-height:90dvh}
+  .detay-yeni .d-yuvarlak{top:12px}
+  .detay-yeni .d-serit{height:70px;padding-top:12px}
+  .detay-yeni .d-alt{padding-bottom:12px}
+}
 .sayfa-kapat{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:var(--kart-koyu);border:1px solid var(--cizgi);color:var(--murekkep);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:5}
 .sayfa-kapat:active{transform:scale(.92)}
 .sayfa.sayfa-orta .sayfa-icerik{padding-top:16px}
@@ -1003,9 +1058,12 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 
 <!-- ============ DETAY SAYFASI ============ -->
 <div class="ortulu" id="detay-ortulu"></div>
-<div class="sayfa sayfa-orta" id="detay-sayfa">
-  <button class="sayfa-kapat" id="detay-kapat" aria-label="Kapat">✕</button>
+<div class="sayfa sayfa-orta detay-yeni" id="detay-sayfa">
+  <div class="d-serit" id="d-serit" aria-hidden="true"><span id="d-serit-baslik"></span></div>
+  <button class="d-yuvarlak d-geri" id="detay-kapat" aria-label="Geri"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg></button>
+  <button class="d-yuvarlak d-paylas" id="d-paylas" aria-label="Paylaş"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
   <div class="sayfa-icerik" id="detay-icerik"></div>
+  <div class="d-alt" id="d-alt"></div>
 </div>
 
 <!-- ============ KAYIT SİHİRBAZI ============ -->
@@ -1329,7 +1387,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '3.0.0';
+const SURUM = '3.0.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2821,32 +2879,60 @@ async function detayAc(id){
   const duzenlenebilir = yonetici() || benimki;
   const silinebilir = yonetici() || (benimki && y.durum === 'beklemede');
   const k = $('#detay-icerik');
+  const fotoSay = (y.fotograflar || []).length;
+  const konumBilinen = anaKonum || yakinSonKonum;
+  const uzaklik = konumBilinen ? mesafeM(konumBilinen.lat, konumBilinen.lng, y.lat, y.lng) : null;
+  const uzaklikYazi = uzaklik == null ? '—' : uzaklik < 1000 ? Math.round(uzaklik) + ' m' : (uzaklik / 1000).toFixed(1).replace('.', ',') + ' km';
+  const kisaKonum = (y.ulke_kodu && y.ulke_kodu !== 'tr') ? [y.il, y.ulke].filter(Boolean).join(', ') : [y.ilce, y.il].filter(Boolean).join(', ');
+  $('#d-serit-baslik').textContent = y.baslik;
+  $('#d-serit').classList.remove('gorunur');
+  $('#detay-sayfa').classList.toggle('d-fotosuz', !fotoSay);
   k.innerHTML = `
-    <div class="foto-serit">${(y.fotograflar||[]).map(f => `<img loading="lazy" src="${fotoUrl(f.yol)}" data-buyuk="${fotoUrl(f.yol)}" alt="">`).join('')}</div>
-    <div class="detay-meta">
-      <span class="rozet rozet-kategori">${KATEGORILER[y.kategori]||y.kategori}</span>
+    <div class="d-kapak">${fotoSay
+      ? `<div class="d-kapak-serit">${y.fotograflar.map(f => `<img loading="lazy" src="${fotoUrl(f.yol)}" data-buyuk="${fotoUrl(f.yol)}" alt="">`).join('')}</div>
+         ${fotoSay > 1 ? `<div class="d-kapak-nokta">${y.fotograflar.map((_, i) => `<i class="${i ? '' : 'aktif'}"></i>`).join('')}</div>` : ''}`
+      : `<div class="d-kapak-bos"><img src="${$('.marka img').src}" alt=""></div>`}</div>
+    <div class="d-govde">
+    <div class="d-etiket">${kacir([(KATEGORILER[y.kategori] || y.kategori || ''), kisaKonum].filter(Boolean).join(' · '))}</div>
+    ${y.durum !== 'onaylandi' || y.yz_destekli ? `<div class="detay-meta">
       ${y.durum !== 'onaylandi' ? `<span class="rozet rozet-${y.durum}">${y.durum === 'beklemede' ? 'Onay Bekliyor' : 'Reddedildi'}</span>` : ''}
       ${y.yz_destekli ? '<span class="rozet rozet-yz">✨ YZ destekli</span>' : ''}
-    </div>
+    </div>` : ''}
     <h1 class="detay-baslik">${kacir(y.baslik)}</h1>
-    <div class="detay-konum">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-      ${kacir(konumYazisi(y, 'Konum belirtilmemiş'))}
+    <div class="d-bilgiler">
+      <div><b>${uzaklikYazi}</b><span>uzaklık</span></div>
+      <div><b id="d-ziyaret-sayi">${ziyaretSayisi(y)}</b><span>ziyaretçi</span></div>
+      <div><b>${fotoSay}</b><span>fotoğraf</span></div>
     </div>
     ${y.durum === 'reddedildi' && y.red_nedeni ? `<p style="margin-top:8px;font-size:13px;color:var(--kirmizi)"><b>Red nedeni:</b> ${kacir(y.red_nedeni)}</p>` : ''}
-    ${y.durum === 'onaylandi' ? `<button class="ziyaret-btn ${benimZiyaretlerim.has(y.id) ? 'aktif' : ''}" id="d-ziyaret">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
-      <b id="d-ziyaret-metin">${benimZiyaretlerim.has(y.id) ? 'Ziyaret Ettim' : 'Ziyaret Ettim İşaretle'}</b>
-      <span class="sayi" id="d-ziyaret-sayi">${ziyaretSayisi(y) ? ziyaretSayisi(y) + ' ziyaretçi' : 'İlk ziyaretçi sen ol'}</span>
-    </button><div id="d-ziyaret-ani"></div>` : ''}
-    ${y.aciklama ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div><p class="detay-aciklama">${kacir(y.aciklama)}</p>` : ''}
+    <div id="d-ziyaret-ani"></div>
+    ${y.aciklama ? `<p class="detay-aciklama">${kacir(y.aciklama)}</p>` : ''}
+    <div class="d-konum-kart">
+      <div class="d-mini-harita" id="d-mini-harita"></div>
+      <div class="d-konum-satir">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <span>${kacir(konumYazisi(y, 'Konum belirtilmemiş'))}</span>
+        <button type="button" id="d-haritada">Haritada göster</button>
+      </div>
+    </div>
+    <div class="detay-butonlar">
+      ${duzenlenebilir ? `<button class="btn-ghost btn" id="d-duzenle">Düzenle</button>` : (kullanici ? `<button class="btn-ghost btn" id="d-konum-oner">📍 Konum Öner</button>` : '')}
+      ${silinebilir ? `<button class="btn-ghost btn" id="d-sil" style="color:var(--kirmizi)">Sil</button>` : ''}
+    </div>
+    ${(y.kisiler||[]).length ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
+      <div class="bolum-baslik">Mekân Sahipleri</div>
+      ${y.kisiler.map(p => `<div class="kisi-kart">
+        <div class="kisi-nisan"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3C14.5 6 17 7.8 17 11.5V20H7v-8.5C7 7.8 9.5 6 12 3z"/><path d="M5 21h14"/></svg></div>
+        <div><div class="kisi-ad">${kacir(p.ad)}</div>
+        ${p.unvan || p.vefat ? `<div class="kisi-alt">${kacir([p.unvan, p.vefat ? 'Vefat: ' + p.vefat : ''].filter(Boolean).join(' • '))}</div>` : ''}
+        ${p.biyografi ? `<div class="kisi-bio">${kacir(p.biyografi)}</div>` : ''}</div></div>`).join('')}` : ''}
     ${(() => {
       const ks = (y.kaynaklar && y.kaynaklar.length) ? y.kaynaklar : (y.kaynak ? [{baslik: y.kaynak, url: null}] : []);
       if (!ks.length) return y.durum === 'onaylandi' ? `<div class="kaynak-davet">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2.5z"/><path d="M8 7h7M8 11h7"/></svg>
         <div><p>Bu kayıt henüz bir kaynakla belgelenmedi. Hakkında yazılı bir kaynak, kitabe veya bağlantı biliyorsan paylaşabilirsin.</p>
         <button type="button" id="d-kaynak-oner">Kaynak öner</button></div></div>` : '';
-      return `<div class="kaynak-liste">${ks.map(ky => ky.url && gecerliLink(ky.url)
+      return `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div><div class="bolum-baslik">Kaynaklar</div><div class="kaynak-liste">${ks.map(ky => ky.url && gecerliLink(ky.url)
         ? `<a class="detay-kaynak-link" href="${kacir(ky.url)}" target="_blank" rel="noopener noreferrer">🔗 ${kacir(ky.baslik)}</a>`
         : `<span class="detay-kaynak">Kaynak: ${kacir(ky.baslik)}</span>`).join('')}</div>`;
     })()}
@@ -2858,20 +2944,6 @@ async function detayAc(id){
       <p style="font-size:12px;color:var(--soluk);margin-bottom:6px">Bu yer hakkında bildiğin bir bilgiyi ekleyebilirsin — yönetici onayından sonra burada görünür.</p>
       <div id="katki-not-liste"><p style="color:var(--soluk);font-size:13px">Yükleniyor...</p></div>
       <button class="btn-altin btn btn-kucuk btn-tam" id="d-not-ekle" style="margin-top:8px">+ Ek Bilgi Öner</button>` : ''}
-    ${(y.kisiler||[]).length ? `<div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
-      <div class="bolum-baslik">Mekan Sahipleri</div>
-      ${y.kisiler.map(p => `<div class="kisi-kart">
-        <div class="kisi-nisan"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3C14.5 6 17 7.8 17 11.5V20H7v-8.5C7 7.8 9.5 6 12 3z"/><path d="M5 21h14"/></svg></div>
-        <div><div class="kisi-ad">${kacir(p.ad)}</div>
-        ${p.unvan || p.vefat ? `<div class="kisi-alt">${kacir([p.unvan, p.vefat ? 'Vefat: ' + p.vefat : ''].filter(Boolean).join(' • '))}</div>` : ''}
-        ${p.biyografi ? `<div class="kisi-bio">${kacir(p.biyografi)}</div>` : ''}</div></div>`).join('')}` : ''}
-    <div class="detay-butonlar">
-      <button class="btn" id="d-yoltarifi">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l19-8-8 19-2.5-8.5L3 11z"/></svg> Yol Tarifi</button>
-      <button class="btn-altin btn" id="d-paylas">Paylaş</button>
-      ${duzenlenebilir ? `<button class="btn-ghost btn" id="d-duzenle">Düzenle</button>` : (kullanici ? `<button class="btn-ghost btn" id="d-konum-oner">📍 Konum Öner</button>` : '')}
-      ${silinebilir ? `<button class="btn-ghost btn" id="d-sil" style="color:var(--kirmizi)">Sil</button>` : ''}
-    </div>
     <p style="font-size:12px;color:var(--soluk)">Ekleyen: ${kacir(y.ekleyen?.ad || 'Bilinmiyor')} • ${tarihYaz(y.created_at)}${y.durum === 'onaylandi' && !(kullanici && y.ekleyen_id === kullanici.id) ? ` • <button type="button" class="rapor-bag" id="d-rapor">🚩 Hata bildir</button>` : ''}</p>
     ${y.durum === 'onaylandi' ? `
       <div class="sus"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
@@ -2881,7 +2953,14 @@ async function detayAc(id){
         <input id="yorum-girdi" maxlength="1000" placeholder="${kullanici ? 'Bir yorum yaz...' : 'Yorum yapmak için giriş yap'}">
         <button class="btn btn-kucuk" id="yorum-gonder">Gönder</button>
       </div>
-      <input id="yorum-video" class="yorum-video-girdi" inputmode="url" placeholder="🎬 İsteğe bağlı: video linki (YouTube, Instagram, X...)">` : ''}`;
+      <input id="yorum-video" class="yorum-video-girdi" inputmode="url" placeholder="🎬 İsteğe bağlı: video linki (YouTube, Instagram, X...)">` : ''}
+    </div>`;
+  // Alt sabit çubuk: Yol tarifi + Ziyaret ettim (iOS ile aynı)
+  $('#d-alt').innerHTML = `<button class="d-alt-ikincil" id="d-yoltarifi">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 2.5 21.5 12 12 21.5 2.5 12z"/><path d="M9 14v-2.5a1.5 1.5 0 0 1 1.5-1.5H15m-2-2 2 2-2 2"/></svg>Yol tarifi</button>
+    ${y.durum === 'onaylandi' ? `<button class="d-alt-ana ${benimZiyaretlerim.has(y.id) ? 'aktif' : ''}" id="d-ziyaret">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>
+      <b id="d-ziyaret-metin">${benimZiyaretlerim.has(y.id) ? 'Ziyaret ettin' : 'Ziyaret ettim'}</b></button>` : ''}`;
   // olaylar
   const fotolar = (y.fotograflar||[]).map(f => fotoUrl(f.yol));
   k.querySelectorAll('[data-buyuk]').forEach((img, i) => img.addEventListener('click', () => galeriAc(fotolar, i)));
@@ -2891,7 +2970,8 @@ async function detayAc(id){
     yolTarifiHedef = {lat: y.lat, lng: y.lng};
     $('#kip-yol-tarifi').classList.add('acik');
   });
-  $('#d-paylas').addEventListener('click', async () => {
+  $('#d-paylas').onclick = null;
+  $('#d-paylas').onclick = async () => {
     /* Hash sunucuya gitmediği için botlar kayda özel kartı hash'li adreste
        göremez. Bu yüzden paylaşımda `kart-uret.js`in ürettiği statik kart
        sayfası verilir; o sayfa insanı hash'li adrese yönlendirir.
@@ -2900,7 +2980,7 @@ async function detayAc(id){
     const url = `https://turbedar.org/y/${y.id}.html`;
     if (navigator.share){ try{ await navigator.share({title: y.baslik, url}); }catch(e){} }
     else { await navigator.clipboard.writeText(url); bildir('Bağlantı kopyalandı'); }
-  });
+  };
   const zbtn = $('#d-ziyaret');
   ziyaretAniCiz(y);
   if (zbtn) zbtn.addEventListener('click', async () => {
@@ -2931,8 +3011,8 @@ async function detayAc(id){
     const yeniSayi = Math.max(0, ziyaretSayisi(kayit || y) + (vardi ? -1 : 1));
     if (kayit) kayit.ziyaretler = [{count: yeniSayi}];
     zbtn.classList.toggle('aktif', !vardi);
-    $('#d-ziyaret-metin').textContent = !vardi ? 'Ziyaret Ettim' : 'Ziyaret Ettim İşaretle';
-    $('#d-ziyaret-sayi').textContent = yeniSayi ? yeniSayi + ' ziyaretçi' : 'İlk ziyaretçi sen ol';
+    $('#d-ziyaret-metin').textContent = !vardi ? 'Ziyaret ettin' : 'Ziyaret ettim';
+    $('#d-ziyaret-sayi').textContent = yeniSayi;
     if (!vardi){
       bildir('🕌 Ziyaret listene eklendi');
       const km = ZIYARET_KILOMETRE[benimZiyaretlerim.size];
@@ -2968,7 +3048,36 @@ async function detayAc(id){
   }
   $('#detay-sayfa').classList.add('acik'); $('#detay-ortulu').classList.add('acik');
   $('#detay-sayfa .sayfa-icerik').scrollTop = 0;
+  const serit = k.querySelector('.d-kapak-serit');
+  if (serit) serit.addEventListener('scroll', () => {
+    const i = Math.round(serit.scrollLeft / Math.max(serit.clientWidth, 1));
+    k.querySelectorAll('.d-kapak-nokta i').forEach((n, j) => n.classList.toggle('aktif', i === j));
+  }, {passive: true});
+  $('#d-haritada').addEventListener('click', () => {
+    sayfaKapat(); gorunumAc('harita');
+    setTimeout(() => {
+      if (yerler.some(v => v.id === y.id)) haritaAramaYereGit(y.id);
+      else harita.setView([y.lat, y.lng], 16);
+    }, 150);
+  });
+  detayMiniHaritaKur(y);
 }
+/* Detaydaki küçük, dokunulmaz harita (iOS'taki konum kartı). Her açılışta yeniden kurulur. */
+let detayMiniHarita = null;
+function detayMiniHaritaKur(y){
+  if (detayMiniHarita){ detayMiniHarita.remove(); detayMiniHarita = null; }
+  if (!(y.lat && y.lng)) return;
+  detayMiniHarita = L.map('d-mini-harita', {zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false,
+    doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, tap: false}).setView([y.lat, y.lng], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(detayMiniHarita);
+  L.marker([y.lat, y.lng], {icon: pinIkon(y), interactive: false}).addTo(detayMiniHarita);
+  setTimeout(() => detayMiniHarita && detayMiniHarita.invalidateSize(), 320);
+}
+/* Kapak kayınca üstte başlıklı şerit (iOS ile aynı) */
+$('#detay-icerik').addEventListener('scroll', e => {
+  const kapak = e.target.querySelector('.d-kapak');
+  $('#d-serit').classList.toggle('gorunur', !!kapak && e.target.scrollTop > kapak.offsetHeight - 90);
+}, {passive: true});
 /* ---- Fotoğraf galerisi (lightbox) ---- */
 let galeriFotolar = [], galeriIndex = 0;
 function galeriAc(fotolar, index){

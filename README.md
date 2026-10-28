@@ -12,7 +12,7 @@ _Türkiye'nin ve dünyanın türbe, kümbet ve önemli mezarlarının gönüllü
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android%20uygulamas%C4%B1-B8923E?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.kamilsaim.turbedar)
 [![Türbe Rehberi](https://img.shields.io/badge/il%20il-t%C3%BCrbe%20rehberi-233129?style=for-the-badge)](https://turbedar.org/turbeler/)
 
-![Version](https://img.shields.io/badge/v3.0.0-B8923E)
+![Version](https://img.shields.io/badge/v3.0.1-B8923E)
 ![Platform](https://img.shields.io/badge/web%20%C2%B7%20android%20%C2%B7%20ios-233129)
 ![Build](https://img.shields.io/badge/derleme%20ad%C4%B1m%C4%B1-yok-1E4D38)
 [![Gizlilik](https://img.shields.io/badge/gizlilik-politikas%C4%B1-75806F)](https://turbedar.org/gizlilik-politikasi.html)
@@ -109,6 +109,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **3.0.1** | Kayıt sayfası yenilendi: kenardan kenara kapak fotoğrafı, uzaklık · ziyaretçi · fotoğraf kutucukları, küçük harita ve Haritada göster, altta sabit Yol tarifi ve Ziyaret ettim düğmeleri; telefonda tam sayfa. Gönüllü sayısı Silinmiş Kullanıcı hesabını saymıyor |
 | **3.0.0** | Yeni görünüm: açılışta ana sayfa (günün türbesi, ziyaret yolculuğu, bilinmesi gerekenler, yakınındakiler, son eklenenler), ortası logolu alt çubuk, logolu harita pinleri, bilgisayarda sol menü. İstatistik artık Profil'de |
 | **2.1.6** | Yurt dışı kayıtlarda şehir adı Türkçe geliyor: yerel alfabedeki (Arapça, Yunanca vb.) ad yerine Türkçe bölge adı seçiliyor, ili/Şehri ekleri atılıyor; Türkçe ad bulunamazsa ipucu çıkıyor |
 | **2.1.5** | İstatistikte yeni Ülkelere Göre bölümü: İllere Göre listesi yalnızca Türkiye illerini gösteriyor, yurt dışı kayıtlar ülke ülke ayrı listede; ülkeye dokununca Keşfet o ülkeyle açılıyor |
