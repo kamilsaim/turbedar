@@ -1236,6 +1236,78 @@ const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const KATEGORILER = {turbe:'Türbe', kumbet:'Kümbet', mezar:'Mezar', makam:'Makam', anit_mezar:'Anıt Mezar', sehitlik:'Şehitlik', diger:'Diğer'};
+/* ==SAF-ANA-SAYFA-BASLA== */
+/* Ana sayfa mantığı — DOM'a ve başka global'e dokunmaz; testler/ana-sayfa.test.js bu bloğu kesip çalıştırır.
+   Günün türbesi iOS'taki gununYeri ile AYNI seçimi yapar (aynı gün iPhone, widget ve web aynı kaydı gösterir). */
+function istanbulGunNo(tarih){
+  // Türkiye UTC+3, yaz saati yok: İstanbul takvim gününün 1970-01-01'den gün sayısı
+  return Math.floor((tarih.getTime() + 3 * 3600e3) / 86400e3);
+}
+function anaSecimAdaylari(yerler){
+  return yerler.filter(y => y.durum === 'onaylandi' && (y.fotograflar || []).length)
+    .sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
+function gununSec(adaylar, tarih){
+  if (!adaylar.length) return null;
+  const n = adaylar.length;
+  return adaylar[((istanbulGunNo(tarih) % n) + n) % n];
+}
+function gununYeriSec(yerler, ziyaretler, tarih = new Date()){
+  const adaylar = anaSecimAdaylari(yerler);
+  if (ziyaretler && ziyaretler.size){
+    const gidilmemis = gununSec(adaylar.filter(y => !ziyaretler.has(y.id)), tarih);
+    if (gidilmemis) return gidilmemis;
+  }
+  return gununSec(adaylar, tarih);
+}
+function gonulluSayisi(yerler){
+  return new Set(yerler.filter(y => y.durum === 'onaylandi' && y.ekleyen_id).map(y => y.ekleyen_id)).size;
+}
+function ziyaretEdilmeyenlerOnce(liste, ziyaretler, sinir){
+  const gidilmemis = liste.filter(x => !ziyaretler.has(x.yer.id));
+  const gidilen = liste.filter(x => ziyaretler.has(x.yer.id));
+  return gidilmemis.concat(gidilen).slice(0, sinir);
+}
+function yerEksikMi(y){
+  if (!(y.aciklama && y.aciklama.trim())) return 'aciklama';
+  if (!(y.kaynaklar && y.kaynaklar.length) && !(y.kaynak && y.kaynak.trim())) return 'kaynak';
+  return null;
+}
+function eksikZiyaret(yerler, ziyaretler, tarih = new Date()){
+  const adaylar = yerler.filter(y => y.durum === 'onaylandi' && ziyaretler.has(y.id) && yerEksikMi(y))
+    .sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  return gununSec(adaylar, tarih);
+}
+function goreceTarih(tarih, simdi = new Date()){
+  const d = istanbulGunNo(simdi) - istanbulGunNo(new Date(tarih));
+  if (d < 1) return 'bugün';
+  if (d === 1) return 'dün';
+  if (d < 14) return d + ' gün önce';
+  if (d < 60) return Math.floor(d / 7) + ' hafta önce';
+  if (d < 365) return Math.floor(d / 30) + ' ay önce';
+  return Math.floor(d / 365) + ' yıl önce';
+}
+function anaYurtdisi(y){ return !!(y.ulke_kodu && y.ulke_kodu !== 'tr'); }
+function anaKucuk(s){
+  return (s || '').toLocaleLowerCase('tr').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u');
+}
+/* iOS illereGoreZiyaret + yolculukOzeti: TR'de il, yurt dışında ülke; en çok gidilen önce, eşitse ada göre */
+function yolculukOzeti(yerler, ziyaretler){
+  const gidilen = yerler.filter(y => ziyaretler.has(y.id));
+  const il = new Set(gidilen.filter(y => !anaYurtdisi(y) && y.il).map(y => y.il)).size;
+  const ulke = new Set(gidilen.filter(y => anaYurtdisi(y) && y.ulke).map(y => y.ulke)).size;
+  const toplam = {}, git = {};
+  yerler.filter(y => y.durum === 'onaylandi').forEach(y => {
+    const k = anaYurtdisi(y) ? (y.ulke || '') : (y.il || '');
+    if (!k) return;
+    toplam[k] = (toplam[k] || 0) + 1;
+    if (ziyaretler.has(y.id)) git[k] = (git[k] || 0) + 1;
+  });
+  const sira = Object.keys(git).map(k => ({ad: k, toplam: toplam[k], gidilen: git[k]}))
+    .sort((a, b) => b.gidilen - a.gidilen || (anaKucuk(a.ad) < anaKucuk(b.ad) ? -1 : anaKucuk(a.ad) > anaKucuk(b.ad) ? 1 : 0));
+  return {metin: `${ziyaretler.size} türbe · ${il} il` + (ulke > 0 ? ` · ${ulke} ülke` : ''), il: sira[0] || null};
+}
+/* ==SAF-ANA-SAYFA-BITIR== */
 const ALAN_ADLARI = {baslik:'Başlık', kategori:'Kategori', aciklama:'Açıklama', kaynaklar:'Kaynaklar', mahalle:'Mahalle', il:'İl', ilce:'İlçe', lat:'Enlem', lng:'Boylam', videolar:'Videolar', kisiler:'Mekan sahipleri'};
 const VARSAYILAN_AVATAR = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#E4EDE6"/><circle cx="20" cy="15" r="7" fill="#1E4D38"/><path d="M6 38c0-8 6-12 14-12s14 4 14 12" fill="#1E4D38"/></svg>');
 
