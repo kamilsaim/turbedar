@@ -651,6 +651,70 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .kullanici-satir select{padding:7px 10px;border:1.5px solid var(--cizgi);border-radius:9px;background:var(--kart);font-weight:700;font-size:12.5px}
 
 /* ---------- Kipler (modal), bildirim ---------- */
+/* ====== ANA SAYFA (iOS 3.0 ile aynı düzen) ====== */
+.ana{padding-top:10px}
+.ana-ust{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ana-selam{font-size:15px;font-weight:600;color:var(--soluk)}
+.ana-marka{font-family:var(--display);font-weight:700;font-size:32px;color:var(--zumrut);line-height:1}
+.ana-zil{position:relative;width:46px;height:46px;border-radius:50%;background:var(--kart);display:grid;place-items:center;color:var(--zumrut);box-shadow:0 3px 8px rgba(0,0,0,.08)}
+.ana-zil-sayi{position:absolute;top:-2px;right:-4px;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--altin);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.ana-kahraman{position:relative;overflow:hidden;border-radius:26px;padding:20px;color:var(--krem);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cpath d='M36 8l7 17 17-7-7 17 17 7-17 7 7 17-17-7-7 17-7-17-17 7 7-17-17-7 17-7-7-17 17 7z' fill='none' stroke='%23D9C08A' stroke-opacity='.16' stroke-width='1.2'/%3E%3C/svg%3E"),linear-gradient(150deg,#2C6A4E,#163C2B);
+  box-shadow:0 8px 14px rgba(30,77,56,.25)}
+.ana-kahraman::after{content:"";position:absolute;right:16px;bottom:-1px;width:112px;height:140px;border:1.5px solid rgba(217,192,138,.5);border-bottom:0;border-radius:56px 56px 0 0;pointer-events:none}
+.ana-etiket{font-size:12px;font-weight:800;letter-spacing:.13em;color:var(--altin-acik)}
+.ana-soz{font-family:var(--display);font-style:italic;font-size:20px;margin-top:8px}
+.ana-aciklama{font-size:14px;opacity:.9;margin:6px 0 16px;max-width:88%;line-height:1.45}
+.ana-sayilar{display:flex;gap:18px;margin-bottom:18px;flex-wrap:wrap}
+.ana-sayilar b{display:block;font-size:24px;font-weight:700;line-height:1.1}
+.ana-sayilar span{font-size:13px;opacity:.85}
+.ana-altin-btn{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;border-radius:14px;background:var(--altin);color:#fff;font-weight:700;font-size:15px}
+.ana-kart{background:var(--kart);border-radius:18px;padding:16px;box-shadow:0 6px 14px rgba(0,0,0,.06);margin-top:14px}
+.ana-kart-baslik{font-family:var(--display);font-weight:700;font-size:21px;color:var(--murekkep)}
+.ana-cubuk{height:6px;border-radius:3px;background:var(--kart-koyu);margin:8px 0 6px;overflow:hidden}
+.ana-cubuk i{display:block;height:100%;background:var(--altin);border-radius:3px}
+.ana-ikincil{font-size:14px;color:var(--soluk);line-height:1.45}
+.ana-bolum{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:24px 0 10px}
+.ana-bolum h2{font-family:var(--display);font-weight:700;font-size:22px;color:var(--murekkep);line-height:1.15}
+.ana-bolum button{font-size:15px;font-weight:700;color:var(--zumrut-acik);min-height:44px;padding:0 4px;flex:none}
+.ana-gunun{display:block;width:100%;text-align:left;background:var(--kart);border-radius:22px;overflow:hidden;box-shadow:0 8px 16px rgba(0,0,0,.08)}
+.ana-gunun-foto{position:relative;height:190px;background:var(--kart-koyu) center/cover}
+.ana-rozet{position:absolute;top:10px;right:10px;background:var(--altin);color:#fff;font-size:13px;font-weight:700;padding:5px 10px;border-radius:99px}
+.ana-gunun-ic{padding:16px}
+.ana-ust-etiket{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--altin);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ana-gunun-ic h3{font-family:var(--display);font-weight:700;font-size:24px;color:var(--zumrut);margin:4px 0}
+.ana-gunun-ic p{font-size:15px;color:var(--murekkep);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ana-davet{display:flex;align-items:center;gap:12px;margin-top:10px;padding:0 4px}
+.ana-davet em{flex:1;font-family:var(--display);font-size:17px;color:var(--murekkep)}
+.ana-oner{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:700;color:var(--zumrut-acik);min-height:44px;flex:none}
+.ana-bilgi details{border-bottom:1px solid var(--cizgi)}
+.ana-bilgi details:last-child{border:0}
+.ana-bilgi summary{display:flex;align-items:center;gap:10px;min-height:48px;font-size:16px;font-weight:600;color:var(--murekkep);cursor:pointer;list-style:none}
+.ana-bilgi summary::-webkit-details-marker{display:none}
+.ana-bilgi summary::before{content:"";width:11px;height:11px;background:var(--altin);transform:rotate(45deg);flex:none}
+.ana-bilgi .bilgi-icerik{font-size:15px;line-height:1.6;padding:0 0 12px 21px;color:var(--murekkep)}
+.ana-satir{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:8px 0}
+.ana-satir+.ana-satir{border-top:1px solid var(--cizgi)}
+.ana-satir img,.ana-satir .ana-bos-foto{width:64px;height:64px;border-radius:14px;object-fit:cover;flex:none;background:linear-gradient(150deg,#2C6A4E,#163C2B)}
+.ana-satir b{display:block;font-family:var(--display);font-size:19px;color:var(--zumrut);line-height:1.15}
+.ana-satir small{display:block;font-size:13px;color:var(--soluk);margin-top:2px}
+.ana-satir .ana-gitti{color:var(--zumrut-acik);font-weight:700}
+.ana-serit{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 8px;scrollbar-width:none}
+.ana-serit::-webkit-scrollbar{display:none}
+.ana-foto-kart{position:relative;flex:none;width:160px;height:214px;border-radius:20px;overflow:hidden;scroll-snap-align:start;background:var(--kart-koyu) center/cover;box-shadow:0 5px 10px rgba(0,0,0,.1);text-align:left}
+.ana-foto-kart::before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(0,0,0,.88))}
+.ana-foto-kart div{position:absolute;left:12px;right:12px;bottom:12px;color:#fff}
+.ana-foto-kart b{display:block;font-family:var(--display);font-size:19px;line-height:1.1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ana-foto-kart small{display:block;font-size:13px;opacity:.92;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ana-foto-kart small+small{font-size:12px;opacity:.8}
+.ana-foto-kart .ana-muhur{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--altin);color:#fff;display:grid;place-items:center;font-size:14px;z-index:1}
+.ana-onay{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--kart);border-radius:18px;padding:14px;margin-top:14px;box-shadow:0 5px 10px rgba(0,0,0,.07);border-left:4px solid var(--altin)}
+.ana-onay-simge{width:44px;height:44px;border-radius:12px;background:var(--altin-soluk);color:var(--altin);display:grid;place-items:center;flex:none}
+.ana-onay b{display:block;font-size:16px;color:var(--murekkep)}
+.ana-onay-sayi{margin-left:auto;min-width:30px;height:30px;padding:0 6px;border-radius:99px;background:var(--zumrut);color:#fff;font-weight:800;display:grid;place-items:center}
+.ana-adim{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--zumrut);margin-top:6px}
+.ana-giris-btn{display:block;width:100%;min-height:46px;border-radius:14px;background:var(--altin);color:#fff;font-weight:700;font-size:15px;margin-top:12px}
+.site-altbilgi{margin-top:28px}
 .kip{position:fixed;inset:0;z-index:700;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(25,38,30,.5);backdrop-filter:blur(3px)}
 .kip.acik{display:flex}
 .kip-kutu{background:var(--kart);border-radius:18px;padding:22px;width:100%;max-width:420px;box-shadow:var(--golge-buyuk);border-top:2px solid var(--altin);max-height:85dvh;overflow-y:auto}
@@ -741,8 +805,35 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 <body>
 <div id="uygulama">
 
+  <!-- ============ ANA SAYFA (varsayılan; iOS 3.0 ana sayfasıyla aynı düzen) ============ -->
+  <section class="gorunum aktif" data-gorunum="ana">
+    <div class="icerik ana" id="ana-icerik"></div>
+    <!-- Sabit HTML (JS çizmez): arama motorları ana sayfadan SEO sayfalarına buradan ulaşır -->
+    <footer class="icerik site-altbilgi">
+      <h1>Türbedar: Türkiye'deki türbe, kümbet ve mezarların haritası</h1>
+      <p>Türbedar; Türkiye ve dünyadaki evliya, sultan, alim ve önemli şahsiyetlerin türbe, kümbet ve mezarlarını bir araya getiren ortak bir envanterdir. Haritada yakınındaki türbeleri bul, ziyaretini işaretle, bildiğin yerleri fotoğrafı ve bilgisiyle ekle.</p>
+      <nav aria-label="Site sayfaları">
+        <a href="https://turbedar.org/turbedar-nedir/" target="_blank" rel="noopener">Türbedar nedir?</a>
+        <a href="https://turbedar.org/turbeler/" target="_blank" rel="noopener">Tüm türbeler</a>
+        <a href="https://turbedar.org/surum-notlari/" target="_blank" rel="noopener">Sürüm notları</a>
+        <a href="https://turbedar.org/gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik</a>
+        <a href="https://turbedar.org/kullanim-kosullari.html" target="_blank" rel="noopener">Kullanım koşulları</a>
+      </nav>
+      <nav aria-label="İllere göre türbeler" class="site-altbilgi-iller">
+        <a href="https://turbedar.org/turbeler/kayseri/" target="_blank" rel="noopener">Kayseri türbeleri</a>
+        <a href="https://turbedar.org/turbeler/istanbul/" target="_blank" rel="noopener">İstanbul türbeleri</a>
+        <a href="https://turbedar.org/turbeler/konya/" target="_blank" rel="noopener">Konya türbeleri</a>
+        <a href="https://turbedar.org/turbeler/bursa/" target="_blank" rel="noopener">Bursa türbeleri</a>
+        <a href="https://turbedar.org/turbeler/ankara/" target="_blank" rel="noopener">Ankara türbeleri</a>
+        <a href="https://turbedar.org/turbeler/sivas/" target="_blank" rel="noopener">Sivas türbeleri</a>
+        <a href="https://turbedar.org/turbeler/elazig/" target="_blank" rel="noopener">Elazığ türbeleri</a>
+        <a href="https://turbedar.org/turbeler/afyonkarahisar/" target="_blank" rel="noopener">Afyonkarahisar türbeleri</a>
+      </nav>
+    </footer>
+  </section>
+
   <!-- ============ HARİTA ============ -->
-  <section class="gorunum aktif" id="gorunum-harita" data-gorunum="harita">
+  <section class="gorunum" id="gorunum-harita" data-gorunum="harita">
     <div id="harita"></div>
     <div class="harita-ust">
       <div class="marka" id="marka-btn" role="button" title="Tüm yerleri göster"><img src="data:image/webp;base64,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" alt=""><b>Türbedar</b></div>
@@ -841,28 +932,6 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   <!-- ============ PROFİL ============ -->
   <section class="gorunum" data-gorunum="profil">
     <div class="icerik" id="profil-icerik"></div>
-    <!-- Sabit HTML (JS çizmez): arama motorları ana sayfadan SEO sayfalarına buradan ulaşır -->
-    <footer class="icerik site-altbilgi">
-      <h1>Türbedar: Türkiye'deki türbe, kümbet ve mezarların haritası</h1>
-      <p>Türbedar; Türkiye ve dünyadaki evliya, sultan, alim ve önemli şahsiyetlerin türbe, kümbet ve mezarlarını bir araya getiren ortak bir envanterdir. Haritada yakınındaki türbeleri bul, ziyaretini işaretle, bildiğin yerleri fotoğrafı ve bilgisiyle ekle.</p>
-      <nav aria-label="Site sayfaları">
-        <a href="https://turbedar.org/turbedar-nedir/" target="_blank" rel="noopener">Türbedar nedir?</a>
-        <a href="https://turbedar.org/turbeler/" target="_blank" rel="noopener">Tüm türbeler</a>
-        <a href="https://turbedar.org/surum-notlari/" target="_blank" rel="noopener">Sürüm notları</a>
-        <a href="https://turbedar.org/gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik</a>
-        <a href="https://turbedar.org/kullanim-kosullari.html" target="_blank" rel="noopener">Kullanım koşulları</a>
-      </nav>
-      <nav aria-label="İllere göre türbeler" class="site-altbilgi-iller">
-        <a href="https://turbedar.org/turbeler/kayseri/" target="_blank" rel="noopener">Kayseri türbeleri</a>
-        <a href="https://turbedar.org/turbeler/istanbul/" target="_blank" rel="noopener">İstanbul türbeleri</a>
-        <a href="https://turbedar.org/turbeler/konya/" target="_blank" rel="noopener">Konya türbeleri</a>
-        <a href="https://turbedar.org/turbeler/bursa/" target="_blank" rel="noopener">Bursa türbeleri</a>
-        <a href="https://turbedar.org/turbeler/ankara/" target="_blank" rel="noopener">Ankara türbeleri</a>
-        <a href="https://turbedar.org/turbeler/sivas/" target="_blank" rel="noopener">Sivas türbeleri</a>
-        <a href="https://turbedar.org/turbeler/elazig/" target="_blank" rel="noopener">Elazığ türbeleri</a>
-        <a href="https://turbedar.org/turbeler/afyonkarahisar/" target="_blank" rel="noopener">Afyonkarahisar türbeleri</a>
-      </nav>
-    </footer>
   </section>
 
   <!-- ============ YÖNETİM ============ -->
@@ -1006,6 +1075,13 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 </div>
 
 <!-- ============ HAKKINDA KİPİ ============ -->
+<div class="kip" id="kip-bilgiler">
+  <div class="kip-kutu" style="max-width:480px">
+    <h3>Ziyaret hakkında bilinmesi gerekenler</h3>
+    <div id="bilgiler-icerik" class="bilgi-kutu" style="max-height:62vh;overflow-y:auto"></div>
+    <div class="kip-butonlar" style="margin-top:14px"><button class="btn btn-tam" id="bilgiler-kapat" style="background:transparent;border:1px solid var(--cizgi);color:var(--murekkep)">Kapat</button></div>
+  </div>
+</div>
 <div class="kip" id="kip-hakkinda">
   <div class="kip-kutu" style="max-width:480px">
     <button class="sayfa-kapat" id="hakkinda-kapat" style="position:absolute;top:14px;right:14px" aria-label="Kapat">✕</button>
@@ -1706,7 +1782,7 @@ async function puanlamaIste(){
 /* ====================== BİLDİRİMLER ====================== */
 async function bildirimleriYukle(){
   const zil = $('#btn-bildirim'), sayi = $('#bildirim-zil-sayi');
-  if (!kullanici){ zil.style.display = 'none'; bildirimlerim = []; simgeRozeti(0); return; }
+  if (!kullanici){ zil.style.display = 'none'; bildirimlerim = []; simgeRozeti(0); anaSayfaCiz(); return; }
   const {data} = await sb.from('turbedar_bildirimler').select('*').order('created_at', {ascending:false}).limit(50);
   bildirimlerim = data || [];
   const okunmamis = bildirimlerim.filter(b => !b.okundu).length;
@@ -1714,6 +1790,7 @@ async function bildirimleriYukle(){
   sayi.style.display = okunmamis ? 'flex' : 'none';
   sayi.textContent = okunmamis;
   simgeRozeti(okunmamis);
+  anaSayfaCiz();
 }
 /* iOS uygulama simgesindeki kırmızı sayı (@capawesome/capacitor-badge). Push gelince sunucu
    aps.badge ile okunmamış sayısını yazar; uygulama açıkken burada zil sayısıyla eşitlenir. */
@@ -1774,6 +1851,7 @@ let yakinSonKonum = null;
 $('#yakin-gitmediklerim').addEventListener('change', () => { if (yakinSonKonum) yakinListele(yakinSonKonum.lat, yakinSonKonum.lng); });
 function yakinListele(lat, lng){
   yakinSonKonum = {lat, lng};
+  if (!anaKonum){ anaKonum = {lat, lng}; anaSayfaCiz(); }
   const gitmediklerim = kullanici && $('#yakin-gitmediklerim').checked;
   const liste = yerler
     .filter(y => y.durum === 'onaylandi' && !(gitmediklerim && benimZiyaretlerim.has(y.id)))
@@ -1924,7 +2002,7 @@ async function veriYukle(){
   }
   istatistik = ist || [];
   katkilar = kt || [];
-  haritaCiz(); kesfetCiz(); istatistikCiz(); suzgecleriDoldur();
+  haritaCiz(); kesfetCiz(); istatistikCiz(); suzgecleriDoldur(); anaSayfaCiz();
   if (kullanici && typeof taslakSayisiGuncelle === 'function') taslakSayisiGuncelle();
 }
 async function bilgileriYukle(){
@@ -1962,6 +2040,8 @@ async function yonetimRozetiGuncelle(){
     sb.from('turbedar_raporlar').select('id', {count:'exact', head:true}).eq('durum', 'acik'),
   ]);
   const toplam = (bk||0) + (rk||0) + (nk||0) + (mk||0) + (rpk||0);
+  anaOnaySayilari = {kayit: bk||0, duzenleme: rk||0, ek: nk||0, rapor: rpk||0};
+  anaSayfaCiz();
   sayi.style.display = toplam ? 'flex' : 'none';
   sayi.textContent = toplam;
   $('#sk-bekleyen').textContent = bk ? `(${bk})` : '';
@@ -1984,11 +2064,145 @@ function eksikYerler(){
 }
 
 /* ====================== GEZİNME ====================== */
+/* ====================== ANA SAYFA ====================== */
+let anaKonum = null;           // bu oturumda alınmış son konum (izin sormadan; Yakınındakiler için)
+let anaOnaySayilari = null;    // yönetici: {kayit, duzenleme, ek, rapor}
+const ANA_SVG = {
+  zil: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+  konum: '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7.5 2.9L13.5 21z"/></svg>',
+  harita: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>',
+  oner: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v6M9 10h6"/></svg>',
+  kalkan: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
+  foto: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
+  pin: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+};
+function anaKonumKisa(y){
+  return anaYurtdisi(y) ? [y.il, y.ulke].filter(Boolean).join(', ') : [y.ilce, y.il].filter(Boolean).join(', ');
+}
+function anaSatir(y, metre){
+  const f = (y.fotograflar || [])[0];
+  const gitti = kullanici && benimZiyaretlerim.has(y.id);
+  return `<button class="ana-satir" data-ana-yer="${kacir(y.id)}">
+    ${f ? `<img src="${fotoUrl(f.yol)}" alt="" loading="lazy">` : '<span class="ana-bos-foto"></span>'}
+    <span style="min-width:0"><b>${kacir(y.baslik)}</b>
+      <small>${kacir(konumYazisi(y) || 'Konum bilgisi yok')}</small>
+      <small><span style="color:var(--altin);font-weight:700">${kacir(KATEGORILER[y.kategori] || '')}</span>${metre != null ? ' · ' + (metre < 1000 ? Math.round(metre) + ' m' : (metre / 1000).toFixed(1).replace('.', ',') + ' km') : ''}${gitti ? ' · <span class="ana-gitti">✓ Ziyaret ettin</span>' : ''}</small></span>
+  </button>`;
+}
+function anaSayfaCiz(){
+  const k = $('#ana-icerik');
+  if (!k) return;
+  const z = kullanici ? benimZiyaretlerim : new Set();
+  const ad = profil?.ad && profil.ad !== 'İsimsiz' ? profil.ad : '';
+  const okunmamis = kullanici ? (bildirimlerim || []).filter(b => !b.okundu).length : 0;
+  const onayli = yerler.filter(y => y.durum === 'onaylandi');
+  const ilSay = new Set(onayli.filter(y => !anaYurtdisi(y) && y.il).map(y => y.il)).size;
+  const ulkeSay = new Set(onayli.map(y => anaYurtdisi(y) ? y.ulke_kodu : 'tr')).size;
+  const h = [];
+  h.push(`<div class="ana-ust"><div><div class="ana-selam">${kacir(ad ? 'Esselâmü aleyküm, ' + ad : 'Esselâmü aleyküm')}</div><div class="ana-marka">Türbedar</div></div>
+    ${kullanici ? `<button class="ana-zil" data-ana-zil aria-label="Bildirimler${okunmamis ? ', ' + okunmamis + ' okunmamış' : ''}">${ANA_SVG.zil}${okunmamis ? `<span class="ana-zil-sayi">${Math.min(okunmamis, 99)}</span>` : ''}</button>` : ''}</div>`);
+  h.push(`<div class="ana-kahraman">
+    <div class="ana-etiket">EMANET · HİZMET · SADAKAT</div>
+    <div class="ana-soz">Edeple gelen, lütufla gider.</div>
+    <div class="ana-aciklama">Türbe, kümbet ve şehitliklerin gönüllülerce tutulan ortak envanteri.</div>
+    <div class="ana-sayilar"><div><b>${onayli.length}</b><span>kayıt</span></div><div><b>${ilSay}</b><span>il</span></div><div><b>${ulkeSay}</b><span>ülke</span></div><div><b>${gonulluSayisi(yerler)}</b><span>gönüllü</span></div></div>
+    <button class="ana-altin-btn" data-ana-kahraman>${anaKonum ? ANA_SVG.harita + 'Haritada gör' : ANA_SVG.konum + 'Yakınımdaki türbeler'}</button>
+  </div>`);
+  if (yonetici() && anaOnaySayilari){
+    const o = anaOnaySayilari, top = o.kayit + o.duzenleme + o.ek + o.rapor;
+    h.push(`<button class="ana-onay" data-ana-onay><span class="ana-onay-simge">${ANA_SVG.kalkan}</span>
+      <span><b>Onay bekleyenler</b><span class="ana-ikincil">${top ? `${o.kayit} kayıt · ${o.duzenleme} düzenleme · ${o.ek} ek bilgi · ${o.rapor} bildirim` : 'Bekleyen iş yok'}</span></span>
+      ${top ? `<span class="ana-onay-sayi">${top}</span>` : ''}</button>`);
+  }
+  if (kullanici){
+    const yo = yolculukOzeti(yerler, z);
+    h.push(`<div class="ana-kart"><div class="ana-kart-baslik">Ziyaret yolculuğun</div>
+      <div style="font-weight:700;color:var(--zumrut);margin-top:4px">${kacir(yo.metin)}</div>
+      ${yo.il ? `<div class="ana-cubuk"><i style="width:${Math.round(100 * yo.il.gidilen / Math.max(yo.il.toplam, 1))}%"></i></div>
+        <div class="ana-ikincil">${kacir(yo.il.ad)}: ${yo.il.toplam} türbeden ${yo.il.gidilen} tanesini ziyaret ettin</div>`
+        : '<div class="ana-ikincil" style="margin-top:6px">İlk ziyaretini işaretlediğinde yolculuğun burada görünecek.</div>'}</div>`);
+  } else {
+    h.push(`<div class="ana-kart"><div class="ana-kart-baslik">Sen de katkıda bulun</div>
+      <p class="ana-ikincil" style="color:var(--murekkep);margin-top:6px">Ziyaret ettiğin türbeleri işaretle, bildiğin bir yeri ekle. Onaylanan her kayıt herkesin ortak hafızası olur.</p>
+      <div class="ana-adim">${ANA_SVG.foto}Fotoğrafını çek</div><div class="ana-adim">${ANA_SVG.pin}Konumu işaretle</div><div class="ana-adim">${ANA_SVG.kalkan.replace(/width="20" height="20"/, 'width="16" height="16"')}Yönetici onaylasın</div>
+      <button class="ana-giris-btn" data-ana-giris>Giriş yap</button></div>`);
+  }
+  const g = gununYeriSec(yerler, kullanici ? z : null);
+  if (g){
+    const f = g.fotograflar[0];
+    const ac = g.aciklama && g.aciklama.trim();
+    h.push(`<div class="ana-bolum"><h2>Günün türbesi</h2></div>
+      <button class="ana-gunun" data-ana-yer="${kacir(g.id)}">
+        <div class="ana-gunun-foto" style="background-image:url('${fotoUrl(f.yol)}')">${z.has(g.id) ? '<span class="ana-rozet">✓ Ziyaret ettin</span>' : ''}</div>
+        <div class="ana-gunun-ic"><div class="ana-ust-etiket">${kacir((KATEGORILER[g.kategori] || '') + ' · ' + (konumYazisi(g) || ''))}</div>
+          <h3>${kacir(g.baslik)}</h3>
+          ${ac ? `<p>${kacir(ac)}</p>` : ((g.kisiler || [])[0] ? `<p>Mekân sahibi: ${kacir(g.kisiler[0].ad)}</p>` : '')}</div>
+      </button>
+      ${ac ? '' : `<div class="ana-davet"><em>Bu emanetin hikâyesi henüz yazılmadı. Bilen var mı?</em><button class="ana-oner" data-ana-oner="${kacir(g.id)}">${ANA_SVG.oner}Bilgi öner</button></div>`}`);
+  }
+  if (bilgiler.length){
+    h.push(`<div class="ana-bolum"><h2>Ziyaret hakkında bilinmesi gerekenler</h2>${bilgiler.length > 2 ? '<button data-ana-bilgiler>Tümü</button>' : ''}</div>
+      <div class="ana-kart ana-bilgi" style="margin-top:0;padding:4px 16px">${bilgiler.slice(0, 2).map(b => `<details><summary>${kacir(b.baslik)}</summary><div class="bilgi-icerik">${kacir(b.icerik)}</div></details>`).join('')}</div>`);
+  }
+  if (anaKonum){
+    const yakin = ziyaretEdilmeyenlerOnce(onayli.map(y => ({yer: y, metre: mesafeM(anaKonum.lat, anaKonum.lng, y.lat, y.lng)}))
+      .sort((a, b) => a.metre - b.metre).slice(0, 8), z, 3);
+    if (yakin.length) h.push(`<div class="ana-bolum"><h2>Yakınındakiler</h2><button data-ana-yakin>Tümü</button></div>
+      <div class="ana-kart" style="margin-top:0;padding:6px 14px">${yakin.map(x => anaSatir(x.yer, x.metre)).join('')}</div>`);
+  }
+  if (kullanici){
+    const e = eksikZiyaret(yerler, z);
+    if (e) h.push(`<div class="ana-bolum"><h2>Emanete katkı</h2></div>
+      <div class="ana-kart" style="margin-top:0">${anaSatir(e)}
+        <p class="ana-ikincil" style="margin-top:6px">${yerEksikMi(e) === 'aciklama' ? 'Bu kaydın açıklaması yok.' : 'Bu kaydın kaynağı yok.'} Burayı ziyaret etmiştin; biliyorsan birkaç satırla katkı ver.</p>
+        <button class="ana-oner" data-ana-oner="${kacir(e.id)}">${ANA_SVG.oner}Bilgi öner</button></div>`);
+  }
+  const son = onayli.filter(y => (y.fotograflar || []).length).slice(0, 10);
+  if (son.length){
+    h.push(`<div class="ana-bolum"><h2>Son eklenenler</h2><button data-ana-kesfet>Tümü</button></div>
+      <div class="ana-serit">${son.map(y => {
+        const ekleyen = y.ekleyen?.ad && y.ekleyen.ad !== 'İsimsiz' ? y.ekleyen.ad : '';
+        return `<button class="ana-foto-kart" data-ana-yer="${kacir(y.id)}" style="background-image:url('${fotoUrl(y.fotograflar[0].yol)}')">
+          ${z.has(y.id) ? '<span class="ana-muhur" aria-label="Ziyaret ettin">✓</span>' : ''}
+          <div><b>${kacir(y.baslik)}</b><small>${kacir(anaKonumKisa(y))}</small><small>${kacir([ekleyen, goreceTarih(y.created_at)].filter(Boolean).join(' · '))}</small></div></button>`;
+      }).join('')}</div>`);
+  }
+  k.innerHTML = h.join('');
+}
+/* Android/Chrome: konum izni zaten verilmişse sessizce al (izin SORMAZ). iOS Safari izin durumunu
+   okutmaz — orada bu oturumda Yakınımdaki ile alınmış konum kullanılır. */
+async function anaKonumAl(){
+  try{
+    if (!navigator.permissions || !navigator.geolocation) return;
+    const d = await navigator.permissions.query({name: 'geolocation'});
+    if (d.state !== 'granted') return;
+    navigator.geolocation.getCurrentPosition(p => { anaKonum = {lat: p.coords.latitude, lng: p.coords.longitude}; anaSayfaCiz(); },
+      () => {}, {maximumAge: 600000, timeout: 10000});
+  }catch(e){ /* izin API'si yok — bölüm görünmez */ }
+}
+$('#ana-icerik').addEventListener('click', e => {
+  const yer = e.target.closest('[data-ana-yer]');
+  if (yer){ detayAc(yer.dataset.anaYer); return; }
+  const oner = e.target.closest('[data-ana-oner]');
+  if (oner){ if (!kullanici){ girisIste(); return; } katkiNotuOner(oner.dataset.anaOner); return; }
+  if (e.target.closest('[data-ana-giris]')){ girisIste(); return; }
+  if (e.target.closest('[data-ana-zil]')){ $('#btn-bildirim').click(); return; }
+  if (e.target.closest('[data-ana-kesfet]')){ gorunumAc('kesfet'); return; }
+  if (e.target.closest('[data-ana-onay]')){ gorunumAc('yonetim'); return; }
+  if (e.target.closest('[data-ana-yakin]')){ $('#btn-yakin').click(); return; }
+  if (e.target.closest('[data-ana-kahraman]')){ anaKonum ? gorunumAc('harita') : $('#btn-yakin').click(); return; }
+  if (e.target.closest('[data-ana-bilgiler]')){
+    $('#bilgiler-icerik').innerHTML = bilgiler.map(b => `<details><summary>${kacir(b.baslik)}</summary><div class="bilgi-icerik">${kacir(b.icerik)}</div></details>`).join('');
+    $('#kip-bilgiler').classList.add('acik');
+  }
+});
+$('#bilgiler-kapat').addEventListener('click', () => $('#kip-bilgiler').classList.remove('acik'));
 function gorunumAc(ad){
   if (typeof haritaAramaKapat === 'function') haritaAramaKapat();
   $$('.gorunum').forEach(g => g.classList.toggle('aktif', g.dataset.gorunum === ad));
   $$('.nav-oge').forEach(n => n.classList.toggle('aktif', n.dataset.hedef === ad));
   if (ad === 'harita' && harita) setTimeout(() => harita.invalidateSize(), 60);
+  if (ad === 'ana') anaSayfaCiz();
   if (ad === 'profil') profilCiz();
   if (ad === 'istatistik') kisiselIstatistikCiz();
   if (ad === 'yonetim') yonetimCiz();
@@ -2658,6 +2872,7 @@ async function detayAc(id){
     zbtn.disabled = false;
     if (hata) return bildir('İşaretlenemedi: ' + hata.message, true);
     vardi ? benimZiyaretlerim.delete(y.id) : benimZiyaretlerim.add(y.id);
+    anaSayfaCiz();
     if (vardi) benimZiyaretTarihleri.delete(y.id); else benimZiyaretTarihleri.set(y.id, new Date().toISOString());
     ziyaretAniCiz(y);
     const kayit = yerler.find(x => x.id === y.id);
@@ -5156,6 +5371,7 @@ function yukleSeridiKapat(tur){
 
   guncellemeKontrol();
   pwaYuklemeBaslat();
+  anaKonumAl();
 
   // Capacitor APK: sistem tarayıcısından dönen OAuth callback'i yakala
   if (window.Capacitor){
