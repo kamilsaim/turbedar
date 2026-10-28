@@ -687,7 +687,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .ana-bilgi summary{display:flex;align-items:center;gap:10px;min-height:48px;font-size:16px;font-weight:600;color:var(--murekkep);cursor:pointer;list-style:none}
 .ana-bilgi summary::-webkit-details-marker{display:none}
 .ana-bilgi summary::before{content:"";width:11px;height:11px;background:var(--altin);transform:rotate(45deg);flex:none}
-.ana-bilgi .bilgi-icerik{font-size:15px;line-height:1.6;padding:0 0 12px 21px;color:var(--murekkep)}
+.ana-bilgi .bilgi-icerik{font-size:15px;line-height:1.6;padding:0 0 12px 21px;color:var(--murekkep);white-space:pre-wrap}
 .ana-satir{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:8px 0}
 .ana-satir+.ana-satir{border-top:1px solid var(--cizgi)}
 .ana-satir img,.ana-satir .ana-bos-foto{width:64px;height:64px;border-radius:14px;object-fit:cover;flex:none;background:linear-gradient(150deg,#2C6A4E,#163C2B)}
@@ -1335,6 +1335,11 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const KATEGORILER = {turbe:'Türbe', kumbet:'Kümbet', mezar:'Mezar', makam:'Makam', anit_mezar:'Anıt Mezar', sehitlik:'Şehitlik', diger:'Diğer'};
 /* ==SAF-ANA-SAYFA-BASLA== */
+/* Storage yolları her zaman {yer_id}/{uuid}.uzantı (not fotoları notlar/ önekli). Yol DB'den gelen metin olduğu için
+   HTML özniteliğine ve CSS url('...') içine girmeden önce bu biçim zorunlu tutulur (XSS). */
+function fotoYoluGuvenli(yol){
+  return typeof yol === 'string' && /^(notlar\/)?[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+\.(webp|jpe?g|png)$/i.test(yol);
+}
 /* Ana sayfa mantığı — DOM'a ve başka global'e dokunmaz; testler/ana-sayfa.test.js bu bloğu kesip çalıştırır.
    Günün türbesi iOS'taki gununYeri ile AYNI seçimi yapar (aynı gün iPhone, widget ve web aynı kaydı gösterir). */
 function istanbulGunNo(tarih){
@@ -1457,7 +1462,7 @@ const $$ = s => [...document.querySelectorAll(s)];
 const kacir = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const trKucuk = s => String(s||'').toLocaleLowerCase('tr').replace(/[çğıöşü]/g, c => ({'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u'}[c]));
 const trBasHarf = s => String(s||'').replace(/(^|[\s\.\/\(])([\p{L}])/gu, (m, on, h) => on + h.toLocaleUpperCase('tr'));
-const fotoUrl = yol => `${SUPA_URL}/storage/v1/object/public/${BUCKET}/${yol}`;
+const fotoUrl = yol => fotoYoluGuvenli(yol) ? `${SUPA_URL}/storage/v1/object/public/${BUCKET}/${yol}` : '';
 const ziyaretSayisi = y => y.ziyaretler?.[0]?.count || 0;
 const fotoSirala = arr => (arr||[]).slice().sort((a,b) => (a.sira ?? 0) - (b.sira ?? 0) || new Date(a.created_at||0) - new Date(b.created_at||0));
 function konumYazisi(y, bos){
@@ -2111,9 +2116,15 @@ function anaSatir(y, metre){
       <small><span style="color:var(--altin);font-weight:700">${kacir(KATEGORILER[y.kategori] || '')}</span>${metre != null ? ' · ' + (metre < 1000 ? Math.round(metre) + ' m' : (metre / 1000).toFixed(1).replace('.', ',') + ' km') : ''}${gitti ? ' · <span class="ana-gitti">✓ Ziyaret ettin</span>' : ''}</small></span>
   </button>`;
 }
+let anaKirli = false;
 function anaSayfaCiz(){
   const k = $('#ana-icerik');
   if (!k) return;
+  // Ana Sayfa görünmüyorsa (bildirim/realtime/ziyaret sırasında) çizme; sekmeye dönünce gorunumAc çizer
+  if (!k.closest('.gorunum')?.classList.contains('aktif')){ anaKirli = true; return; }
+  anaKirli = false;
+  const acikMaddeler = new Set([...k.querySelectorAll('details[open] summary')].map(x => x.textContent));
+  const seritKaydirma = k.querySelector('.ana-serit')?.scrollLeft || 0;
   const z = kullanici ? benimZiyaretlerim : new Set();
   const ad = profil?.ad && profil.ad !== 'İsimsiz' ? profil.ad : '';
   const okunmamis = kullanici ? (bildirimlerim || []).filter(b => !b.okundu).length : 0;
@@ -2195,6 +2206,9 @@ function anaSayfaCiz(){
   k.innerHTML = ANA_GENIS.matches
     ? s('ust') + `<div class="ana-iki"><div>${s('kahraman') + s('onay') + s('yolculuk') + s('bilgi')}</div><div>${s('gunun') + s('yakin') + s('eksik')}</div></div>` + s('son')
     : ['ust', 'kahraman', 'onay', 'yolculuk', 'gunun', 'bilgi', 'yakin', 'eksik', 'son'].map(s).join('');
+  k.querySelectorAll('details').forEach(d => { if (acikMaddeler.has(d.querySelector('summary')?.textContent)) d.open = true; });
+  const serit = k.querySelector('.ana-serit');
+  if (serit) serit.scrollLeft = seritKaydirma;
 }
 const ANA_GENIS = window.matchMedia('(min-width: 900px)');
 ANA_GENIS.addEventListener?.('change', () => anaSayfaCiz());
@@ -2219,7 +2233,12 @@ $('#ana-icerik').addEventListener('click', e => {
   if (e.target.closest('[data-ana-kesfet]')){ gorunumAc('kesfet'); return; }
   if (e.target.closest('[data-ana-onay]')){ gorunumAc('yonetim'); return; }
   if (e.target.closest('[data-ana-yakin]')){ $('#btn-yakin').click(); return; }
-  if (e.target.closest('[data-ana-kahraman]')){ anaKonum ? gorunumAc('harita') : $('#btn-yakin').click(); return; }
+  if (e.target.closest('[data-ana-kahraman]')){
+    if (!anaKonum){ $('#btn-yakin').click(); return; }
+    gorunumAc('harita');
+    setTimeout(() => harita && harita.setView([anaKonum.lat, anaKonum.lng], 13), 120); // invalidateSize'dan sonra
+    return;
+  }
   if (e.target.closest('[data-ana-bilgiler]')){
     $('#bilgiler-icerik').innerHTML = bilgiler.map(b => `<details><summary>${kacir(b.baslik)}</summary><div class="bilgi-icerik">${kacir(b.icerik)}</div></details>`).join('');
     $('#kip-bilgiler').classList.add('acik');

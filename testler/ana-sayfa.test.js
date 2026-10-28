@@ -12,7 +12,7 @@ const bas = html.indexOf('/* ==SAF-ANA-SAYFA-BASLA== */');
 const bit = html.indexOf('/* ==SAF-ANA-SAYFA-BITIR== */');
 if (bas < 0 || bit < 0) throw new Error('index.html içinde SAF-ANA-SAYFA işaretleri bulunamadı');
 const f = vm.runInNewContext(html.slice(bas, bit) +
-  '; ({istanbulGunNo, gununYeriSec, gonulluSayisi, ziyaretEdilmeyenlerOnce, yerEksikMi, eksikZiyaret, goreceTarih, yolculukOzeti})', {});
+  '; ({fotoYoluGuvenli, istanbulGunNo, gununYeriSec, gonulluSayisi, ziyaretEdilmeyenlerOnce, yerEksikMi, eksikZiyaret, goreceTarih, yolculukOzeti})', {});
 
 function yer({id, durum = 'onaylandi', foto = true, ekleyen = null, aciklama = null, kaynak = null, kaynaklar = null,
   il = 'Konya', ulke_kodu = 'tr', ulke = 'Türkiye', created_at = '2026-10-26T12:00:00Z'}){
@@ -82,4 +82,14 @@ test('yolculukOzeti', () => {
   assert.equal(o.metin, '3 türbe · 2 il · 1 ülke');
   assert.deepEqual({...o.il}, {ad: 'Kayseri', toplam: 2, gidilen: 1});
   assert.equal(f.yolculukOzeti(y, new Set()).il, null);
+});
+
+test('fotoYoluGuvenli: yalnız {id}/{id}.uzantı biçimi (CSS url() ve öznitelik dışına taşma yok)', () => {
+  assert.equal(f.fotoYoluGuvenli('b10b0a0c-41c9-4cd1-8c83-de64dd7a5aa9/396b497f-d5ee-432e-b7df-c8961f0404df.jpg'), true);
+  assert.equal(f.fotoYoluGuvenli('notlar/b10b0a0c/abc_1.webp'), true);
+  assert.equal(f.fotoYoluGuvenli("x/a.jpg') ;background:url(//kotu"), false);
+  assert.equal(f.fotoYoluGuvenli('x/"><img src=x onerror=alert(1)>.png'), false);
+  assert.equal(f.fotoYoluGuvenli('../a/b.jpg'), false);
+  assert.equal(f.fotoYoluGuvenli(''), false);
+  assert.equal(f.fotoYoluGuvenli(null), false);
 });
