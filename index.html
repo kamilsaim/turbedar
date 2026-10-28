@@ -864,6 +864,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 #karsilama b{font-family:var(--display);font-size:24px;font-weight:600;color:var(--zumrut);letter-spacing:.03em;text-align:center;padding:0 24px}
 #karsilama span{font-size:10.5px;letter-spacing:.26em;color:var(--altin);font-weight:800}
 #karsilama.kapan{opacity:0;pointer-events:none}
+#karsilama em{font-family:var(--display);font-style:italic;font-size:21px;color:var(--altin);margin-top:-4px}
 
 /* bilinmesi gerekenler akordeonu */
 .bilgi-kutu details{border-bottom:1px dashed var(--cizgi)}
@@ -1346,7 +1347,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   </div>
 </div>
 
-<div id="karsilama"><img id="karsilama-img" alt=""><b>Edeple gelen, lütufla gider</b><span>TÜRBEDAR</span></div>
+<div id="karsilama"><img id="karsilama-img" alt=""><b>Edeple gelen, lütufla gider</b><em id="karsilama-fatiha" hidden>Ruhlarına El-Fâtiha</em><span>TÜRBEDAR</span></div>
 
 <!-- ============ ANA EKRANA EKLE (PWA) ŞERİTLERİ ============ -->
 <div id="yukle-serit-android" class="yukle-serit">
@@ -5506,6 +5507,14 @@ function yukleSeridiKapat(tur){
   const kar = $('#karsilama');
   if (kar){
     $('#karsilama-img').src = $('.marka img').src;
+    // Günün ilk açılışında "Ruhlarına El-Fâtiha" (her açılışta değil — Kamil'in kararı)
+    try{
+      const bugun = String(istanbulGunNo(new Date()));
+      if (localStorage.getItem('turbedar_fatiha_gunu') !== bugun){
+        $('#karsilama-fatiha').hidden = false;
+        localStorage.setItem('turbedar_fatiha_gunu', bugun);
+      }
+    }catch(e){ /* depolama kapalı: gösterme */ }
     setTimeout(() => { kar.classList.add('kapan'); setTimeout(() => kar.remove(), 700); }, 2100);
   }
   const {data: {session}} = await sb.auth.getSession();
