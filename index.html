@@ -710,6 +710,9 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .ana-adim{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--zumrut);margin-top:6px}
 .ana-giris-btn{display:block;width:100%;min-height:46px;border-radius:14px;background:var(--altin);color:#fff;font-weight:700;font-size:15px;margin-top:12px}
 .site-altbilgi{margin-top:28px}
+.pin-bekleyen{opacity:.55;filter:grayscale(.6)}
+.kume-ikon{display:grid;place-items:center;border-radius:50%;background:rgba(184,146,62,.22)}
+.kume-ikon span{display:grid;place-items:center;border-radius:50%;background:var(--zumrut);color:#fff;font-weight:800;font-size:14px;box-shadow:inset 0 0 0 2px var(--altin),0 3px 8px rgba(0,0,0,.25)}
 .geri-baglanti{font-size:15px;font-weight:700;color:var(--zumrut-acik);min-height:44px;padding:0 2px}
 .kip{position:fixed;inset:0;z-index:700;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(25,38,30,.5);backdrop-filter:blur(3px)}
 .kip.acik{display:flex}
@@ -2214,16 +2217,19 @@ document.addEventListener('click', e => {
 });
 
 /* ====================== HARİTA ====================== */
+/* iOS 3.0 ile aynı logolu pin (pin.webp, göreli yol: Pages alt dizini ve Firebase kökünde çalışır).
+   Onay bekleyen kendi kaydı soluk görünür. */
+const PIN_ONAYLI = L.icon({iconUrl: 'pin.webp', iconSize: [31, 46], iconAnchor: [15.5, 46], popupAnchor: [0, -42]});
+const PIN_BEKLEYEN = L.icon({iconUrl: 'pin.webp', iconSize: [31, 46], iconAnchor: [15.5, 46], popupAnchor: [0, -42], className: 'pin-bekleyen'});
 function pinIkon(yer){
-  const beklemede = yer.durum === 'beklemede';
-  const renk = beklemede ? '#A8761F' : '#1E4D38';
-  return L.divIcon({
-    className: 'pin-kubbe', iconSize: [30, 40], iconAnchor: [15, 40], popupAnchor: [0, -38],
-    html: `<svg width="30" height="40" viewBox="0 0 30 40">
-      <path d="M15 40 C15 40 2 24 2 14 C2 6.8 7.8 1 15 1 C22.2 1 28 6.8 28 14 C28 24 15 40 15 40 Z" fill="${renk}" stroke="#B8923E" stroke-width="1.6" ${beklemede ? 'stroke-dasharray="3 2"' : ''}/>
-      <path d="M15 6 C18 9 21.5 11 21.5 15 L21.5 19 L8.5 19 L8.5 15 C8.5 11 12 9 15 6 Z" fill="#F7F0E6"/>
-      <circle cx="15" cy="5.4" r="1.1" fill="#D9C08A"/></svg>`
-  });
+  return yer.durum === 'beklemede' ? PIN_BEKLEYEN : PIN_ONAYLI;
+}
+/* Küme: zümrüt daire, altın halka, dışta soluk altın halka (iOS ile aynı) */
+function kumeIkon(kume){
+  const n = kume.getChildCount();
+  const cap = n < 10 ? 34 : n < 100 ? 40 : 46;
+  return L.divIcon({className: 'kume-ikon', iconSize: [cap + 10, cap + 10],
+    html: `<span style="width:${cap}px;height:${cap}px">${n}</span>`});
 }
 function haritaBaslat(){
   harita = L.map('harita', {zoomControl:false, attributionControl:true}).setView([39.2, 35.5], 6);
@@ -2239,7 +2245,7 @@ function haritaBaslat(){
     $('#btn-uydu').classList.toggle('aktif', harita.uyduAcik);
   });
   L.control.zoom({position:'bottomleft'}).addTo(harita);
-  kume = L.markerClusterGroup({showCoverageOnHover:false, maxClusterRadius:46});
+  kume = L.markerClusterGroup({showCoverageOnHover:false, maxClusterRadius:46, iconCreateFunction: kumeIkon});
   harita.addLayer(kume);
   // haritaya dokunarak ekleme modu
   harita.on('click', e => {
