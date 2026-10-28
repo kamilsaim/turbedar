@@ -2828,7 +2828,7 @@ function katkiCiz(){
   const bolum = $('#katki-bolumu'); if (bolum) bolum.style.display = kullanici ? 'block' : 'none';
   if (!kullanici) return;
   const liste = [...katkilar]
-    .filter(k => (katkiOlcut === 'ekleme' ? k.ekleme : k.ziyaret) > 0)
+    .filter(k => k.ad !== 'Silinmiş Kullanıcı' && (katkiOlcut === 'ekleme' ? k.ekleme : k.ziyaret) > 0)
     .sort((a,b) => (b[katkiOlcut] - a[katkiOlcut]) || (b.ekleme - a.ekleme))
     .slice(0, 20);
   $$('[data-katki]').forEach(s => s.classList.toggle('aktif', s.dataset.katki === katkiOlcut));
@@ -5371,7 +5371,8 @@ async function yonetimCiz(){
     }));
   }
   else if (aktifSekme === 'kullanici'){
-    const {data: liste, error} = await sb.from('turbedar_profiller').select(PROFIL_KOLONLARI).order('created_at');
+    // 'Silinmiş Kullanıcı': hesabını silenlerin katkılarının devredildiği sistem hesabı — listede gösterilmez
+    const {data: liste, error} = await sb.from('turbedar_profiller').select(PROFIL_KOLONLARI).neq('ad', 'Silinmiş Kullanıcı').order('created_at');
     if (error){ k.innerHTML = `<p style="color:var(--kirmizi)">${kacir(error.message)}</p>`; return; }
     const ara = (kullaniciArama || '').trim();
     const aN = trKucuk(ara);
