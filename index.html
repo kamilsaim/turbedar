@@ -1655,19 +1655,26 @@ function eklentiVar(ad){
    eski iOS derlemesi ve ana ekran PWA'sında sessizce hiçbir şey olmaz.
    Android/Chrome navigator.vibrate ile devam eder. Desen: sayı = tek dokunuş
    (≤12 hafif, üstü orta), dizi = kutlama (başarı titreşimi). */
+/* Titreşim türleri (iOS 3.0 ile aynı anlamlar): seçim çok hafif, dokunuş kısa, başarı iki vuruş,
+   uyarı (red/silme) iki güçlü vuruş, hata üç vuruş. Sayı/dizi verilirse olduğu gibi kullanılır. */
+const TITRESIM = {secim: 8, dokunus: 14, basari: [14, 60, 26], uyari: [32, 70, 32], hata: [40, 50, 40, 50, 40]};
 function titret(desen = 18){
+  const tur = typeof desen === 'string' ? desen : null;
+  const d = tur ? (TITRESIM[tur] ?? 18) : desen;
   try{
     const haptik = eklentiVar('Haptics') && window.Capacitor.Plugins.Haptics;
     if (haptik){
-      if (Array.isArray(desen)) haptik.notification({ type: 'SUCCESS' }).catch(() => {});
-      else haptik.impact({ style: desen <= 12 ? 'LIGHT' : 'MEDIUM' }).catch(() => {});
+      if (tur === 'basari' || (!tur && Array.isArray(d))) haptik.notification({ type: 'SUCCESS' }).catch(() => {});
+      else if (tur === 'uyari') haptik.notification({ type: 'WARNING' }).catch(() => {});
+      else if (tur === 'hata') haptik.notification({ type: 'ERROR' }).catch(() => {});
+      else haptik.impact({ style: d <= 12 ? 'LIGHT' : 'MEDIUM' }).catch(() => {});
       return;
     }
-    navigator.vibrate?.(desen);
+    navigator.vibrate?.(d);
   }catch(e){ /* desteklenmiyor, sorun değil */ }
 }
 function bildir(metin, hata=false){
-  if (hata) titret();
+  if (hata) titret('hata');
   const d = document.createElement('div');
   d.className = 'bildirim' + (hata ? ' hata' : '');
   d.textContent = metin;
@@ -2314,7 +2321,7 @@ function gorunumAc(ad){
   if (ad === 'istatistik') kisiselIstatistikCiz();
   if (ad === 'yonetim') yonetimCiz();
 }
-$$('.nav-oge').forEach(n => n.addEventListener('click', () => gorunumAc(n.dataset.hedef)));
+$$('.nav-oge').forEach(n => n.addEventListener('click', () => { titret('secim'); gorunumAc(n.dataset.hedef); }));
 $('#btn-yonetim').addEventListener('click', () => gorunumAc('yonetim'));
 document.addEventListener('click', e => {
   const s = e.target.closest('[data-katki]');
@@ -2359,12 +2366,14 @@ function haritaBaslat(){
     eklemeModuKapat();
     const lat = e.latlng.lat, lng = e.latlng.lng;
     // mükerrer kontrolü: çok yakında kayıt varsa uyar
+    titret('dokunus');
     sihirbazAc(null, {lat, lng});
   });
 }
 let eklemeModu = false;
 function eklemeModuAc(){
   if (!kullanici){ girisIste(); return; }
+  titret('secim');
   eklemeModu = true;
   $('#ekleme-modu-serit').classList.add('acik');
   $('#btn-haritadan-ekle').classList.add('aktif');
@@ -2403,6 +2412,7 @@ function haritaCiz(){
       </div></div>`,
       {className:'turbedar-popup', closeButton:false, maxWidth:240, minWidth:220});
     m.on('popupopen', e => {
+      titret('secim');
       const b = e.popup.getElement().querySelector('[data-detay]');
       if (b) b.addEventListener('click', () => { m.closePopup(); detayAc(y.id); });
     });
@@ -3004,6 +3014,7 @@ async function detayAc(id){
     zbtn.disabled = false;
     if (hata) return bildir('İşaretlenemedi: ' + hata.message, true);
     vardi ? benimZiyaretlerim.delete(y.id) : benimZiyaretlerim.add(y.id);
+    titret(vardi ? 'dokunus' : 'basari');
     anaSayfaCiz();
     if (vardi) benimZiyaretTarihleri.delete(y.id); else benimZiyaretTarihleri.set(y.id, new Date().toISOString());
     ziyaretAniCiz(y);
@@ -3036,7 +3047,7 @@ async function detayAc(id){
     yukleniyor(false);
     if (error) return bildir('Silinemedi: ' + error.message, true);
     if (yonetici()) gunlukYaz('yer_sil', 'yer', y.id, y.baslik);
-    titret(); bildir('Kayıt silindi'); sayfaKapat(); veriYukle(); yonetimRozetiGuncelle();
+    titret('uyari'); bildir('Kayıt silindi'); sayfaKapat(); veriYukle(); yonetimRozetiGuncelle();
   });
   if (y.durum === 'onaylandi'){
     yorumlariYukle(y.id);
@@ -3165,7 +3176,7 @@ async function katkiNotlariYukle(yerId){
     const yollar = not ? notFotoYollari(not) : [];
     if (yollar.length) await sb.storage.from(BUCKET).remove(yollar);
     await sb.from('turbedar_katki_notlari').delete().eq('id', b.dataset.notSil);
-    titret();
+    titret('uyari');
     katkiNotlariYukle(yerId); yonetimRozetiGuncelle();
   }));
   kutu.querySelectorAll('[data-not-galeri]').forEach(b => b.addEventListener('click', () =>
@@ -3308,7 +3319,7 @@ $('#not-gonder').addEventListener('click', async () => {
     yukleniyor(false);
     notFotolariTemizle();
     $('#kip-not').classList.remove('acik');
-    titret(); bildir('🕌 Ek bilgi önerin yönetici onayına gönderildi');
+    titret('basari'); bildir('🕌 Ek bilgi önerin yönetici onayına gönderildi');
     katkiNotlariYukle(yerId); yonetimRozetiGuncelle();
   }catch(err){ yukleniyor(false); bildir('Gönderilemedi: ' + (err.message||err), true); }
 });
@@ -3528,7 +3539,7 @@ $('#sihirbaz-vazgec1').addEventListener('click', () => $('#sihirbaz-ortulu').cli
 $('#sihirbaz-kapat').addEventListener('click', () => $('#sihirbaz-ortulu').click());
 $('#logo-ekle-img').src = $('.marka img').src;
 $('.nav-ekle>div').addEventListener('click', e => { if (!e.target.closest('#btn-ekle')) $('#btn-ekle').click(); });
-$('#btn-ekle').addEventListener('click', () => sihirbazAc());
+$('#btn-ekle').addEventListener('click', () => { titret('dokunus'); sihirbazAc(); });
 $('#girdi-baslik').addEventListener('blur', e => { e.target.value = trBasHarf(e.target.value.trim()); });
 
 function adimaGit(n){
@@ -4157,7 +4168,7 @@ $('#ko-gonder').addEventListener('click', async () => {
   btn.disabled = false;
   if (error) return bildir('Gönderilemedi: ' + error.message, true);
   $('#kip-konum-oner').classList.remove('acik');
-  titret(); bildir('📍 Konum önerin yönetici onayına gönderildi');
+  titret('basari'); bildir('📍 Konum önerin yönetici onayına gönderildi');
 });
 
 /* Adım 2: konum */
@@ -4563,7 +4574,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
         const {error: ke} = await sb.from('turbedar_kisiler').insert(kisiler.map(k => ({...k, yer_id: yeni.id})));
         if (ke) throw ke;
       }
-      titret(); bildir('🕌 Kayıt onaya gönderildi — yönetici onayından sonra herkes görebilecek');
+      titret('basari'); bildir('🕌 Kayıt onaya gönderildi — yönetici onayından sonra herkes görebilecek');
       taslak._yeniKayitId = yeni.id;
     } else if (taslak.revizyonMu){
       /* ---- ONAYLI KAYITTA REVİZYON ---- */
@@ -4589,7 +4600,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
       const {error} = await sb.from('turbedar_revizyonlar')
         .insert({yer_id: eski.id, degisiklikler: fark, aciklama, ekleyen_id: kullanici.id});
       if (error) throw error;
-      titret(); bildir('Düzenleme önerisi yönetici onayına gönderildi');
+      titret('basari'); bildir('Düzenleme önerisi yönetici onayına gönderildi');
     } else {
       /* ---- BEKLEYEN KENDİ KAYDI veya YÖNETİCİ DÜZENLEMESİ ---- */
       const eski = taslak.duzenlenen;
@@ -4753,7 +4764,7 @@ function hakkindaAc(){
       btn.disabled = false;
       if (error) return bildir('Gönderilemedi: ' + error.message, true);
       $('#mesaj-konu').value = ''; $('#mesaj-icerik').value = '';
-      titret(); bildir('🕌 Mesajın yöneticilere iletildi, teşekkürler');
+      titret('basari'); bildir('🕌 Mesajın yöneticilere iletildi, teşekkürler');
     });
   } else {
     $('#mesaj-giris-btn')?.addEventListener('click', () => { $('#kip-hakkinda').classList.remove('acik'); girisIste(); });
@@ -4968,7 +4979,7 @@ async function yonetimCiz(){
       const {error} = await sb.from('turbedar_yerler').update({durum:'onaylandi', onaylayan_id: kullanici.id, red_nedeni:null}).eq('id', b.dataset.onayla);
       if (error) { b.disabled = false; return bildir('Hata: ' + error.message, true); }
       gunlukYaz('yer_onayla', 'yer', b.dataset.onayla, yer?.baslik);
-      titret(); bildir('✅ Kayıt yayınlandı'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
+      titret('basari'); bildir('✅ Kayıt yayınlandı'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-reddet]').forEach(b => b.addEventListener('click', async () => {
       if (b.disabled) return;
@@ -4979,7 +4990,7 @@ async function yonetimCiz(){
       const {error} = await sb.from('turbedar_yerler').update({durum:'reddedildi', onaylayan_id: kullanici.id, red_nedeni: neden}).eq('id', b.dataset.reddet);
       if (error) { b.disabled = false; return bildir('Hata: ' + error.message, true); }
       gunlukYaz('yer_reddet', 'yer', b.dataset.reddet, yer?.baslik, {neden});
-      titret(); bildir('Kayıt reddedildi'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
+      titret('uyari'); bildir('Kayıt reddedildi'); await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-birlestir]').forEach(b => b.addEventListener('click', async () => {
       const kaynak = yerler.find(x => x.id === b.dataset.birlestir);
@@ -5078,7 +5089,7 @@ async function yonetimCiz(){
       const {error} = await sb.from('turbedar_katki_notlari').update({durum:'onaylandi', onaylayan_id: kullanici.id}).eq('id', b.dataset.notOnayla);
       if (error) { b.disabled = false; return bildir('Hata: ' + error.message, true); }
       gunlukYaz('not_onayla', 'not', b.dataset.notOnayla, not?.yer?.baslik);
-      bildir('✅ Ek bilgi yayınlandı'); yonetimRozetiGuncelle(); yonetimCiz();
+      titret('basari'); bildir('✅ Ek bilgi yayınlandı'); yonetimRozetiGuncelle(); yonetimCiz();
     }));
     k.querySelectorAll('[data-not-reddet]').forEach(b => b.addEventListener('click', async () => {
       if (b.disabled) return;
@@ -5115,7 +5126,7 @@ async function yonetimCiz(){
         const {error: re} = await sb.from('turbedar_revizyonlar').update({durum:'onaylandi', onaylayan_id: kullanici.id}).eq('id', r.id);
         if (re) throw re;
         gunlukYaz('revizyon_onayla', 'revizyon', r.id, r.yer.baslik, {alanlar: Object.keys(r.degisiklikler)});
-        yukleniyor(false); bildir('✅ Revizyon uygulandı');
+        yukleniyor(false); titret('basari'); bildir('✅ Revizyon uygulandı');
         await veriYukle(); yonetimRozetiGuncelle(); yonetimCiz();
       }catch(err){ yukleniyor(false); b.disabled = false; bildir('Hata: ' + (err.message||err), true); }
     }));
@@ -5159,7 +5170,7 @@ async function yonetimCiz(){
       const m = mesajlar.find(x => x.id === b.dataset.mesajSil);
       await sb.from('turbedar_mesajlar').delete().eq('id', b.dataset.mesajSil);
       gunlukYaz('mesaj_sil', 'mesaj', b.dataset.mesajSil, m?.konu || (m?.gonderen?.ad ? `${m.gonderen.ad} mesajı` : null));
-      titret();
+      titret('uyari');
       yonetimRozetiGuncelle(); yonetimCiz();
     }));
     // okunmamışları okundu yap (arka planda)
@@ -5247,7 +5258,7 @@ async function yonetimCiz(){
       const yo = yorumlar.find(x => x.id === b.dataset.yonetimYorumSil);
       await sb.from('turbedar_yorumlar').delete().eq('id', b.dataset.yonetimYorumSil);
       gunlukYaz('yorum_sil', 'yorum', b.dataset.yonetimYorumSil, yo?.yer?.baslik || null);
-      titret();
+      titret('uyari');
       yonetimCiz();
     }));
   }
@@ -5301,11 +5312,12 @@ async function yonetimCiz(){
       kaynaksiz: eksik.filter(kaynaksizMi),
       aciklamasiz: eksik.filter(aciklamasizMi),
       ikisi: eksik.filter(y => kaynaksizMi(y) && aciklamasizMi(y)),
+      fotografsiz: yerler.filter(y => y.durum === 'onaylandi' && !(y.fotograflar || []).length),
       yz: yzli,
     };
     const sayilar = Object.fromEntries(Object.entries(kaynaklar).map(([a, dizi]) => [a, dizi.length]));
     const liste = kaynaklar[eksikSuzgec] || kaynaklar.hepsi;
-    const etiket = {hepsi:'Tümü', kaynaksiz:'Kaynaksız', aciklamasiz:'Açıklamasız', ikisi:'İkisi de yok', yz:'YZ Destekli'};
+    const etiket = {hepsi:'Tümü', kaynaksiz:'Kaynaksız', aciklamasiz:'Açıklamasız', ikisi:'İkisi de yok', fotografsiz:'Fotoğrafsız', yz:'YZ Destekli'};
     k.innerHTML = `<p style="font-size:12.5px;color:var(--soluk);margin-bottom:10px">
       Onaylı ${yerler.filter(y => y.durum === 'onaylandi').length} kaydın ${sayilar.hepsi} tanesinde kaynak veya açıklama eksik; ${sayilar.yz} tanesi YZ önerisiyle dolduruldu. Karta dokunarak kaydı açabilirsin.</p>
       <div class="sekmeler">${Object.keys(etiket).map(a =>
