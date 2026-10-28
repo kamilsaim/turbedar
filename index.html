@@ -711,6 +711,27 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .ana-giris-btn{display:block;width:100%;min-height:46px;border-radius:14px;background:var(--altin);color:#fff;font-weight:700;font-size:15px;margin-top:12px}
 .site-altbilgi{margin-top:28px}
 .pin-bekleyen{opacity:.55;filter:grayscale(.6)}
+/* Geniş ekran (bilgisayar): alt çubuk yerine sol menü, ana sayfa iki sütun */
+@media (min-width:900px){
+  #altnav{top:0;bottom:0;right:auto;width:220px;height:auto;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:4px;
+    padding:22px 14px;border-top:0;border-right:1px solid var(--cizgi);box-shadow:none}
+  #altnav::before{content:"Türbedar";font-family:var(--display);font-weight:700;font-size:28px;color:var(--zumrut);padding:0 12px 14px}
+  .nav-oge{flex:none;flex-direction:row;gap:12px;padding:11px 12px;border-radius:12px;font-size:15px}
+  .nav-oge svg{width:21px;height:21px}
+  .nav-oge.aktif{background:var(--kart-koyu)}
+  .nav-ekle{order:9;flex:none;margin-top:14px;justify-content:stretch}
+  .nav-ekle>div{flex-direction:row;gap:10px;width:100%;padding:8px 12px;border-radius:14px;background:var(--zumrut);cursor:pointer}
+  .logo-ekle{width:40px;height:40px;box-shadow:inset 0 0 0 1.5px var(--altin)}
+  .logo-ekle img{width:28px;height:28px}
+  .logo-ekle-arti{width:16px;height:16px;right:-3px;bottom:-2px}
+  .logo-ekle-arti svg{width:10px;height:10px}
+  .nav-ekle span:not(.logo-ekle-arti){color:#fff;font-size:15px;margin-top:0}
+  #uygulama{margin-left:220px}
+  .gorunum{padding-bottom:24px}
+  .icerik.ana{max-width:1100px;padding:20px 28px}
+  .ana-iki{display:grid;grid-template-columns:1.25fr 1fr;gap:22px;align-items:start}
+  .ana-iki>div>.ana-bolum:first-child{margin-top:0}
+}
 .kume-ikon{display:grid;place-items:center;border-radius:50%;background:rgba(184,146,62,.22)}
 .kume-ikon span{display:grid;place-items:center;border-radius:50%;background:var(--zumrut);color:#fff;font-weight:800;font-size:14px;box-shadow:inset 0 0 0 2px var(--altin),0 3px 8px rgba(0,0,0,.25)}
 .geri-baglanti{font-size:15px;font-weight:700;color:var(--zumrut-acik);min-height:44px;padding:0 2px}
@@ -2099,10 +2120,11 @@ function anaSayfaCiz(){
   const onayli = yerler.filter(y => y.durum === 'onaylandi');
   const ilSay = new Set(onayli.filter(y => !anaYurtdisi(y) && y.il).map(y => y.il)).size;
   const ulkeSay = new Set(onayli.map(y => anaYurtdisi(y) ? y.ulke_kodu : 'tr')).size;
-  const h = [];
-  h.push(`<div class="ana-ust"><div><div class="ana-selam">${kacir(ad ? 'Esselâmü aleyküm, ' + ad : 'Esselâmü aleyküm')}</div><div class="ana-marka">Türbedar</div></div>
+  const b = {};
+  const bol = (ad, html) => { b[ad] = (b[ad] || '') + html; };
+  bol('ust', `<div class="ana-ust"><div><div class="ana-selam">${kacir(ad ? 'Esselâmü aleyküm, ' + ad : 'Esselâmü aleyküm')}</div><div class="ana-marka">Türbedar</div></div>
     ${kullanici ? `<button class="ana-zil" data-ana-zil aria-label="Bildirimler${okunmamis ? ', ' + okunmamis + ' okunmamış' : ''}">${ANA_SVG.zil}${okunmamis ? `<span class="ana-zil-sayi">${Math.min(okunmamis, 99)}</span>` : ''}</button>` : ''}</div>`);
-  h.push(`<div class="ana-kahraman">
+  bol('kahraman', `<div class="ana-kahraman">
     <div class="ana-etiket">EMANET · HİZMET · SADAKAT</div>
     <div class="ana-soz">Edeple gelen, lütufla gider.</div>
     <div class="ana-aciklama">Türbe, kümbet ve şehitliklerin gönüllülerce tutulan ortak envanteri.</div>
@@ -2111,19 +2133,19 @@ function anaSayfaCiz(){
   </div>`);
   if (yonetici() && anaOnaySayilari){
     const o = anaOnaySayilari, top = o.kayit + o.duzenleme + o.ek + o.rapor;
-    h.push(`<button class="ana-onay" data-ana-onay><span class="ana-onay-simge">${ANA_SVG.kalkan}</span>
+    bol('onay', `<button class="ana-onay" data-ana-onay><span class="ana-onay-simge">${ANA_SVG.kalkan}</span>
       <span><b>Onay bekleyenler</b><span class="ana-ikincil">${top ? `${o.kayit} kayıt · ${o.duzenleme} düzenleme · ${o.ek} ek bilgi · ${o.rapor} bildirim` : 'Bekleyen iş yok'}</span></span>
       ${top ? `<span class="ana-onay-sayi">${top}</span>` : ''}</button>`);
   }
   if (kullanici){
     const yo = yolculukOzeti(yerler, z);
-    h.push(`<div class="ana-kart"><div class="ana-kart-baslik">Ziyaret yolculuğun</div>
+    bol('yolculuk', `<div class="ana-kart"><div class="ana-kart-baslik">Ziyaret yolculuğun</div>
       <div style="font-weight:700;color:var(--zumrut);margin-top:4px">${kacir(yo.metin)}</div>
       ${yo.il ? `<div class="ana-cubuk"><i style="width:${Math.round(100 * yo.il.gidilen / Math.max(yo.il.toplam, 1))}%"></i></div>
         <div class="ana-ikincil">${kacir(yo.il.ad)}: ${yo.il.toplam} türbeden ${yo.il.gidilen} tanesini ziyaret ettin</div>`
         : '<div class="ana-ikincil" style="margin-top:6px">İlk ziyaretini işaretlediğinde yolculuğun burada görünecek.</div>'}</div>`);
   } else {
-    h.push(`<div class="ana-kart"><div class="ana-kart-baslik">Sen de katkıda bulun</div>
+    bol('yolculuk', `<div class="ana-kart"><div class="ana-kart-baslik">Sen de katkıda bulun</div>
       <p class="ana-ikincil" style="color:var(--murekkep);margin-top:6px">Ziyaret ettiğin türbeleri işaretle, bildiğin bir yeri ekle. Onaylanan her kayıt herkesin ortak hafızası olur.</p>
       <div class="ana-adim">${ANA_SVG.foto}Fotoğrafını çek</div><div class="ana-adim">${ANA_SVG.pin}Konumu işaretle</div><div class="ana-adim">${ANA_SVG.kalkan.replace(/width="20" height="20"/, 'width="16" height="16"')}Yönetici onaylasın</div>
       <button class="ana-giris-btn" data-ana-giris>Giriş yap</button></div>`);
@@ -2132,7 +2154,7 @@ function anaSayfaCiz(){
   if (g){
     const f = g.fotograflar[0];
     const ac = g.aciklama && g.aciklama.trim();
-    h.push(`<div class="ana-bolum"><h2>Günün türbesi</h2></div>
+    bol('gunun', `<div class="ana-bolum"><h2>Günün türbesi</h2></div>
       <button class="ana-gunun" data-ana-yer="${kacir(g.id)}">
         <div class="ana-gunun-foto" style="background-image:url('${fotoUrl(f.yol)}')">${z.has(g.id) ? '<span class="ana-rozet">✓ Ziyaret ettin</span>' : ''}</div>
         <div class="ana-gunun-ic"><div class="ana-ust-etiket">${kacir((KATEGORILER[g.kategori] || '') + ' · ' + (konumYazisi(g) || ''))}</div>
@@ -2142,25 +2164,25 @@ function anaSayfaCiz(){
       ${ac ? '' : `<div class="ana-davet"><em>Bu emanetin hikâyesi henüz yazılmadı. Bilen var mı?</em><button class="ana-oner" data-ana-oner="${kacir(g.id)}">${ANA_SVG.oner}Bilgi öner</button></div>`}`);
   }
   if (bilgiler.length){
-    h.push(`<div class="ana-bolum"><h2>Ziyaret hakkında bilinmesi gerekenler</h2>${bilgiler.length > 2 ? '<button data-ana-bilgiler>Tümü</button>' : ''}</div>
+    bol('bilgi', `<div class="ana-bolum"><h2>Ziyaret hakkında bilinmesi gerekenler</h2>${bilgiler.length > 2 ? '<button data-ana-bilgiler>Tümü</button>' : ''}</div>
       <div class="ana-kart ana-bilgi" style="margin-top:0;padding:4px 16px">${bilgiler.slice(0, 2).map(b => `<details><summary>${kacir(b.baslik)}</summary><div class="bilgi-icerik">${kacir(b.icerik)}</div></details>`).join('')}</div>`);
   }
   if (anaKonum){
     const yakin = ziyaretEdilmeyenlerOnce(onayli.map(y => ({yer: y, metre: mesafeM(anaKonum.lat, anaKonum.lng, y.lat, y.lng)}))
       .sort((a, b) => a.metre - b.metre).slice(0, 8), z, 3);
-    if (yakin.length) h.push(`<div class="ana-bolum"><h2>Yakınındakiler</h2><button data-ana-yakin>Tümü</button></div>
+    if (yakin.length) bol('yakin', `<div class="ana-bolum"><h2>Yakınındakiler</h2><button data-ana-yakin>Tümü</button></div>
       <div class="ana-kart" style="margin-top:0;padding:6px 14px">${yakin.map(x => anaSatir(x.yer, x.metre)).join('')}</div>`);
   }
   if (kullanici){
     const e = eksikZiyaret(yerler, z);
-    if (e) h.push(`<div class="ana-bolum"><h2>Emanete katkı</h2></div>
+    if (e) bol('eksik', `<div class="ana-bolum"><h2>Emanete katkı</h2></div>
       <div class="ana-kart" style="margin-top:0">${anaSatir(e)}
         <p class="ana-ikincil" style="margin-top:6px">${yerEksikMi(e) === 'aciklama' ? 'Bu kaydın açıklaması yok.' : 'Bu kaydın kaynağı yok.'} Burayı ziyaret etmiştin; biliyorsan birkaç satırla katkı ver.</p>
         <button class="ana-oner" data-ana-oner="${kacir(e.id)}">${ANA_SVG.oner}Bilgi öner</button></div>`);
   }
   const son = onayli.filter(y => (y.fotograflar || []).length).slice(0, 10);
   if (son.length){
-    h.push(`<div class="ana-bolum"><h2>Son eklenenler</h2><button data-ana-kesfet>Tümü</button></div>
+    bol('son', `<div class="ana-bolum"><h2>Son eklenenler</h2><button data-ana-kesfet>Tümü</button></div>
       <div class="ana-serit">${son.map(y => {
         const ekleyen = y.ekleyen?.ad && y.ekleyen.ad !== 'İsimsiz' ? y.ekleyen.ad : '';
         return `<button class="ana-foto-kart" data-ana-yer="${kacir(y.id)}" style="background-image:url('${fotoUrl(y.fotograflar[0].yol)}')">
@@ -2168,8 +2190,14 @@ function anaSayfaCiz(){
           <div><b>${kacir(y.baslik)}</b><small>${kacir(anaKonumKisa(y))}</small><small>${kacir([ekleyen, goreceTarih(y.created_at)].filter(Boolean).join(' · '))}</small></div></button>`;
       }).join('')}</div>`);
   }
-  k.innerHTML = h.join('');
+  const s = ad => b[ad] || '';
+  // Telefonda iOS sırası; geniş ekranda (>= 900 px) iki sütun
+  k.innerHTML = ANA_GENIS.matches
+    ? s('ust') + `<div class="ana-iki"><div>${s('kahraman') + s('onay') + s('yolculuk') + s('bilgi')}</div><div>${s('gunun') + s('yakin') + s('eksik')}</div></div>` + s('son')
+    : ['ust', 'kahraman', 'onay', 'yolculuk', 'gunun', 'bilgi', 'yakin', 'eksik', 'son'].map(s).join('');
 }
+const ANA_GENIS = window.matchMedia('(min-width: 900px)');
+ANA_GENIS.addEventListener?.('change', () => anaSayfaCiz());
 /* Android/Chrome: konum izni zaten verilmişse sessizce al (izin SORMAZ). iOS Safari izin durumunu
    okutmaz — orada bu oturumda Yakınımdaki ile alınmış konum kullanılır. */
 async function anaKonumAl(){
@@ -3371,6 +3399,7 @@ $('#sihirbaz-ortulu').addEventListener('click', async () => {
 $('#sihirbaz-vazgec1').addEventListener('click', () => $('#sihirbaz-ortulu').click());
 $('#sihirbaz-kapat').addEventListener('click', () => $('#sihirbaz-ortulu').click());
 $('#logo-ekle-img').src = $('.marka img').src;
+$('.nav-ekle>div').addEventListener('click', e => { if (!e.target.closest('#btn-ekle')) $('#btn-ekle').click(); });
 $('#btn-ekle').addEventListener('click', () => sihirbazAc());
 $('#girdi-baslik').addEventListener('blur', e => { e.target.value = trBasHarf(e.target.value.trim()); });
 
