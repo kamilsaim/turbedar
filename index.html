@@ -1329,7 +1329,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '2.1.6';
+const SURUM = '3.0.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -5435,6 +5435,9 @@ function yukleSeridiKapat(tur){
     const {Browser} = Capacitor.Plugins;
     App.addListener('appUrlOpen', async ({url}) => {
       if (url && url.includes('://kisayol/')){ kisayolIsle(url, 0); return; }
+      // Android "Günün türbesi" widget'ı: com.kamilsaim.turbedar://yer/<id>
+      const widgetYer = url && url.match(/:\/\/yer\/([\w-]+)/);
+      if (widgetYer){ gorunumAc('ana'); detayAc(widgetYer[1]); return; }
       if (url && url.includes('auth-callback')){
         try{ await Browser.close(); }catch(e){}
         // URL'deki token'ları çıkar ve oturumu kur
@@ -5459,6 +5462,13 @@ function yukleSeridiKapat(tur){
 
     // iOS ana ekran kısayoluyla soğuk açılış: bağlantı dinleyiciden önce gelmiş olabilir
     App.getLaunchUrl?.().then(r => {
+      const widgetYer = r?.url?.match(/:\/\/yer\/([\w-]+)/);
+      if (widgetYer){
+        let islendi = null;
+        try{ islendi = sessionStorage.getItem('turbedar_widget_islendi'); }catch(e){}
+        if (islendi !== r.url){ try{ sessionStorage.setItem('turbedar_widget_islendi', r.url); }catch(e){} setTimeout(() => detayAc(widgetYer[1]), 1500); }
+        return;
+      }
       if (!r?.url?.includes('://kisayol/')) return;
       let islendi = null;
       try{ islendi = sessionStorage.getItem('turbedar_kisayol_islendi'); }catch(e){}
