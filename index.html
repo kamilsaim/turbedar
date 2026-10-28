@@ -337,24 +337,19 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   padding:6px 4px env(safe-area-inset-bottom);
   box-shadow:0 -4px 20px rgba(30,55,40,.08);
 }
-.nav-oge{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--soluk);font-size:10.5px;font-weight:700;letter-spacing:.02em;padding-top:4px}
+.nav-oge{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--soluk);font-size:12px;font-weight:700;letter-spacing:.02em;padding-top:4px}
 .nav-oge svg{width:23px;height:23px}
 .nav-oge.aktif{color:var(--zumrut)}
-/* sivri kemer EKLE düğmesi — imza öğesi */
-.nav-ekle{flex:1;display:flex;justify-content:center;margin-top:-26px}
-.kemer-btn{
-  width:58px;height:62px;background:linear-gradient(170deg,var(--zumrut-acik),var(--zumrut-koyu));
-  clip-path:path('M29 0 C36 9 47 15 53 25 C58 33 58 40 58 46 C58 55 51 62 42 62 L16 62 C7 62 0 55 0 46 C0 40 0 33 5 25 C11 15 22 9 29 0 Z');
-  display:flex;align-items:center;justify-content:center;color:var(--altin-acik);
-  box-shadow:0 6px 16px rgba(20,53,37,.45);position:relative;
-}
-.kemer-btn::before{
-  content:'';position:absolute;inset:3px;
-  clip-path:path('M26 0 C32 8 42 13 47 22 C52 29 52 35 52 41 C52 49 46 56 38 56 L14 56 C6 56 0 49 0 41 C0 35 0 29 5 22 C10 13 20 8 26 0 Z');
-  border:none;background:transparent;box-shadow:inset 0 0 0 1.5px var(--altin);
-}
-.kemer-btn svg{width:26px;height:26px;position:relative}
-.nav-ekle span{display:block;text-align:center;font-size:10.5px;font-weight:800;color:var(--altin);margin-top:2px;letter-spacing:.04em}
+/* Ortadaki logolu EKLE düğmesi — iOS 3.0 ile aynı ölçü: 66 px krem daire, 1.5 px altın halka, 22 px zümrüt artı */
+.nav-ekle{flex:1;display:flex;justify-content:center;margin-top:-32px}
+.nav-ekle>div{display:flex;flex-direction:column;align-items:center}
+.logo-ekle{position:relative;width:66px;height:66px;border-radius:50%;background:var(--krem);display:grid;place-items:center;
+  box-shadow:inset 0 0 0 1.5px var(--altin),0 6px 16px rgba(20,40,30,.16)}
+.logo-ekle img{width:46px;height:46px;object-fit:contain}
+.logo-ekle:active{transform:scale(.96)}
+.logo-ekle-arti{position:absolute;right:-1px;bottom:1px;width:22px;height:22px;border-radius:50%;background:var(--zumrut);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px var(--krem)}
+.logo-ekle-arti svg{width:13px;height:13px}
+.nav-ekle span:not(.logo-ekle-arti){display:block;text-align:center;font-size:12px;font-weight:700;color:var(--murekkep);margin-top:3px}
 
 /* ---------- Alt sayfa (sheet) ---------- */
 .ortulu{position:fixed;inset:0;background:rgba(25,38,30,.45);z-index:660;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px)}
@@ -715,6 +710,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .ana-adim{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--zumrut);margin-top:6px}
 .ana-giris-btn{display:block;width:100%;min-height:46px;border-radius:14px;background:var(--altin);color:#fff;font-weight:700;font-size:15px;margin-top:12px}
 .site-altbilgi{margin-top:28px}
+.geri-baglanti{font-size:15px;font-weight:700;color:var(--zumrut-acik);min-height:44px;padding:0 2px}
 .kip{position:fixed;inset:0;z-index:700;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(25,38,30,.5);backdrop-filter:blur(3px)}
 .kip.acik{display:flex}
 .kip-kutu{background:var(--kart);border-radius:18px;padding:22px;width:100%;max-width:420px;box-shadow:var(--golge-buyuk);border-top:2px solid var(--altin);max-height:85dvh;overflow-y:auto}
@@ -900,6 +896,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
   <!-- ============ İSTATİSTİK ============ -->
   <section class="gorunum" data-gorunum="istatistik">
     <div class="icerik">
+      <button class="geri-baglanti" id="istatistik-geri">‹ Profil</button>
       <div class="sus"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 0l2.4 5.6L16 8l-5.6 2.4L8 16l-2.4-5.6L0 8l5.6-2.4z" fill="currentColor"/></svg></div>
       <h2 style="font-family:var(--display);font-size:26px;font-weight:700;color:var(--zumrut);text-align:center;margin-bottom:4px">Envanter Durumu</h2>
       <p style="text-align:center;color:var(--soluk);font-size:13px;margin-bottom:18px">Onaylanmış kayıtların dağılımı</p>
@@ -957,22 +954,23 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 
 <!-- ============ ALT GEZİNME ============ -->
 <nav id="altnav">
-  <button class="nav-oge aktif" data-hedef="harita">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>Harita
+  <button class="nav-oge aktif" data-hedef="ana">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Ana Sayfa
   </button>
-  <button class="nav-oge" data-hedef="kesfet">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Keşfet
+  <button class="nav-oge" data-hedef="harita">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>Harita
   </button>
   <div class="nav-ekle">
     <div>
-      <button class="kemer-btn" id="btn-ekle" title="Yeni kayıt ekle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+      <button class="logo-ekle" id="btn-ekle" title="Yeni kayıt ekle" aria-label="Yeni kayıt ekle">
+        <img id="logo-ekle-img" alt="">
+        <span class="logo-ekle-arti" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M12 6v12M6 12h12"/></svg></span>
       </button>
-      <span>EKLE</span>
+      <span>Ekle</span>
     </div>
   </div>
-  <button class="nav-oge" data-hedef="istatistik">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M7 21V11M12 21V5M17 21v-8"/></svg>İstatistik
+  <button class="nav-oge" data-hedef="kesfet">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Keşfet
   </button>
   <button class="nav-oge" data-hedef="profil">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil
@@ -2196,6 +2194,7 @@ $('#ana-icerik').addEventListener('click', e => {
     $('#kip-bilgiler').classList.add('acik');
   }
 });
+$('#istatistik-geri').addEventListener('click', () => gorunumAc('profil'));
 $('#bilgiler-kapat').addEventListener('click', () => $('#kip-bilgiler').classList.remove('acik'));
 function gorunumAc(ad){
   if (typeof haritaAramaKapat === 'function') haritaAramaKapat();
@@ -3365,6 +3364,7 @@ $('#sihirbaz-ortulu').addEventListener('click', async () => {
 });
 $('#sihirbaz-vazgec1').addEventListener('click', () => $('#sihirbaz-ortulu').click());
 $('#sihirbaz-kapat').addEventListener('click', () => $('#sihirbaz-ortulu').click());
+$('#logo-ekle-img').src = $('.marka img').src;
 $('#btn-ekle').addEventListener('click', () => sihirbazAc());
 $('#girdi-baslik').addEventListener('blur', e => { e.target.value = trBasHarf(e.target.value.trim()); });
 
@@ -3874,7 +3874,7 @@ function kisayolIsle(url, gecikme){
   // yeniden açılmasın diye işlenen adres sessionStorage'da tutulur (uygulama kapanınca silinir)
   try{ sessionStorage.setItem('turbedar_kisayol_islendi', url); }catch(e){}
   setTimeout(() => {
-    if (ad === 'yakin'){ gorunumAc('harita'); $('#btn-yakin').click(); }
+    if (ad === 'yakin'){ gorunumAc('ana'); $('#btn-yakin').click(); }
     else if (ad === 'ekle') $('#btn-ekle').click();
   }, gecikme);
 }
@@ -4648,9 +4648,11 @@ async function profilCiz(){
         Google ile Giriş Yap</button>
       <button class="google-btn apple-btn" id="profil-apple">
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.39-.92-2.41-3.65ZM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.1 1.76-.96 2.8 1.01.08 2.05-.52 2.68-1.28Z"/></svg>
-        Apple ile Giriş Yap</button></div>` + bilgilerHtml();
+        Apple ile Giriş Yap</button></div>
+      <button class="btn-ghost btn btn-tam" id="profil-topluluk" style="margin-top:12px">Topluluk ve istatistik</button>` + bilgilerHtml();
     $('#profil-google').addEventListener('click', () => $('#btn-google-giris').click());
     $('#profil-apple').addEventListener('click', () => $('#btn-apple-giris').click());
+    $('#profil-topluluk').addEventListener('click', () => gorunumAc('istatistik'));
     bildirimDugmesiGuncelle();
     return;
   }
@@ -4683,7 +4685,7 @@ async function profilCiz(){
     </div>
     <button class="btn-ghost btn btn-tam" id="profil-istatistik-git" style="margin-top:12px">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px"><path d="M3 21h18M7 21V11M12 21V5M17 21v-8"/></svg>
-      Kayıtlarım ve ziyaretlerim
+      Kayıtlarım, ziyaretlerim ve istatistik
     </button>
     ${revlerim?.length ? `<div class="kart" style="padding:16px;margin-top:12px">
       <div class="bolum-baslik" style="margin-bottom:8px">Düzenleme Önerilerim</div>
@@ -5437,7 +5439,11 @@ function geriTusu(){
   if ($('#sihirbaz-sayfa')?.classList.contains('acik')){ sihirbazKapat(); return; }
   // 3) Detay sayfası açıksa kapat
   if ($('#detay-sayfa')?.classList.contains('acik')){ sayfaKapat(); return; }
-  // 4) Ana ekrandayız — "tekrar bas ve çık"
+  // 4) Ana Sayfa dışındaki sekmede: İstatistik/Yönetim → Profil, diğerleri → Ana Sayfa
+  const aktifGorunum = document.querySelector('.gorunum.aktif')?.dataset.gorunum;
+  if (aktifGorunum === 'istatistik' || aktifGorunum === 'yonetim'){ gorunumAc('profil'); return; }
+  if (aktifGorunum && aktifGorunum !== 'ana'){ gorunumAc('ana'); return; }
+  // 5) Ana Sayfa'dayız — "tekrar bas ve çık"
   const simdi = Date.now();
   if (simdi - geriCikisZamani < 2000){
     // İkinci basış: uygulamayı arka plana at (native)
