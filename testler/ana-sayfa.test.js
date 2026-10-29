@@ -12,7 +12,7 @@ const bas = html.indexOf('/* ==SAF-ANA-SAYFA-BASLA== */');
 const bit = html.indexOf('/* ==SAF-ANA-SAYFA-BITIR== */');
 if (bas < 0 || bit < 0) throw new Error('index.html içinde SAF-ANA-SAYFA işaretleri bulunamadı');
 const f = vm.runInNewContext(html.slice(bas, bit) +
-  '; ({fotoYoluGuvenli, istanbulGunNo, gununYeriSec, gonulluSayisi, ziyaretEdilmeyenlerOnce, yerEksikMi, eksikZiyaret, goreceTarih, yolculukOzeti})', {});
+  '; ({metniDuzelt, fotoYoluGuvenli, istanbulGunNo, gununYeriSec, gonulluSayisi, ziyaretEdilmeyenlerOnce, yerEksikMi, eksikZiyaret, goreceTarih, yolculukOzeti})', {});
 
 function yer({id, durum = 'onaylandi', foto = true, ekleyen = null, aciklama = null, kaynak = null, kaynaklar = null,
   il = 'Konya', ulke_kodu = 'tr', ulke = 'Türkiye', created_at = '2026-10-26T12:00:00Z'}){
@@ -98,4 +98,34 @@ test('gonulluSayisi: "Silinmiş Kullanıcı" sistem profili sayılmaz', () => {
   const a = yer({id: ids[0], ekleyen: 'a'}); a.ekleyen = {id: 'a', ad: 'Kamil'};
   const s = yer({id: ids[1], ekleyen: 's'}); s.ekleyen = {id: 's', ad: 'Silinmiş Kullanıcı'};
   assert.equal(f.gonulluSayisi([a, s]), 1);
+});
+
+// ---- PDF'ten kopyalanan açıklamaların temizliği (metniDuzelt) ----
+test('metniDuzelt: cümle ortasında kırılan satırlar birleşir (sonraki satır küçük harfle başlıyorsa)', () => {
+  assert.equal(f.metniDuzelt('Köylüler türbe çevresindeki\ngeniş bir alanı söyler.'), 'Köylüler türbe çevresindeki geniş bir alanı söyler.');
+});
+test('metniDuzelt: uzun satır noktalamasız biterse büyük harfle başlayan satırla da birleşir', () => {
+  const uzun = 'Osmanlı dönemi 1500 ve 1584 tarihli vakıf tahrirlerinde kayıtlı olan Bostancı Çelebi Zaviyesi ve';
+  assert.equal(f.metniDuzelt(uzun + '\nAmbar Viranı mezrası.'), uzun + ' Ambar Viranı mezrası.');
+});
+test('metniDuzelt: kısa başlık satırları ve noktayla biten satırlar ayrı kalır', () => {
+  assert.equal(f.metniDuzelt('Kısaca Hayatı\nAbdulkadir Geylani büyük bir alimdir.\nİkinci cümle.'), 'Kısaca Hayatı\nAbdulkadir Geylani büyük bir alimdir.\nİkinci cümle.');
+});
+test('metniDuzelt: tire ile bölünmüş kelime birleşir', () => {
+  assert.equal(f.metniDuzelt('Kayseri’de faaliyet gösteren tari-\nkatlardan biridir.'), 'Kayseri’de faaliyet gösteren tarikatlardan biridir.');
+});
+test('metniDuzelt: ( — ) boşluk işaretleri, görünmez karakterler, çift boşluk ve fazla boş satır temizlenir', () => {
+  assert.equal(f.metniDuzelt('Seyyid ( — ) ve Seyyid​  Battal.\n\n\n\n​İkinci   paragraf.'), 'Seyyid ve Seyyid Battal.\n\nİkinci paragraf.');
+  assert.equal(f.metniDuzelt('   Uçuş Rivayeti: \n  metin.'), 'Uçuş Rivayeti: metin.');
+});
+test('metniDuzelt: boş ve düz metin değişmez', () => {
+  assert.equal(f.metniDuzelt(''), '');
+  assert.equal(f.metniDuzelt(null), null);
+  assert.equal(f.metniDuzelt('Tek cümle.'), 'Tek cümle.');
+});
+test('metniDuzelt: uzun başlık satırı (kelimeleri Büyük Harfli) ve "Etiket:" satırı birleşmez', () => {
+  assert.equal(f.metniDuzelt('Diyarbakır Fethi ve Şehadeti: Hazreti Süleyman Bin Halid ve 27 Sahabe Türbesi\nAçıklama / Tarihçe:\nMetin burada.'),
+    'Diyarbakır Fethi ve Şehadeti: Hazreti Süleyman Bin Halid ve 27 Sahabe Türbesi\nAçıklama / Tarihçe:\nMetin burada.');
+  assert.equal(f.metniDuzelt('Bu Bölümde Ferah Baba Türbesi’nin Manevî Yönü ve Önemi Hakkında Bilgiler Var\nGönül Sultanı ve Fetih Ruhu: İstanbul’un fethi.'),
+    'Bu Bölümde Ferah Baba Türbesi’nin Manevî Yönü ve Önemi Hakkında Bilgiler Var\nGönül Sultanı ve Fetih Ruhu: İstanbul’un fethi.');
 });

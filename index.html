@@ -1394,6 +1394,36 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const KATEGORILER = {turbe:'Türbe', kumbet:'Kümbet', mezar:'Mezar', makam:'Makam', anit_mezar:'Anıt Mezar', sehitlik:'Şehitlik', diger:'Diğer'};
 /* ==SAF-ANA-SAYFA-BASLA== */
+/* PDF'ten / web'den kopyalanan açıklamaların temizliği (iOS TurbedarCekirdek metniDuzelt ile aynı kurallar):
+   görünmez karakterler ve "( — )" boşluk işaretleri silinir, satır başı/sonu ve çift boşluklar sadeleşir,
+   cümle ortasında kırılan satırlar birleşir (sonraki satır küçük harfle başlıyorsa; ya da önceki satır
+   uzun ve noktalamasız bitiyorsa), "keli-\nme" bölmeleri birleşir. Kısa başlık satırları ve paragraflar korunur. */
+function metniDuzelt(m){
+  if (typeof m !== 'string' || !m) return m;
+  const kucuk = /^["“'‘«(]?[a-zçğıöşüâîû]/;
+  const satirlar = m.replace(/[\u200B\u200C\u200D\uFEFF\u00AD]/g, '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/\(\s*[—–-]\s*\)/g, '')
+    .split('\n').map(l => l.replace(/[ \t\u00A0]+/g, ' ').trim());
+  const sonuc = [];
+  for (const l of satirlar){
+    const son = sonuc.length - 1, onceki = son >= 0 ? sonuc[son] : '';
+    if (!l){ if (onceki) sonuc.push(''); continue; }
+    if (onceki){
+      if (/[a-zçğıöşüâîû]-$/.test(onceki) && /^[a-zçğıöşüâîû]/.test(l)){ sonuc[son] = onceki.slice(0, -1) + l; continue; }
+      const cumleBitti = /[.!?…]["”'’»)]?$/.test(onceki);
+      const noktalamasiz = !/[.!?:;…"”'’»)]$/.test(onceki);
+      // Uzun satır kuralı başlıklarda işlemez: kelimelerinin çoğu Büyük Harfli satır ya da "Etiket:" ile başlayan sonraki satır
+      const kelimeler = onceki.split(' ').filter(k => /^[A-Za-zÇĞİÖŞÜçğıöşüÂÎÛâîû]/.test(k));
+      const basliktir = kelimeler.length && kelimeler.filter(k => /^[A-ZÇĞİÖŞÜÂÎÛ]/.test(k)).length / kelimeler.length >= 0.6;
+      const etiket = /^[^.:]{1,40}:/.test(l);
+      if ((kucuk.test(l) && !cumleBitti) || (noktalamasiz && onceki.length >= 65 && !basliktir && !etiket)){ sonuc[son] = onceki + ' ' + l; continue; }
+    }
+    sonuc.push(l);
+  }
+  while (sonuc.length && !sonuc[sonuc.length - 1]) sonuc.pop();
+  return sonuc.join('\n');
+}
 /* Storage yolları her zaman {yer_id}/{uuid}.uzantı (not fotoları notlar/ önekli). Yol DB'den gelen metin olduğu için
    HTML özniteliğine ve CSS url('...') içine girmeden önce bu biçim zorunlu tutulur (XSS). */
 function fotoYoluGuvenli(yol){
@@ -2311,6 +2341,10 @@ $('#ana-icerik').addEventListener('click', e => {
   }
 });
 $('#istatistik-geri').addEventListener('click', () => gorunumAc('profil'));
+document.addEventListener('paste', e => {
+  const alan = e.target.closest?.('#girdi-aciklama, #not-icerik, .k-bio');
+  if (alan) setTimeout(() => { const t = metniDuzelt(alan.value); if (t !== alan.value) alan.value = t; }, 0);
+});
 $('#bilgiler-kapat').addEventListener('click', () => $('#kip-bilgiler').classList.remove('acik'));
 function gorunumAc(ad){
   if (typeof haritaAramaKapat === 'function') haritaAramaKapat();
@@ -3290,7 +3324,7 @@ $('#not-foto-girdi').addEventListener('change', async e => {
   }
 });
 $('#not-gonder').addEventListener('click', async () => {
-  const icerik = $('#not-icerik').value.trim();
+  const icerik = metniDuzelt($('#not-icerik').value.trim());
   if (icerik.length < 2) return bildir('Lütfen bir bilgi yaz', true);
   const ham = $('#not-kaynak').value.trim();
   let kaynak_url = null;
@@ -4426,7 +4460,7 @@ function kisileriOku(){
     ad: s.querySelector('.k-ad').value.trim(),
     unvan: s.querySelector('.k-unvan').value.trim() || null,
     vefat: s.querySelector('.k-vefat').value.trim() || null,
-    biyografi: s.querySelector('.k-bio').value.trim() || null,
+    biyografi: metniDuzelt(s.querySelector('.k-bio').value.trim()) || null,
   })).filter(k => k.ad);
 }
 
@@ -4570,7 +4604,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
   const yurtdisi = taslak.ulkeKodu && taslak.ulkeKodu !== 'tr';
   const alanlar = {
     baslik, kategori: $('#girdi-kategori').value,
-    aciklama: $('#girdi-aciklama').value.trim() || null,
+    aciklama: metniDuzelt($('#girdi-aciklama').value.trim()) || null,
     kaynaklar: kaynaklariOku(),
     ulke: yurtdisi ? ($('#girdi-ulke').value.trim() || taslak.ulke || null) : 'Türkiye',
     ulke_kodu: taslak.ulkeKodu || 'tr',
