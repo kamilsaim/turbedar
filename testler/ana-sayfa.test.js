@@ -129,3 +129,6 @@ test('metniDuzelt: uzun başlık satırı (kelimeleri Büyük Harfli) ve "Etiket
   assert.equal(f.metniDuzelt('Bu Bölümde Ferah Baba Türbesi’nin Manevî Yönü ve Önemi Hakkında Bilgiler Var\nGönül Sultanı ve Fetih Ruhu: İstanbul’un fethi.'),
     'Bu Bölümde Ferah Baba Türbesi’nin Manevî Yönü ve Önemi Hakkında Bilgiler Var\nGönül Sultanı ve Fetih Ruhu: İstanbul’un fethi.');
 });
+test('metniDuzelt: ¬ ile hecelenmiş kelime birleşir', () => {
+  assert.equal(f.metniDuzelt('anne ra¬ himlerinden doğup Râbia merte¬\nbesinde kalmış.'), 'anne rahimlerinden doğup Râbia mertebesinde kalmış.');
+});
