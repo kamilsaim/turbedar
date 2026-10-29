@@ -4458,7 +4458,7 @@ function kaynaklariOku(){
 
 function kisileriOku(){
   return $$('#kisi-formlari .kisi-form-satir').map(s => ({
-    ad: s.querySelector('.k-ad').value.trim(),
+    ad: trBasHarf(s.querySelector('.k-ad').value.trim()),
     unvan: s.querySelector('.k-unvan').value.trim() || null,
     vefat: s.querySelector('.k-vefat').value.trim() || null,
     biyografi: metniDuzelt(s.querySelector('.k-bio').value.trim()) || null,
@@ -4598,7 +4598,8 @@ async function taslakSayisiGuncelle(){
 $('#btn-kaydet').addEventListener('click', async () => {
   const kaydetBtn = $('#btn-kaydet');
   if (kaydetBtn.disabled) return;
-  const baslik = $('#girdi-baslik').value.trim();
+  // Alandan çıkılmadan Kaydet'e basılırsa blur'daki büyütme kaçar: kaydederken de uygula.
+  const baslik = trBasHarf($('#girdi-baslik').value.trim());
   if (baslik.length < 2) return bildir('Yerin adını yaz', true);
   if (!taslak.lat) return bildir('Konum eksik', true);
   kaydetBtn.disabled = true;
