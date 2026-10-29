@@ -810,7 +810,8 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .d-kapak-nokta i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.55)}
 .d-kapak-nokta i.aktif{background:#fff}
 .d-kapak-bos{height:100%;display:grid;place-items:center;background:linear-gradient(150deg,#2C6A4E,#163C2B)}
-.d-kapak-bos img{width:110px;opacity:.35}
+.d-kapak-bos img{width:min(68%,320px);opacity:.9}
+.ana-foto-bos{background:url(logo.png) center 30%/78% no-repeat,linear-gradient(150deg,#2C6A4E,#163C2B)}
 .d-govde{position:relative;margin-top:-28px;background:var(--krem);border-radius:28px 28px 0 0;padding:22px 20px 8px}
 .d-etiket{font-size:12.5px;font-weight:800;letter-spacing:.12em;color:var(--altin);text-transform:uppercase}
 .detay-yeni .detay-baslik{font-size:34px;line-height:1.12;margin:8px 0 14px}
@@ -2293,7 +2294,7 @@ function anaSayfaCiz(){
     bol('son', `<div class="ana-bolum"><h2>Son eklenenler</h2><button data-ana-kesfet>Tümü</button></div>
       <div class="ana-serit">${son.map(y => {
         const ekleyen = y.ekleyen?.ad && y.ekleyen.ad !== 'İsimsiz' ? y.ekleyen.ad : '';
-        return `<button class="ana-foto-kart" data-ana-yer="${kacir(y.id)}" ${y.fotograflar?.length ? `style="background-image:url('${fotoUrl(y.fotograflar[0].yol)}')"` : ''}>
+        return `<button class="ana-foto-kart${y.fotograflar?.length ? '' : ' ana-foto-bos'}" data-ana-yer="${kacir(y.id)}" ${y.fotograflar?.length ? `style="background-image:url('${fotoUrl(y.fotograflar[0].yol)}')"` : ''}>
           ${z.has(y.id) ? '<span class="ana-muhur" aria-label="Ziyaret ettin">✓</span>' : ''}
           <div><b>${kacir(y.baslik)}</b><small>${kacir(anaKonumKisa(y))}</small><small>${kacir([ekleyen, goreceTarih(y.created_at)].filter(Boolean).join(' · '))}</small></div></button>`;
       }).join('')}</div>`);
@@ -2937,7 +2938,7 @@ async function detayAc(id){
     <div class="d-kapak">${fotoSay
       ? `<div class="d-kapak-serit">${y.fotograflar.map(f => `<img loading="lazy" src="${fotoUrl(f.yol)}" data-buyuk="${fotoUrl(f.yol)}" alt="">`).join('')}</div>
          ${fotoSay > 1 ? `<div class="d-kapak-nokta">${y.fotograflar.map((_, i) => `<i class="${i ? '' : 'aktif'}"></i>`).join('')}</div>` : ''}`
-      : `<div class="d-kapak-bos"><img src="${$('.marka img').src}" alt=""></div>`}</div>
+      : `<div class="d-kapak-bos"><img src="logo.png" alt=""></div>`}</div>
     <div class="d-govde">
     <div class="d-etiket">${kacir([(KATEGORILER[y.kategori] || y.kategori || ''), kisaKonum].filter(Boolean).join(' · '))}</div>
     ${y.durum !== 'onaylandi' || y.yz_destekli ? `<div class="detay-meta">
