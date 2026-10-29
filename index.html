@@ -2288,12 +2288,12 @@ function anaSayfaCiz(){
         <p class="ana-ikincil" style="margin-top:6px">${yerEksikMi(e) === 'aciklama' ? 'Bu kaydın açıklaması yok.' : 'Bu kaydın kaynağı yok.'} Burayı ziyaret etmiştin; biliyorsan birkaç satırla katkı ver.</p>
         <button class="ana-oner" data-ana-oner="${kacir(e.id)}">${ANA_SVG.oner}Bilgi öner</button></div>`);
   }
-  const son = onayli.filter(y => (y.fotograflar || []).length).slice(0, 10);
+  const son = onayli.slice(0, 10);   // fotoğrafsız da: en son eklenen o
   if (son.length){
     bol('son', `<div class="ana-bolum"><h2>Son eklenenler</h2><button data-ana-kesfet>Tümü</button></div>
       <div class="ana-serit">${son.map(y => {
         const ekleyen = y.ekleyen?.ad && y.ekleyen.ad !== 'İsimsiz' ? y.ekleyen.ad : '';
-        return `<button class="ana-foto-kart" data-ana-yer="${kacir(y.id)}" style="background-image:url('${fotoUrl(y.fotograflar[0].yol)}')">
+        return `<button class="ana-foto-kart" data-ana-yer="${kacir(y.id)}" ${y.fotograflar?.length ? `style="background-image:url('${fotoUrl(y.fotograflar[0].yol)}')"` : ''}>
           ${z.has(y.id) ? '<span class="ana-muhur" aria-label="Ziyaret ettin">✓</span>' : ''}
           <div><b>${kacir(y.baslik)}</b><small>${kacir(anaKonumKisa(y))}</small><small>${kacir([ekleyen, goreceTarih(y.created_at)].filter(Boolean).join(' · '))}</small></div></button>`;
       }).join('')}</div>`);
