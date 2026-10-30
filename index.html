@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <script>
+// iPhone/iPad: yazılar telefonun Metin Boyutu ayarına uysun (iOS uygulamasıyla aynı görünüm).
+// -apple-system-body varsayılan ayarda 17px'tir; oran -webkit-text-size-adjust ile yalnız yazıya uygulanır.
+(function(){
+  var ua = navigator.userAgent;
+  if (!(/iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1))) return;
+  var o = document.createElement('span');
+  o.style.cssText = 'font:-apple-system-body;position:absolute;visibility:hidden';
+  document.documentElement.appendChild(o);
+  var px = parseFloat(getComputedStyle(o).fontSize); o.remove();
+  if (px > 0 && Math.abs(px - 17) > 0.5) document.documentElement.style.webkitTextSizeAdjust = Math.round(px / 17 * 100) + '%';
+})();
+</script>
+<script>
   /* GitHub Pages'ten TARAYICIYLA gelenleri asıl adrese taşı. APK (window.Capacitor)
      hariç: eski APK'ların izin listesinde turbedar.web.app/turbedar.org yok, yönlendirilirse
      uygulama dış tarayıcıya fırlardı. Pages bu yüzden açık kalmalı. Capacitor
