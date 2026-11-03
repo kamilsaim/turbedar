@@ -266,12 +266,14 @@ Deno.serve(async (req: Request) => {
               message: {
                 token: p.push_token,
                 notification: { title: b.baslik, body: b.govde || '' },
-                data: { yer_id: b.yer_id || '' },
+                // bildirim_id: yerel Android dokununca o bildirimi okundu yapar (v17)
+                data: { yer_id: b.yer_id || '', bildirim_id: b.id },
                 android: {
                   priority: 'high',
                   notification: {
                     icon: 'ic_stat_notification',   // beyaz silüet — android/app/src/main/res/drawable-*/ altında olmalı
                     color: '#2F5C46',                 // zümrüt yeşili — Türbedar marka rengi
+                    channel_id: 'turbedar_genel',     // yerel uygulamanın kanalı (eski APK'da yoksa varsayılana düşer)
                   },
                 },
               },
