@@ -19,7 +19,7 @@
 </head>
 <body>
 <h1>Türbedar — Gizlilik Politikası</h1>
-<p class="tarih">Son güncelleme: 21 Ekim 2026 • Yürürlük tarihi: 12 Ağustos 2026</p>
+<p class="tarih">Son güncelleme: 4 Kasım 2026 • Yürürlük tarihi: 12 Ağustos 2026</p>
 
 <p>Türbedar; türbe, kümbet, şehitlik ve önemli mezarların gönüllü katkılarla oluşturulan ortak bir envanter uygulamasıdır. Bu sayfa, uygulamayı kullanırken hangi bilgilerin toplandığını, nasıl kullanıldığını, kimlerle paylaşıldığını ve bunlar üzerinde hangi haklara sahip olduğunuzu açıklar.</p>
 
@@ -42,6 +42,9 @@
 
 <h3>Bildirim kimliği</h3>
 <p>Bildirimlere izin verirseniz, cihazınıza özel bir bildirim kimliği profilinizde saklanır: Android uygulamasında Firebase push token'ı, iPhone/iPad ana ekran uygulamasında ve masaüstü tarayıcılarda ise tarayıcınızın ürettiği web push abonelik adresi ve şifreleme anahtarları. İzin vermezseniz saklanmaz; geçersiz hâle gelen kimlikler otomatik silinir. Bildirim içerikleri cihazınıza ulaşana kadar şifrelidir.</p>
+
+<h3>Biyometrik kilit (isteğe bağlı)</h3>
+<p>Profil sayfasından "parmak izi / yüz ile kilitle" (iPhone'da Face ID / Touch ID) seçeneğini açarsanız uygulama açılırken cihazınızın kimlik doğrulaması istenir. Doğrulama <b>tamamen cihazınızın işletim sistemi tarafından yapılır</b>; parmak izi, yüz verisi veya başka bir biyometrik bilgi uygulamaya, sunucularımıza ya da üçüncü taraflara <b>hiçbir zaman iletilmez ve saklanmaz</b>. Uygulama yalnızca doğrulamanın başarılı olup olmadığını öğrenir. Seçenek varsayılan olarak kapalıdır ve çıkış yaptığınızda ya da hesabınızı sildiğinizde kapanır.</p>
 
 <h3>Teknik kayıtlar</h3>
 <p>Altyapı sağlayıcımız, güvenlik ve hata takibi amacıyla standart sunucu kayıtları (IP adresi, istek zamanı, tarayıcı/cihaz bilgisi) tutar. Uygulamada <b>reklam ağı, analitik izleyici veya çerez tabanlı takip bulunmaz</b>.</p>
@@ -78,7 +81,7 @@
 <tr><td>Tarayıcı push servisleri (Apple, Google, Mozilla)</td><td>Bildirim abonelik adresi, şifrelenmiş bildirim içeriği</td><td>iPhone/iPad ana ekran uygulamasına ve tarayıcılara bildirim iletimi</td></tr>
 <tr><td>OpenStreetMap / Nominatim</td><td>Seçtiğiniz koordinat, IP adresi</td><td>Harita görüntüleri ve adres çözümleme (il/ilçe/mahalle bulma)</td></tr>
 <tr><td>Esri World Imagery</td><td>Görüntülenen harita alanı, IP adresi</td><td>Uydu görünümü karoları</td></tr>
-<tr><td>Google Gemini API</td><td>Kapak fotoğrafı ve yerin adı/konumu (il, ilçe, ülke) — yalnızca "Yapay Zekayla Öner" düğmesine bastığınızda; hesap bilgisi gönderilmez</td><td>Kayıt için açıklama, mekân sahibi ve kaynak önerisi. Ücretsiz kullanım koşulları gereği Google bu içeriği hizmetlerini geliştirmek için kullanabilir</td></tr>
+<tr><td>Google Gemini API</td><td>Kapak fotoğrafı ve yerin adı/konumu (il, ilçe, mahalle, ülke) — yalnızca "Yapay Zekayla Öner" düğmesine bastığınızda; hesap bilgisi gönderilmez</td><td>Kayıt için açıklama, mekân sahibi ve kaynak önerisi. Ücretsiz kullanım koşulları gereği Google bu içeriği hizmetlerini geliştirmek için kullanabilir</td></tr>
 <tr><td>Firebase Hosting, GitHub Pages, cdnjs, jsDelivr, Google Fonts</td><td>IP adresi, tarayıcı bilgisi</td><td>Uygulamanın ve yazı tiplerinin sunulması</td></tr>
 </table>
 <p>Ayrıca, yasal bir zorunluluk hâlinde (mahkeme kararı vb.) bilgileri yetkili mercilerle paylaşmak durumunda kalabiliriz.</p>
