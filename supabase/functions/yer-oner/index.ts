@@ -2,6 +2,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import Anthropic from "npm:@anthropic-ai/sdk@0.71.0";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+function ANTHROPIC_VAR_MI() { return !!ANTHROPIC_API_KEY; }
 // Model zinciri: Google tarafinda 503 (asiri yuk) sik yasandigi icin tek modele bagli kalmiyoruz.
 // Sirayla denenir, ilk basarili yanit kullanilir. Liste 3 Eyl 2026'da ListModels ile dogrulandi.
 // 6 Eki 2026: 3.6 ücretsiz günlük kotası (429) doldu, 3.8 sürekli 503 veriyor; o gün yanıt veren tek model 3.7 olduğu için başa alındı.
@@ -15,13 +17,14 @@ const bekle = (ms: number) => new Promise((c) => setTimeout(c, ms));
 // Telefonlar ~60 sn'de isteği koparıyor; zincir bundan çok önce bitmeli (6 Eki 2026: 52 sn'lik zincir
 // istemcide "Failed to send a request" olarak düştü). Yoğunlukta başarılı model ~17 sn sürdüğü için
 // model başına 20 sn, toplam 45 sn.
-const MODEL_ZAMAN_ASIMI_MS = 20000;
+const MODEL_ZAMAN_ASIMI_MS = ANTHROPIC_VAR_MI() ? 6000 : 20000;
 // Son çare: Gemini zinciri tükenirse Claude Haiku 5.5 (ücretli, ANTHROPIC_API_KEY secret'ı varsa). Telefonun ~60 sn sınırı için
-// Gemini bütçesi 45 → 32 sn'ye çekilir, Claude'a 18 sn ayrılır (toplam ≤ 50 sn). Secret yoksa eski davranış (45 sn, Claude yok).
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+// Gemini bütçesi 45 → 14 sn'ye çekilir, Claude'a 15 sn ayrılır (toplam ≤ ~30 sn). Secret yoksa eski davranış (45 sn, Claude yok).
 const CLAUDE_MODEL = "claude-haiku-5-5";
-const CLAUDE_ZAMAN_ASIMI_MS = 18000;
-const BUTCE_MS = ANTHROPIC_API_KEY ? 32000 : 45000;
+const CLAUDE_ZAMAN_ASIMI_MS = 9000;
+// 5 Kas 2026: Gemini 3.7 20 sn zaman aşımına uğrayıp Claude'a 30+ sn'de geçiliyordu, iOS 'bağlantı koptu' dedi → Gemini'ye en çok 14 sn (model başı 8 sn).
+// 5 Kas 2026 (v20): iOS istemcisi ~14 sn'de bağlantıyı kopardığı için (200 dönen yanıtlar bile 'bağlantı koptu' oldu) Gemini 7 sn, Claude 9 sn.
+const BUTCE_MS = ANTHROPIC_API_KEY ? 7000 : 45000;
 const SEMA = {
   type: "object",
   properties: {
