@@ -3745,7 +3745,7 @@ async function yzIstekYapTekrarli(govde){
 async function yzIzniVarMi(){
   try{ if (localStorage.getItem('turbedar_yz_izin')) return true; }catch(e){}
   const onay = await sor('Yapay Zeka Önerisi',
-    'Öneri hazırlamak için bu kaydın kapak fotoğrafı ile yer adı ve konum bilgisi (il, ilçe, mahalle, ülke) Google Gemini yapay zeka servisine gönderilir. Adın, e-postan veya hesap bilgilerin gönderilmez; ücretsiz kullanım koşulları gereği Google bu içeriği hizmetlerini geliştirmek için kullanabilir. Önerileri kullanmadan önce gözden geçirebilirsin. Kabul ediyor musun?',
+    'Öneri hazırlamak için bu kaydın kapak fotoğrafı ile yer adı ve konum bilgisi (il, ilçe, mahalle, ülke) Google Gemini (yoğunsa yedek olarak Anthropic Claude) yapay zeka servisine gönderilir. Adın, e-postan veya hesap bilgilerin gönderilmez; ücretsiz kullanım koşulları gereği Google bu içeriği hizmetlerini geliştirmek için kullanabilir. Önerileri kullanmadan önce gözden geçirebilirsin. Kabul ediyor musun?',
     {evetMetin:'Kabul Et ve Devam'});
   if (!onay) return false;
   try{ localStorage.setItem('turbedar_yz_izin', new Date().toISOString()); }catch(e){}

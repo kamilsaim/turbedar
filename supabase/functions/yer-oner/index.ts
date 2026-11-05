@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import Anthropic from "npm:@anthropic-ai/sdk@0.71.0";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
 // Model zinciri: Google tarafinda 503 (asiri yuk) sik yasandigi icin tek modele bagli kalmiyoruz.
@@ -15,7 +16,50 @@ const bekle = (ms: number) => new Promise((c) => setTimeout(c, ms));
 // istemcide "Failed to send a request" olarak düştü). Yoğunlukta başarılı model ~17 sn sürdüğü için
 // model başına 20 sn, toplam 45 sn.
 const MODEL_ZAMAN_ASIMI_MS = 20000;
-const BUTCE_MS = 45000;
+// Son çare: Gemini zinciri tükenirse Claude Haiku 5.5 (ücretli, ANTHROPIC_API_KEY secret'ı varsa). Telefonun ~60 sn sınırı için
+// Gemini bütçesi 45 → 32 sn'ye çekilir, Claude'a 18 sn ayrılır (toplam ≤ 50 sn). Secret yoksa eski davranış (45 sn, Claude yok).
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const CLAUDE_MODEL = "claude-haiku-5-5";
+const CLAUDE_ZAMAN_ASIMI_MS = 18000;
+const BUTCE_MS = ANTHROPIC_API_KEY ? 32000 : 45000;
+const SEMA = {
+  type: "object",
+  properties: {
+    aciklama: { type: "string" },
+    mekan_sahipleri: {
+      type: "array",
+      items: { type: "object", properties: { ad: { type: "string" }, vefat: { type: "string" } }, required: ["ad", "vefat"], additionalProperties: false },
+    },
+    kaynak_baslik: { type: "string" },
+    kaynak_url: { type: "string" },
+  },
+  required: ["aciklama", "mekan_sahipleri", "kaynak_baslik", "kaynak_url"],
+  additionalProperties: false,
+};
+
+async function claudeIleOner(promptMetni: string, fotoBase64?: string, fotoMime?: string): Promise<Record<string, unknown> | null> {
+  if (!ANTHROPIC_API_KEY) return null;
+  try {
+    const istemci = new Anthropic({ apiKey: ANTHROPIC_API_KEY, maxRetries: 0, timeout: CLAUDE_ZAMAN_ASIMI_MS });
+    const icerik: Record<string, unknown>[] = [];
+    if (fotoBase64) icerik.push({ type: "image", source: { type: "base64", media_type: fotoMime || "image/webp", data: fotoBase64 } });
+    icerik.push({ type: "text", text: promptMetni });
+    // deno-lint-ignore no-explicit-any
+    const yanit: any = await (istemci.messages as any).create({
+      model: CLAUDE_MODEL,
+      max_tokens: 2000,
+      output_config: { effort: "low", format: { type: "json_schema", schema: SEMA } },
+      messages: [{ role: "user", content: icerik }],
+    });
+    const metin = yanit?.content?.find((b: { type: string }) => b.type === "text")?.text;
+    if (!metin) return null;
+    console.log("Claude basarili", CLAUDE_MODEL);
+    return JSON.parse(metin);
+  } catch (e) {
+    console.error("Claude hatasi", String((e as Error)?.message || e));
+    return null;
+  }
+}
 
 const CORS_BASLIKLAR = {
   "Access-Control-Allow-Origin": "*",
@@ -100,6 +144,10 @@ Deno.serve(async (req: Request) => {
       if (BUTCE_MS - (Date.now() - baslangic) < 3000) break;
     }
     if (!yanit) {
+      const claudeSonuc = await claudeIleOner(promptMetni, foto_base64, foto_mime);
+      if (claudeSonuc) {
+        return new Response(JSON.stringify(claudeSonuc), { headers: { ...CORS_BASLIKLAR, "Content-Type": "application/json" } });
+      }
       return new Response(
         JSON.stringify({ error: "Yapay zeka servisi şu an çok yoğun (Google tarafında geçici aşırı yük). Lütfen birkaç dakika sonra tekrar deneyin.", yogun: true, ayrinti: sonHata }),
         { status: 503, headers: { ...CORS_BASLIKLAR, "Content-Type": "application/json" } },
