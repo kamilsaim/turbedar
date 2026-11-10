@@ -57,7 +57,25 @@ Deno.serve(async (req) => {
         govde.match(/"latitude"\s*:\s*(-?\d+\.\d+)\s*,\s*"longitude"\s*:\s*(-?\d+\.\d+)/);
       if (m) { lat = Number(m[1]); lng = Number(m[2]); }
     }
-    return yanit({ url: u.href, lat, lng });
+    // Google'da kaydedilmiş yer linki koordinat taşımaz (yalnız ad + iç kimlik): adla OpenStreetMap'te ara.
+    let ad: string | null = null, yaklasik = false;
+    const yerAdi = u.pathname.match(/\/maps\/place\/([^/]+)/)?.[1];
+    if (yerAdi) ad = decodeURIComponent(yerAdi.replace(/\+/g, " ")).trim();
+    if (lat === null && ad) {
+      const parca = ad.split(",").map((x) => x.trim()).filter(Boolean);
+      const sonParca = parca.at(-1)?.replace(/^\d{5}\s*/, "") ?? "";
+      const sorgular = [ad, parca.length > 1 ? `${parca[0]}, ${sonParca}` : "", parca[0]].filter((q, i, d) => q && d.indexOf(q) === i);
+      for (const q of sorgular) {
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=tr&q=${encodeURIComponent(q)}`,
+            { headers: { "User-Agent": "Turbedar/1.0 (turbedar.org)" }, signal: AbortSignal.timeout(5000) });
+          const j = await r.json();
+          if (Array.isArray(j) && j[0]) { lat = Number(j[0].lat); lng = Number(j[0].lon); yaklasik = true; break; }
+        } catch { /* sonraki sorgu */ }
+      }
+      ad = parca[0] ?? ad;
+    }
+    return yanit({ url: u.href, lat, lng, ad, yaklasik });
   } catch (e) {
     return yanit({ error: String((e as Error)?.message || e) }, 500);
   }
