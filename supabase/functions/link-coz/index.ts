@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     for (let i = 0; i < 6; i++) {
       const r = await fetch(u.href, {
         redirect: "manual",
-        headers: { "User-Agent": "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36", "Accept-Language": "tr" },
+        headers: { "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1", "Accept-Language": "tr" },
         signal: AbortSignal.timeout(5000),
       });
       const yer = r.headers.get("location");
@@ -35,6 +35,8 @@ Deno.serve(async (req) => {
         await r.body?.cancel();
         const sonraki = izinli(new URL(yer, u).href);
         if (!sonraki) break;
+        // Apple/Google son adreste koordinat taşıyorsa sayfayı indirmeye gerek yok
+        if (/[?&](coordinate|ll|q)=-?\d|!3d-?\d|@-?\d+\.\d+,/.test(decodeURIComponent(sonraki.href))) { u = sonraki; break; }
         // Google çerez onayı sayfası: asıl adres 'continue' parametresinde
         const devam = sonraki.hostname.startsWith("consent.") ? izinli(sonraki.searchParams.get("continue") || "") : null;
         u = devam || sonraki;
