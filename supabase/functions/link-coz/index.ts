@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     for (let i = 0; i < 6; i++) {
       const r = await fetch(u.href, {
         redirect: "manual",
-        headers: { "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1", "Accept-Language": "tr" },
+        headers: { "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1", "Accept-Language": "tr-TR,tr;q=0.9,en;q=0.8", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" },
         signal: AbortSignal.timeout(5000),
       });
       const yer = r.headers.get("location");
@@ -35,6 +35,7 @@ Deno.serve(async (req) => {
         await r.body?.cancel();
         const sonraki = izinli(new URL(yer, u).href);
         if (!sonraki) break;
+        if (sonraki.pathname === "/unsupported") { console.log("apple unsupported", u.href); break; }
         // Apple/Google son adreste koordinat taşıyorsa sayfayı indirmeye gerek yok
         if (/[?&](coordinate|ll|q)=-?\d|!3d-?\d|@-?\d+\.\d+,/.test(decodeURIComponent(sonraki.href))) { u = sonraki; break; }
         // Google çerez onayı sayfası: asıl adres 'continue' parametresinde
@@ -51,6 +52,8 @@ Deno.serve(async (req) => {
       const m = govde.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
         govde.match(/center=(-?\d+\.\d+)(?:%2C|,)(-?\d+\.\d+)/) ||
         govde.match(/@(-?\d+\.\d{3,}),(-?\d+\.\d{3,})/) ||
+        govde.match(/place:location:latitude" content="(-?\d+\.\d+)"[\s\S]{0,200}?place:location:longitude" content="(-?\d+\.\d+)"/) ||
+        govde.match(/"lat"\s*:\s*(-?\d+\.\d+)\s*,\s*"lng"\s*:\s*(-?\d+\.\d+)/) ||
         govde.match(/"latitude"\s*:\s*(-?\d+\.\d+)\s*,\s*"longitude"\s*:\s*(-?\d+\.\d+)/);
       if (m) { lat = Number(m[1]); lng = Number(m[2]); }
     }
