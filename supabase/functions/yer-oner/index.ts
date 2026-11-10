@@ -20,7 +20,9 @@ const bekle = (ms: number) => new Promise((c) => setTimeout(c, ms));
 const MODEL_ZAMAN_ASIMI_MS = ANTHROPIC_VAR_MI() ? 6000 : 20000;
 // Son çare: Gemini zinciri tükenirse Claude Haiku 5.5 (ücretli, ANTHROPIC_API_KEY secret'ı varsa). Telefonun ~60 sn sınırı için
 // Gemini bütçesi 45 → 14 sn'ye çekilir, Claude'a 15 sn ayrılır (toplam ≤ ~30 sn). Secret yoksa eski davranış (45 sn, Claude yok).
-const CLAUDE_MODEL = "claude-haiku-5-5";
+// 10 Kas 2026: öncelik Gemini → Sonnet; Sonnet süreye yetişmezse paralel başlatılan Haiku yanıtı kullanılır.
+const CLAUDE_ANA = "claude-sonnet-5-5";
+const CLAUDE_YEDEK = "claude-haiku-5-5";
 const CLAUDE_ZAMAN_ASIMI_MS = 9000;
 // 5 Kas 2026: Gemini 3.7 20 sn zaman aşımına uğrayıp Claude'a 30+ sn'de geçiliyordu, iOS 'bağlantı koptu' dedi → Gemini'ye en çok 14 sn (model başı 8 sn).
 // 5 Kas 2026 (v20): iOS istemcisi ~14 sn'de bağlantıyı kopardığı için (200 dönen yanıtlar bile 'bağlantı koptu' oldu) Gemini 7 sn, Claude 9 sn.
@@ -40,7 +42,7 @@ const SEMA = {
   additionalProperties: false,
 };
 
-async function claudeIleOner(promptMetni: string, fotoBase64?: string, fotoMime?: string): Promise<Record<string, unknown> | null> {
+async function claudeModelIleOner(model: string, promptMetni: string, fotoBase64?: string, fotoMime?: string): Promise<Record<string, unknown> | null> {
   if (!ANTHROPIC_API_KEY) return null;
   try {
     const istemci = new Anthropic({ apiKey: ANTHROPIC_API_KEY, maxRetries: 0, timeout: CLAUDE_ZAMAN_ASIMI_MS });
@@ -49,19 +51,27 @@ async function claudeIleOner(promptMetni: string, fotoBase64?: string, fotoMime?
     icerik.push({ type: "text", text: promptMetni });
     // deno-lint-ignore no-explicit-any
     const yanit: any = await (istemci.messages as any).create({
-      model: CLAUDE_MODEL,
+      model,
       max_tokens: 2000,
       output_config: { effort: "low", format: { type: "json_schema", schema: SEMA } },
       messages: [{ role: "user", content: icerik }],
     });
     const metin = yanit?.content?.find((b: { type: string }) => b.type === "text")?.text;
     if (!metin) return null;
-    console.log("Claude basarili", CLAUDE_MODEL);
+    console.log("Claude basarili", model);
     return JSON.parse(metin);
   } catch (e) {
-    console.error("Claude hatasi", String((e as Error)?.message || e));
+    console.error("Claude hatasi", model, String((e as Error)?.message || e));
     return null;
   }
+}
+
+// Sonnet ve Haiku aynı anda başlar: Sonnet başarılıysa o, değilse Haiku (Haiku ucuz, çift istek maliyeti önemsiz).
+async function claudeIleOner(promptMetni: string, fotoBase64?: string, fotoMime?: string): Promise<Record<string, unknown> | null> {
+  if (!ANTHROPIC_API_KEY) return null;
+  const yedek = claudeModelIleOner(CLAUDE_YEDEK, promptMetni, fotoBase64, fotoMime);
+  const ana = await claudeModelIleOner(CLAUDE_ANA, promptMetni, fotoBase64, fotoMime);
+  return ana ?? await yedek;
 }
 
 const CORS_BASLIKLAR = {

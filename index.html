@@ -677,6 +677,33 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 .ana-sayilar b{display:block;font-size:24px;font-weight:700;line-height:1.1}
 .ana-sayilar span{font-size:13px;opacity:.85}
 .ana-altin-btn{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;border-radius:14px;background:var(--altin);color:#fff;font-weight:700;font-size:15px}
+.burada-kart{background:linear-gradient(135deg,var(--zumrut),#2a6a4e);color:#fff;border-radius:18px;padding:16px;margin-top:14px;box-shadow:0 6px 14px rgba(0,0,0,.1)}
+.burada-kart h3{font-family:'Cormorant Garamond',serif;font-size:22px;margin:2px 0 4px}
+.burada-kart p{font-size:13.5px;opacity:.9}
+.burada-kart .burada-dugmeler{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.burada-kart button{min-height:44px;padding:0 14px;border-radius:12px;font-weight:700;font-size:14px;background:rgba(255,255,255,.16);color:#fff}
+.burada-kart button.ana{background:var(--altin)}
+.burada-ust{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.08em;opacity:.85}
+.burada-ust button{min-height:32px;padding:0 8px;background:none}
+.durum-kutu{margin:10px 0 4px;padding:11px 13px;border-radius:14px;background:var(--kart);box-shadow:0 4px 12px rgba(0,0,0,.05);font-size:13.5px}
+.durum-kutu.eski .durum-son{opacity:.6}
+.durum-kutu small{color:var(--soluk);display:block;margin-bottom:4px}
+.durum-etiket{display:inline-block;margin:2px 4px 2px 0;padding:3px 9px;border-radius:999px;background:var(--krem);font-size:12.5px;font-weight:600}
+.durum-not{margin-top:5px;font-style:italic}
+.durum-dugmeler{display:flex;gap:14px;margin-top:6px}
+.durum-dugmeler button{color:var(--zumrut-acik);font-weight:700;font-size:13.5px;min-height:36px;background:none}
+.durum-liste{margin-top:8px;border-top:1px solid var(--cizgi)}
+.durum-liste>div{padding:8px 0;border-bottom:1px solid var(--cizgi)}
+.durum-liste .durum-sil{color:var(--kirmizi);font-size:12px;margin-left:6px;background:none}
+.durum-secim{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.durum-secim button{min-height:40px;padding:0 12px;border-radius:999px;border:1.5px solid var(--cizgi);background:var(--kart);font-size:13.5px;color:var(--murekkep)}
+.durum-secim button.secili{border-color:var(--zumrut);background:var(--zumrut);color:#fff}
+.gezi-satir{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--cizgi)}
+.gezi-no{flex:none;width:28px;height:28px;border-radius:50%;background:var(--zumrut);color:#fff;font-weight:700;display:grid;place-items:center;font-size:13px}
+.gezi-satir .gezi-ad{flex:1;min-width:0;cursor:pointer}
+.gezi-satir b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gezi-satir small{color:var(--soluk);font-size:12px}
+.gezi-satir .gezi-cikar{flex:none;width:40px;height:40px;color:var(--soluk);font-size:18px;background:none}
 .ana-kart{background:var(--kart);border-radius:18px;padding:16px;box-shadow:0 6px 14px rgba(0,0,0,.06);margin-top:14px}
 .ana-kart-baslik{font-family:var(--display);font-weight:700;font-size:21px;color:var(--murekkep)}
 .ana-cubuk{height:6px;border-radius:3px;background:var(--kart-koyu);margin:8px 0 6px;overflow:hidden}
@@ -944,7 +971,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
       </button>
       <div class="harita-arama-kutu" id="harita-arama-kutu">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input type="search" id="harita-arama-girdi" placeholder="Türbe, kişi, il veya adres ara..." autocomplete="off">
+        <input type="search" id="harita-arama-girdi" placeholder="Türbe, kişi, adres ya da harita linki..." autocomplete="off">
         <button id="harita-arama-kapat" title="Kapat">&#10005;</button>
       </div>
     </div>
@@ -1105,7 +1132,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
     <!-- ADIM 2: KONUM -->
     <div class="sihirbaz-adim" data-adim="2">
       <div class="konum-arama">
-        <input type="text" id="konum-arama-girdi" placeholder="🔍 Adres, yer veya mahalle ara" autocomplete="off">
+        <input type="text" id="konum-arama-girdi" placeholder="🔍 Adres ara ya da harita linki yapıştır" autocomplete="off">
         <div class="konum-arama-liste" id="konum-arama-liste"></div>
       </div>
       <div class="konum-kaynak" id="konum-kaynak"></div>
@@ -1231,6 +1258,28 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
     <button class="btn btn-tam" id="fk-kamera" style="margin-bottom:8px">📷 Kamerayla Çek</button>
     <button class="btn-ghost btn btn-tam" id="fk-galeri" style="border:1px solid var(--cizgi);color:var(--murekkep);margin-bottom:8px">🖼️ Galeriden Seç</button>
     <button class="btn-ghost btn btn-tam" id="fk-vazgec" style="background:transparent;color:var(--soluk)">Vazgeç</button>
+  </div>
+</div>
+
+<div class="kip" id="kip-durum">
+  <div class="kip-kutu">
+    <h3>Durum Bildir</h3>
+    <p style="font-size:13px;color:var(--soluk)"><b id="durum-yer" style="color:var(--murekkep)"></b><br>Gelecek ziyaretçiler için gördüğünü paylaş. Bildirimin adınla hemen yayınlanır.</p>
+    <div class="durum-secim" id="durum-secim"></div>
+    <textarea id="durum-not" maxlength="300" rows="3" placeholder="İsteğe bağlı kısa not (örn. cuma günleri kapalı, anahtar caminin imamında)" style="width:100%"></textarea>
+    <button class="btn btn-tam" id="durum-gonder" style="margin-top:10px">Gönder</button>
+    <button class="btn-ghost btn btn-tam" id="durum-vazgec" style="background:transparent;color:var(--soluk);margin-top:4px">Vazgeç</button>
+  </div>
+</div>
+
+<div class="kip" id="kip-gezi">
+  <div class="kip-kutu">
+    <h3>Gezi Listem</h3>
+    <p id="gezi-ozet" style="font-size:13px;color:var(--soluk)"></p>
+    <div id="gezi-liste"></div>
+    <button class="btn btn-tam" id="gezi-rota" style="margin-top:12px">Google Haritalar'da rotayı aç</button>
+    <button class="btn-ghost btn btn-tam" id="gezi-temizle" style="border:1px solid var(--cizgi);color:var(--kirmizi);margin-top:8px">Listeyi temizle</button>
+    <button class="btn-ghost btn btn-tam" id="gezi-kapat" style="background:transparent;color:var(--soluk);margin-top:4px">Kapat</button>
   </div>
 </div>
 
@@ -1402,7 +1451,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '3.0.1';
+const SURUM = '3.1.0';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -1513,6 +1562,123 @@ function yolculukOzeti(yerler, ziyaretler){
   const sira = Object.keys(git).map(k => ({ad: k, toplam: toplam[k], gidilen: git[k]}))
     .sort((a, b) => b.gidilen - a.gidilen || (anaKucuk(a.ad) < anaKucuk(b.ad) ? -1 : anaKucuk(a.ad) > anaKucuk(b.ad) ? 1 : 0));
   return {metin: `${ziyaretler.size} türbe · ${il} il` + (ulke > 0 ? ` · ${ulke} ülke` : ''), il: sira[0] || null};
+}
+/* ---- Harita bağlantısından konum (10 Kas 2026) ----
+   Google/Apple Haritalar paylaşım linki, geo: adresi ya da düz "41.01, 28.97" metni.
+   Dönüş: {lat, lng, ad} | {kisa: url} (sunucuda açılmalı: kısa link ya da koordinatsız harita linki) | null */
+function haritaLinkiCoz(metin){
+  const s = String(metin || '').trim();
+  if (!s) return null;
+  const gecerli = (a, b, ad) => {
+    const lat = Number(a), lng = Number(b);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || (lat === 0 && lng === 0)) return null;
+    return {lat, lng, ad: ad || null};
+  };
+  const KOORD = /^\s*(-?\d{1,3}(?:\.\d+)?)\s*[,;]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/;
+  let m = s.match(KOORD);
+  if (m) return gecerli(m[1], m[2]);
+  m = s.match(/^geo:(-?\d{1,3}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/i);
+  if (m) return gecerli(m[1], m[2]);
+  const um = s.match(/https?:\/\/[^\s<>"']+/i);
+  if (!um) return null;
+  let url;
+  try { url = new URL(um[0]); } catch (e) { return null; }
+  const host = url.hostname.toLowerCase();
+  if (/^(maps\.app\.goo\.gl|goo\.gl|g\.co|maps\.apple)$/.test(host)) return {kisa: url.href};
+  const google = /(^|\.)google\.[a-z]{2,3}(\.[a-z]{2})?$/.test(host) && (host.startsWith('maps.') || url.pathname.startsWith('/maps'));
+  const apple = host === 'maps.apple.com';
+  if (!google && !apple) return null;
+  let ad = null;
+  const yerAdi = url.pathname.match(/\/maps\/place\/([^/@]+)/);
+  if (yerAdi){ try { ad = decodeURIComponent(yerAdi[1].replace(/\+/g, ' ')); } catch (e) {} }
+  let tam = url.href;
+  try { tam = decodeURIComponent(tam); } catch (e) {}
+  // Google: !3d…!4d… yerin kendi konumudur (@ ise ekranın ortası) — önce o
+  m = tam.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if (m) return gecerli(m[1], m[2], ad);
+  for (const p of ['q', 'query', 'll', 'coordinate', 'destination', 'daddr', 'center', 'sll']){
+    const v = url.searchParams.get(p);
+    if (!v) continue;
+    const k = v.match(KOORD);
+    if (k) return gecerli(k[1], k[2], ad || (apple ? url.searchParams.get('name') || null : null));
+    if (!ad && (p === 'q' || p === 'query')) ad = v;
+  }
+  m = tam.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return gecerli(m[1], m[2], ad);
+  return {kisa: url.href};
+}
+/* ---- Gezi listesi (rota) ---- */
+function kusUcusuM(a, b){
+  const R = 6371000, rad = Math.PI / 180;
+  const dF = (b.lat - a.lat) * rad, dL = (b.lng - a.lng) * rad;
+  const x = Math.sin(dF / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dL / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+/* En yakın komşu sırası: başlangıç varsa ona en yakın duraktan, yoksa listenin ilkinden başlar. */
+function geziSirala(duraklar, baslangic){
+  const kalan = duraklar.slice();
+  const sira = [];
+  let simdiki = baslangic || null;
+  if (!simdiki && kalan.length) simdiki = sira[sira.length] = kalan.shift();
+  while (kalan.length){
+    let enI = 0, enM = Infinity;
+    kalan.forEach((d, i) => { const mt = kusUcusuM(simdiki, d); if (mt < enM){ enM = mt; enI = i; } });
+    simdiki = kalan.splice(enI, 1)[0];
+    sira.push(simdiki);
+  }
+  return sira;
+}
+/* Gezi toplam kuş uçuşu mesafesi (m); başlangıç varsa ondan ilk durağa da sayılır */
+function geziMesafe(sira, baslangic){
+  let t = 0, onceki = baslangic || null;
+  for (const d of sira){ if (onceki) t += kusUcusuM(onceki, d); onceki = d; }
+  return t;
+}
+const GEZI_GOOGLE_SINIR = 10; // Google Maps: varış + 9 ara durak
+/* Google Haritalar çok duraklı yol tarifi. Başlangıç yoksa Google kullanıcının konumunu alır. */
+function geziGoogleUrl(sira, baslangic){
+  const d = sira.slice(0, GEZI_GOOGLE_SINIR);
+  if (!d.length) return null;
+  const k = n => n.lat.toFixed(6) + ',' + n.lng.toFixed(6);
+  let u = 'https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' + k(d[d.length - 1]);
+  if (baslangic) u += '&origin=' + k(baslangic);
+  if (d.length > 1) u += '&waypoints=' + encodeURIComponent(d.slice(0, -1).map(k).join('|'));
+  return u;
+}
+/* ---- "Şu an türbede misin?" ---- */
+const YAKINLIK_ESIK_M = 150;
+/* Konuma YAKINLIK_ESIK_M içindeki en yakın onaylı kayıt: {yer, metre} | null */
+function buradakiYer(konum, yerler, esik){
+  if (!konum) return null;
+  const sinir = esik || YAKINLIK_ESIK_M;
+  let en = null;
+  for (const y of yerler){
+    if (y.durum !== 'onaylandi' || y.lat == null || y.lng == null) continue;
+    const mt = kusUcusuM(konum, y);
+    if (mt <= sinir && (!en || mt < en.metre)) en = {yer: y, metre: mt};
+  }
+  return en;
+}
+/* ---- Ziyaretçi durum bildirimi ---- */
+const DURUM_ETIKETLERI = {
+  acikti: '✅ Açıktı', kapaliydi: '🔒 Kapalıydı', restorasyonda: '🏗️ Restorasyonda',
+  bekci: '🔑 Bekçiye haber verilmeli', yol_zor: '🚧 Yolu zor', otopark: '🅿️ Otopark var',
+  bakimli: '🌿 Bakımlı, temiz', bakimsiz: '⚠️ Bakıma muhtaç',
+};
+const DURUM_TEKLI = ['acikti', 'kapaliydi', 'restorasyonda']; // bunlardan yalnız biri seçilebilir
+const DURUM_ESKI_GUN = 90;
+/* Seçime etiket ekle/çıkar; açık/kapalı/restorasyon birbirini dışlar */
+function durumEtiketDegistir(secili, etiket){
+  const s = secili.filter(e => e !== etiket);
+  if (s.length !== secili.length) return s;
+  return DURUM_TEKLI.includes(etiket) ? s.filter(e => !DURUM_TEKLI.includes(e)).concat(etiket) : s.concat(etiket);
+}
+/* En yeni bildirim özeti: {etiketler, not, tarih, eski} | null (liste yeniden eskiye ya da karışık) */
+function sonDurum(bildirimler, simdi){
+  if (!bildirimler || !bildirimler.length) return null;
+  const s = bildirimler.slice().sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+  const gun = ((simdi || new Date()) - new Date(s.created_at)) / 86400000;
+  return {etiketler: (s.etiketler || []).filter(e => DURUM_ETIKETLERI[e]), not: s.not_metni || '', tarih: s.created_at, eski: gun > DURUM_ESKI_GUN};
 }
 /* ==SAF-ANA-SAYFA-BITIR== */
 const ALAN_ADLARI = {baslik:'Başlık', kategori:'Kategori', aciklama:'Açıklama', kaynaklar:'Kaynaklar', mahalle:'Mahalle', il:'İl', ilce:'İlçe', lat:'Enlem', lng:'Boylam', videolar:'Videolar', kisiler:'Mekan sahipleri'};
@@ -2203,6 +2369,138 @@ function eksikYerler(){
 
 /* ====================== GEZİNME ====================== */
 /* ====================== ANA SAYFA ====================== */
+/* ====================== GEZİ LİSTESİ (10 Kas 2026) ======================
+   Cihazda tutulur (localStorage: turbedar_gezi, kayıt id dizisi) — hesaba yazılmaz.
+   Sıra en yakın komşuyla kurulur (geziSirala), Google Haritalar çok duraklı rota olarak açılır. */
+function geziListesi(){
+  try{ const v = JSON.parse(localStorage.getItem('turbedar_gezi') || '[]'); return Array.isArray(v) ? v : []; }catch(e){ return []; }
+}
+function geziKaydet(liste){ try{ localStorage.setItem('turbedar_gezi', JSON.stringify(liste)); }catch(e){} anaSayfaCiz(); }
+function geziDegistir(id){
+  const l = geziListesi();
+  geziKaydet(l.includes(id) ? l.filter(x => x !== id) : l.concat(id));
+}
+let geziBaslangic = null;
+function geziAc(){
+  $('#kip-gezi').classList.add('acik');
+  geziBaslangic = anaKonum;
+  geziCiz();
+  if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => {
+    geziBaslangic = {lat: p.coords.latitude, lng: p.coords.longitude};
+    if ($('#kip-gezi').classList.contains('acik')) geziCiz();
+  }, () => {}, {maximumAge: 300000, timeout: 10000});
+}
+function geziSiraliDuraklar(){
+  const duraklar = geziListesi().map(id => yerler.find(y => y.id === id)).filter(y => y && y.lat != null);
+  return geziSirala(duraklar, geziBaslangic);
+}
+const kmYaz = m => m < 1000 ? Math.round(m) + ' m' : (m / 1000).toFixed(1).replace('.', ',') + ' km';
+function geziCiz(){
+  const sira = geziSiraliDuraklar();
+  if (!sira.length){
+    $('#gezi-ozet').textContent = 'Listen boş. Bir kaydın sayfasında “＋ Geziye ekle” ile durak ekleyebilirsin.';
+    $('#gezi-liste').innerHTML = '';
+    $('#gezi-rota').style.display = $('#gezi-temizle').style.display = 'none';
+    return;
+  }
+  $('#gezi-rota').style.display = $('#gezi-temizle').style.display = '';
+  const top = geziMesafe(sira, geziBaslangic);
+  $('#gezi-ozet').textContent = `${sira.length} durak · kuş uçuşu ~${kmYaz(top)} · ${geziBaslangic ? 'konumundan başlayarak ' : ''}en yakın sırayla dizildi`
+    + (sira.length > GEZI_GOOGLE_SINIR ? `. Google Haritalar en fazla ${GEZI_GOOGLE_SINIR} durak alır; rota ilk ${GEZI_GOOGLE_SINIR} durakla açılır.` : '');
+  let onceki = geziBaslangic;
+  $('#gezi-liste').innerHTML = sira.map((y, i) => {
+    const m = onceki ? kusUcusuM(onceki, y) : null; onceki = y;
+    return `<div class="gezi-satir"><span class="gezi-no">${i + 1}</span>
+      <div class="gezi-ad" data-gezi-ac="${kacir(y.id)}"><b>${kacir(y.baslik)}</b><small>${kacir(konumYazisi(y) || '')}${m != null ? ' · ' + kmYaz(m) : ''}${benimZiyaretlerim.has(y.id) ? ' · ✓ ziyaret ettin' : ''}</small></div>
+      <button class="gezi-cikar" data-gezi-cikar="${kacir(y.id)}" aria-label="Listeden çıkar">✕</button></div>`;
+  }).join('');
+}
+$('#gezi-liste').addEventListener('click', e => {
+  const c = e.target.closest('[data-gezi-cikar]');
+  if (c){ geziDegistir(c.dataset.geziCikar); geziCiz(); titret('secim'); return; }
+  const a = e.target.closest('[data-gezi-ac]');
+  if (a){ $('#kip-gezi').classList.remove('acik'); detayAc(a.dataset.geziAc); }
+});
+$('#gezi-rota').addEventListener('click', () => {
+  const u = geziGoogleUrl(geziSiraliDuraklar(), geziBaslangic);
+  if (u) window.open(u, '_blank');
+});
+$('#gezi-temizle').addEventListener('click', async () => {
+  if (!await sor('Listeyi Temizle', 'Gezi listendeki tüm duraklar çıkarılacak.', {evetMetin: 'Temizle', tehlike: true})) return;
+  geziKaydet([]); geziCiz();
+});
+$('#gezi-kapat').addEventListener('click', () => $('#kip-gezi').classList.remove('acik'));
+
+/* ====================== ZİYARETÇİ DURUM BİLDİRİMİ ======================
+   turbedar_durum_bildirimleri: onaysız yayınlanır (herkes okur), sahibi ya da yönetici siler.
+   90 günden eski son durum soluk gösterilir. */
+const buradaKapatilan = new Set();   // "Şu an buradasın" kartı bu oturumda kapatılan kayıtlar
+let durumYer = null, durumSecili = [];
+async function durumlariYukle(y){
+  const kutu = $('#d-durum'); if (!kutu) return;
+  const {data} = await sb.from('turbedar_durum_bildirimleri')
+    .select('id, etiketler, not_metni, created_at, ekleyen_id, ekleyen:turbedar_profiller!turbedar_durum_bildirimleri_ekleyen_id_fkey(ad)')
+    .eq('yer_id', y.id).order('created_at', {ascending: false}).limit(20);
+  if (acikYerId !== y.id || !$('#d-durum')) return;
+  durumCiz(y, data || []);
+}
+function durumCiz(y, liste){
+  const kutu = $('#d-durum');
+  const son = sonDurum(liste);
+  const etiketHtml = d => (d.etiketler || []).filter(e => DURUM_ETIKETLERI[e]).map(e => `<span class="durum-etiket">${DURUM_ETIKETLERI[e]}</span>`).join('');
+  const kim = d => d.ekleyen?.ad && d.ekleyen.ad !== 'İsimsiz' ? d.ekleyen.ad : 'Bir ziyaretçi';
+  kutu.innerHTML = `<div class="durum-kutu${son?.eski ? ' eski' : ''}">
+    ${son ? `<div class="durum-son"><small>Son durum · ${kacir(goreceTarih(son.tarih))} · ${kacir(kim(liste[0]))}${son.eski ? ' · eski bilgi' : ''}</small>
+      ${etiketHtml(liste[0])}${son.not ? `<div class="durum-not">“${kacir(son.not)}”</div>` : ''}</div>`
+      : '<small>Ziyaretçi bildirimi yok. Buraya gittiysen açık mıydı, yolu nasıldı, paylaş.</small>'}
+    <div class="durum-dugmeler"><button type="button" id="d-durum-bildir">Durum bildir</button>
+      ${liste.length > 1 ? `<button type="button" id="d-durum-tumu">Tüm bildirimler (${liste.length})</button>` : ''}</div>
+    <div class="durum-liste" id="d-durum-liste" hidden>${liste.map(d => `<div><small>${kacir(goreceTarih(d.created_at))} · ${kacir(kim(d))}
+      ${kullanici && (d.ekleyen_id === kullanici.id || yonetici()) ? `<button type="button" class="durum-sil" data-durum-sil="${kacir(d.id)}">Sil</button>` : ''}</small>
+      ${etiketHtml(d)}${d.not_metni ? `<div class="durum-not">“${kacir(d.not_metni)}”</div>` : ''}</div>`).join('')}</div>
+  </div>`;
+  if (liste.length === 1 && kullanici && (liste[0].ekleyen_id === kullanici.id || yonetici())) $('#d-durum-liste').hidden = false;
+  $('#d-durum-bildir').addEventListener('click', () => durumBildirAc(y));
+  $('#d-durum-tumu')?.addEventListener('click', () => { $('#d-durum-liste').hidden = !$('#d-durum-liste').hidden; });
+  kutu.querySelectorAll('[data-durum-sil]').forEach(b => b.addEventListener('click', async () => {
+    if (!await sor('Bildirimi Sil', 'Bu durum bildirimi silinecek.', {evetMetin: 'Sil', tehlike: true})) return;
+    const {error} = await sb.from('turbedar_durum_bildirimleri').delete().eq('id', b.dataset.durumSil);
+    if (error) return bildir('Silinemedi: ' + error.message, true);
+    if (yonetici() && liste.find(d => d.id === b.dataset.durumSil)?.ekleyen_id !== kullanici.id) gunlukYaz('durum_sil', 'yer', y.id, y.baslik);
+    durumlariYukle(y);
+  }));
+}
+function durumBildirAc(y, ziyaretSonrasi){
+  if (!kullanici) return girisIste();
+  durumYer = y; durumSecili = [];
+  $('#durum-yer').textContent = (ziyaretSonrasi ? 'Ziyaretin nasıldı? ' : '') + y.baslik;
+  $('#durum-not').value = '';
+  $('#durum-vazgec').textContent = ziyaretSonrasi ? 'Şimdi değil' : 'Vazgeç';
+  durumSecimCiz();
+  $('#kip-durum').classList.add('acik');
+}
+function durumSecimCiz(){
+  $('#durum-secim').innerHTML = Object.entries(DURUM_ETIKETLERI).map(([k, v]) =>
+    `<button type="button" data-etiket="${k}" class="${durumSecili.includes(k) ? 'secili' : ''}" aria-pressed="${durumSecili.includes(k)}">${v}</button>`).join('');
+}
+$('#durum-secim').addEventListener('click', e => {
+  const b = e.target.closest('[data-etiket]'); if (!b) return;
+  durumSecili = durumEtiketDegistir(durumSecili, b.dataset.etiket);
+  titret('secim'); durumSecimCiz();
+});
+$('#durum-vazgec').addEventListener('click', () => $('#kip-durum').classList.remove('acik'));
+$('#durum-gonder').addEventListener('click', async () => {
+  const notMetni = $('#durum-not').value.trim();
+  if (!durumSecili.length && !notMetni) return bildir('Bir durum seç ya da kısa bir not yaz', true);
+  const btn = $('#durum-gonder'); btn.disabled = true;
+  const {error} = await sb.from('turbedar_durum_bildirimleri').insert({yer_id: durumYer.id, ekleyen_id: kullanici.id, etiketler: durumSecili, not_metni: notMetni || null});
+  btn.disabled = false;
+  if (error) return bildir('Gönderilemedi: ' + error.message, true);
+  $('#kip-durum').classList.remove('acik');
+  titret('basari'); bildir('Teşekkürler, durum paylaşıldı');
+  if (acikYerId === durumYer.id) durumlariYukle(durumYer);
+});
+
 let anaKonum = null;           // bu oturumda alınmış son konum (izin sormadan; Yakınındakiler için)
 let anaOnaySayilari = null;    // yönetici: {kayit, duzenleme, ek, rapor}
 const ANA_SVG = {
@@ -2246,6 +2544,18 @@ function anaSayfaCiz(){
   const bol = (ad, html) => { b[ad] = (b[ad] || '') + html; };
   bol('ust', `<div class="ana-ust"><div><div class="ana-selam">${kacir(ad ? 'Esselâmü aleyküm, ' + ad : 'Esselâmü aleyküm')}</div><div class="ana-marka">Türbedar</div></div>
     ${kullanici ? `<button class="ana-zil" data-ana-zil aria-label="Bildirimler${okunmamis ? ', ' + okunmamis + ' okunmamış' : ''}">${ANA_SVG.zil}${okunmamis ? `<span class="ana-zil-sayi">${Math.min(okunmamis, 99)}</span>` : ''}</button>` : ''}</div>`);
+  const burada = anaKonum && buradakiYer(anaKonum, yerler);
+  if (burada && !buradaKapatilan.has(burada.yer.id)){
+    const by = burada.yer, gitti = z.has(by.id);
+    bol('burada', `<div class="burada-kart"><div class="burada-ust"><span>📍 ${Math.round(burada.metre)} M YAKININDASIN</span><button data-burada-kapat="${kacir(by.id)}" aria-label="Kapat">✕</button></div>
+      <h3>Şu an buradasın: ${kacir(by.baslik)}</h3>
+      <p>${gitti ? 'Ziyaretini daha önce işaretlemiştin. Gördüğün durumu sonraki ziyaretçilerle paylaşabilirsin.' : 'Ziyaretini işaretle; açık mıydı, yolu nasıldı, sonraki ziyaretçilere bildir.'}</p>
+      <div class="burada-dugmeler">${gitti ? '' : `<button class="ana" data-burada-ziyaret="${kacir(by.id)}">✓ Ziyaret ettim</button>`}
+        <button data-burada-durum="${kacir(by.id)}">Durum bildir</button><button data-ana-yer="${kacir(by.id)}">Aç</button></div></div>`);
+  }
+  const gezi = geziListesi().filter(id => yerler.some(y => y.id === id));
+  if (gezi.length) bol('gezi', `<button class="ana-onay" data-ana-gezi><span class="ana-onay-simge">🧭</span>
+      <span><b>Gezi listen</b><span class="ana-ikincil">${gezi.length} durak · sırala ve rotayı aç</span></span><span class="ana-onay-sayi">${gezi.length}</span></button>`);
   bol('kahraman', `<div class="ana-kahraman">
     <div class="ana-etiket">EMANET · HİZMET · SADAKAT</div>
     <div class="ana-soz">Edeple gelen, lütufla gider.</div>
@@ -2315,8 +2625,8 @@ function anaSayfaCiz(){
   const s = ad => b[ad] || '';
   // Telefonda iOS sırası; geniş ekranda (>= 900 px) iki sütun
   k.innerHTML = ANA_GENIS.matches
-    ? s('ust') + `<div class="ana-iki"><div>${s('kahraman') + s('onay') + s('yolculuk') + s('bilgi')}</div><div>${s('gunun') + s('yakin') + s('eksik')}</div></div>` + s('son')
-    : ['ust', 'kahraman', 'onay', 'yolculuk', 'gunun', 'bilgi', 'yakin', 'eksik', 'son'].map(s).join('');
+    ? s('ust') + s('burada') + `<div class="ana-iki"><div>${s('kahraman') + s('onay') + s('gezi') + s('yolculuk') + s('bilgi')}</div><div>${s('gunun') + s('yakin') + s('eksik')}</div></div>` + s('son')
+    : ['ust', 'burada', 'kahraman', 'onay', 'gezi', 'yolculuk', 'gunun', 'bilgi', 'yakin', 'eksik', 'son'].map(s).join('');
   k.querySelectorAll('details').forEach(d => { if (acikMaddeler.has(d.querySelector('summary')?.textContent)) d.open = true; });
   const serit = k.querySelector('.ana-serit');
   if (serit) serit.scrollLeft = seritKaydirma;
@@ -2340,6 +2650,17 @@ $('#ana-icerik').addEventListener('click', e => {
   const oner = e.target.closest('[data-ana-oner]');
   if (oner){ if (!kullanici){ girisIste(); return; } katkiNotuOner(oner.dataset.anaOner); return; }
   if (e.target.closest('[data-ana-giris]')){ girisIste(); return; }
+  if (e.target.closest('[data-ana-gezi]')){ geziAc(); return; }
+  const bk = e.target.closest('[data-burada-kapat]');
+  if (bk){ buradaKapatilan.add(bk.dataset.buradaKapat); anaSayfaCiz(); return; }
+  const bz = e.target.closest('[data-burada-ziyaret]');
+  if (bz){
+    if (!kullanici){ girisIste(); return; }
+    detayAc(bz.dataset.buradaZiyaret).then(() => setTimeout(() => { const b = $('#d-ziyaret'); if (b && !b.classList.contains('aktif')) b.click(); }, 150));
+    return;
+  }
+  const bd = e.target.closest('[data-burada-durum]');
+  if (bd){ const y = yerler.find(v => v.id === bd.dataset.buradaDurum); if (y) durumBildirAc(y); return; }
   if (e.target.closest('[data-ana-zil]')){ $('#btn-bildirim').click(); return; }
   if (e.target.closest('[data-ana-kesfet]')){ gorunumAc('kesfet'); return; }
   if (e.target.closest('[data-ana-onay]')){ gorunumAc('yonetim'); return; }
@@ -2519,6 +2840,8 @@ $('#harita-arama-girdi').addEventListener('input', e => {
   if (haritaAramaIptal){ haritaAramaIptal.abort(); haritaAramaIptal = null; }
   const panel = $('#harita-arama-panel');
   if (!sorgu){ panel.classList.remove('acik'); panel.innerHTML = ''; return; }
+  const lk = haritaLinkiCoz(sorgu);
+  if (lk){ haritaLinkiGoster(sorgu, lk); return; }
   // kayıtlar yerel veriden anında çizilir; adres araması gecikmeli
   haritaAramaCiz(sorgu, null);
   if (sorgu.length >= 3) haritaAramaZamanlayici = setTimeout(() => adresAramaCalistir(sorgu), 400);
@@ -2611,6 +2934,41 @@ function adreseGit(a){
   }), interactive:false, zIndexOffset:-500}).addTo(harita);
   const benim = adresNisan;
   setTimeout(() => { if (adresNisan === benim){ harita.removeLayer(benim); adresNisan = null; } }, 8000);
+}
+
+/* Yapıştırılan Google/Apple Haritalar linki ya da koordinat: kısa link sunucuda (link-coz) açılır. */
+async function linkKonumu(lk){
+  if (!lk) return null;
+  if (lk.lat != null) return lk;
+  try{
+    const r = await fetch(SUPA_URL + '/functions/v1/link-coz', {method: 'POST',
+      headers: {'Content-Type': 'application/json', apikey: SUPA_KEY}, body: JSON.stringify({url: lk.kisa})}).then(x => x.json());
+    const c = r && r.url ? haritaLinkiCoz(r.url) : null;
+    if (c && c.lat != null) return c;
+    if (r && Number.isFinite(r.lat) && Number.isFinite(r.lng)) return {lat: r.lat, lng: r.lng, ad: c?.ad || null};
+  }catch(e){}
+  return null;
+}
+async function haritaLinkiGoster(sorgu, lk){
+  const panel = $('#harita-arama-panel');
+  const siraNo = ++haritaAramaSirasi;
+  panel.innerHTML = '<div class="harita-arama-bos">Bağlantıdaki konum okunuyor...</div>';
+  panel.classList.add('acik');
+  const k = await linkKonumu(lk);
+  if (siraNo !== haritaAramaSirasi || $('#harita-arama-girdi').value.trim() !== sorgu) return;
+  if (!k){ panel.innerHTML = '<div class="harita-arama-bos">Bu bağlantıdan konum okunamadı. Haritalarda yeri açıp yeniden paylaşmayı dene.</div>'; return; }
+  const yakin = buradakiYer(k, yerler, 300);
+  panel.innerHTML = `<div class="harita-arama-baslik">Bağlantıdaki konum</div>
+    <div class="harita-arama-oge" role="button" data-link-git><div class="harita-arama-ikon">📍</div>
+      <div class="harita-arama-govde"><b>${kacir(k.ad || 'Bu konuma git')}</b><span>${k.lat.toFixed(5)}, ${k.lng.toFixed(5)}</span></div></div>
+    ${yakin ? `<div class="harita-arama-oge" role="button" data-yer="${kacir(yakin.yer.id)}"><div class="harita-arama-ikon">${KUBBE_SVG}</div>
+      <div class="harita-arama-govde"><b>${kacir(yakin.yer.baslik)}</b><span>Kayıtlı · ${Math.round(yakin.metre)} m uzakta</span></div></div>` : ''}`;
+  panel.querySelector('[data-link-git]').addEventListener('click', () => {
+    haritaAramaKapat();
+    harita.setView([k.lat, k.lng], 17, {animate: true});
+    adreseGit({lat: k.lat, lon: k.lng});
+  });
+  panel.querySelectorAll('[data-yer]').forEach(el => el.addEventListener('click', () => haritaAramaYereGit(el.dataset.yer)));
 }
 
 /* Kayda uç ve popup'ı aç. Marker cluster içinde saklıysa önce onu aç. */
@@ -2966,6 +3324,7 @@ async function detayAc(id){
     </div>
     ${y.durum === 'reddedildi' && y.red_nedeni ? `<p style="margin-top:8px;font-size:13px;color:var(--kirmizi)"><b>Red nedeni:</b> ${kacir(y.red_nedeni)}</p>` : ''}
     <div id="d-ziyaret-ani"></div>
+    ${y.durum === 'onaylandi' ? '<div id="d-durum"></div>' : ''}
     ${y.aciklama ? `<p class="detay-aciklama">${kacir(y.aciklama)}</p>` : ''}
     <div class="d-konum-kart">
       <div class="d-mini-harita" id="d-mini-harita"></div>
@@ -2976,6 +3335,7 @@ async function detayAc(id){
       </div>
     </div>
     <div class="detay-butonlar">
+      ${y.durum === 'onaylandi' ? `<button class="btn-ghost btn" id="d-gezi">${geziListesi().includes(y.id) ? '✓ Gezi listende' : '＋ Geziye ekle'}</button>` : ''}
       ${duzenlenebilir ? `<button class="btn-ghost btn" id="d-duzenle">Düzenle</button>` : (kullanici ? `<button class="btn-ghost btn" id="d-konum-oner">📍 Konum Öner</button>` : '')}
       ${silinebilir ? `<button class="btn-ghost btn" id="d-sil" style="color:var(--kirmizi)">Sil</button>` : ''}
     </div>
@@ -3077,6 +3437,7 @@ async function detayAc(id){
     if (!vardi){
       bildir('🕌 Ziyaret listene eklendi');
       const km = ZIYARET_KILOMETRE[benimZiyaretlerim.size];
+      if (!km) setTimeout(() => { if (acikYerId === y.id) durumBildirAc(y, true); }, 700);
       if (km){
         setTimeout(() => kutlamaGoster(km), 700);
         sb.from('turbedar_bildirimler').insert({kullanici_id: kullanici.id, tur:'kilometre', baslik: km.b, govde: km.g}).then(()=>{});
@@ -3099,7 +3460,15 @@ async function detayAc(id){
     if (yonetici()) gunlukYaz('yer_sil', 'yer', y.id, y.baslik);
     titret('uyari'); bildir('Kayıt silindi'); sayfaKapat(); veriYukle(); yonetimRozetiGuncelle();
   });
+  if ($('#d-gezi')) $('#d-gezi').addEventListener('click', () => {
+    const vardi = geziListesi().includes(y.id);
+    geziDegistir(y.id);
+    $('#d-gezi').textContent = vardi ? '＋ Geziye ekle' : '✓ Gezi listende';
+    titret('secim');
+    bildir(vardi ? 'Gezi listesinden çıkarıldı' : '🧭 Gezi listene eklendi (Ana Sayfa > Gezi listen)');
+  });
   if (y.durum === 'onaylandi'){
+    durumlariYukle(y);
     yorumlariYukle(y.id);
     katkiNotlariYukle(y.id);
     $('#yorum-gonder').addEventListener('click', () => yorumGonder(y.id));
@@ -4098,6 +4467,7 @@ function fotoIzgaraCiz(){
 const KAYNAK_EXIF = 'Fotoğrafın GPS verisinden bulundu';
 const KAYNAK_CIHAZ = 'Cihaz konumundan alındı';
 const KAYNAK_ARAMA = 'Aranarak bulundu';
+const KAYNAK_LINK = 'Harita linkinden';
 let yolTarifiHedef = null;
 function googleYolTarifi(lat, lng){ return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`; }
 function yolTarifiAc(apple){
@@ -4346,9 +4716,27 @@ $('#konum-arama-girdi').addEventListener('input', e => {
   const sorgu = e.target.value.trim();
   clearTimeout(konumAramaZamanlayici);
   const liste = $('#konum-arama-liste');
+  const lk = haritaLinkiCoz(sorgu);
+  if (lk){ konumLinkiUygula(sorgu, lk); return; }
   if (sorgu.length < 3){ liste.classList.remove('acik'); liste.innerHTML = ''; return; }
   konumAramaZamanlayici = setTimeout(() => konumAramaCalistir(sorgu), 400);
 });
+async function konumLinkiUygula(sorgu, lk){
+  const siraNo = ++konumAramaSirasi;
+  const liste = $('#konum-arama-liste');
+  liste.innerHTML = '<div class="konum-arama-bos">Bağlantıdaki konum okunuyor...</div>';
+  liste.classList.add('acik');
+  const k = await linkKonumu(lk);
+  if (siraNo !== konumAramaSirasi || $('#konum-arama-girdi').value.trim() !== sorgu) return;
+  if (!k){ liste.innerHTML = '<div class="konum-arama-bos">Bu bağlantıdan konum okunamadı</div>'; return; }
+  pinKoy(k.lat, k.lng, KAYNAK_LINK);
+  sihirbazHarita.setView([k.lat, k.lng], 17);
+  if (k.ad && !$('#girdi-baslik').value.trim()) $('#girdi-baslik').value = trBasHarf(k.ad);
+  $('#konum-arama-girdi').value = '';
+  liste.classList.remove('acik'); liste.innerHTML = '';
+  titret('basari');
+  bildir('📍 Konum bağlantıdan alındı');
+}
 async function konumAramaCalistir(sorgu){
   const siraNo = ++konumAramaSirasi;
   const liste = $('#konum-arama-liste');
@@ -5624,6 +6012,7 @@ function yukleSeridiKapat(tur){
         if ($('.gorunum[data-gorunum="yonetim"]').classList.contains('aktif')) yonetimCiz();
       });
       bildirimleriYukle();
+      anaKonumAl(); // öne dönüşte "Şu an buradasın" kartı tazelensin
     });
   });
 
