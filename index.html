@@ -1451,7 +1451,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '3.1.0';
+const SURUM = '3.1.1';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2449,17 +2449,17 @@ function durumCiz(y, liste){
   const son = sonDurum(liste);
   const etiketHtml = d => (d.etiketler || []).filter(e => DURUM_ETIKETLERI[e]).map(e => `<span class="durum-etiket">${DURUM_ETIKETLERI[e]}</span>`).join('');
   const kim = d => d.ekleyen?.ad && d.ekleyen.ad !== 'İsimsiz' ? d.ekleyen.ad : 'Bir ziyaretçi';
+  const silBtn = d => kullanici && (d.ekleyen_id === kullanici.id || yonetici()) ? `<button type="button" class="durum-sil" data-durum-sil="${kacir(d.id)}">Sil</button>` : '';
+  const onceki = liste.slice(1);
   kutu.innerHTML = `<div class="durum-kutu${son?.eski ? ' eski' : ''}">
-    ${son ? `<div class="durum-son"><small>Son durum · ${kacir(goreceTarih(son.tarih))} · ${kacir(kim(liste[0]))}${son.eski ? ' · eski bilgi' : ''}</small>
+    ${son ? `<div class="durum-son"><small>Son durum · ${kacir(goreceTarih(son.tarih))} · ${kacir(kim(liste[0]))}${son.eski ? ' · eski bilgi' : ''}${silBtn(liste[0])}</small>
       ${etiketHtml(liste[0])}${son.not ? `<div class="durum-not">“${kacir(son.not)}”</div>` : ''}</div>`
       : '<small>Ziyaretçi bildirimi yok. Buraya gittiysen açık mıydı, yolu nasıldı, paylaş.</small>'}
     <div class="durum-dugmeler"><button type="button" id="d-durum-bildir">Durum bildir</button>
-      ${liste.length > 1 ? `<button type="button" id="d-durum-tumu">Tüm bildirimler (${liste.length})</button>` : ''}</div>
-    <div class="durum-liste" id="d-durum-liste" hidden>${liste.map(d => `<div><small>${kacir(goreceTarih(d.created_at))} · ${kacir(kim(d))}
-      ${kullanici && (d.ekleyen_id === kullanici.id || yonetici()) ? `<button type="button" class="durum-sil" data-durum-sil="${kacir(d.id)}">Sil</button>` : ''}</small>
+      ${onceki.length ? `<button type="button" id="d-durum-tumu">Önceki bildirimler (${onceki.length})</button>` : ''}</div>
+    <div class="durum-liste" id="d-durum-liste" hidden>${onceki.map(d => `<div><small>${kacir(goreceTarih(d.created_at))} · ${kacir(kim(d))} ${silBtn(d)}</small>
       ${etiketHtml(d)}${d.not_metni ? `<div class="durum-not">“${kacir(d.not_metni)}”</div>` : ''}</div>`).join('')}</div>
   </div>`;
-  if (liste.length === 1 && kullanici && (liste[0].ekleyen_id === kullanici.id || yonetici())) $('#d-durum-liste').hidden = false;
   $('#d-durum-bildir').addEventListener('click', () => durumBildirAc(y));
   $('#d-durum-tumu')?.addEventListener('click', () => { $('#d-durum-liste').hidden = !$('#d-durum-liste').hidden; });
   kutu.querySelectorAll('[data-durum-sil]').forEach(b => b.addEventListener('click', async () => {
