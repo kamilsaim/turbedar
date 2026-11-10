@@ -1451,7 +1451,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '3.1.1';
+const SURUM = '3.1.2';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2945,8 +2945,22 @@ async function linkKonumu(lk){
       headers: {'Content-Type': 'application/json', apikey: SUPA_KEY}, body: JSON.stringify({url: lk.kisa})}).then(x => x.json());
     const c = r && r.url ? haritaLinkiCoz(r.url) : null;
     if (c && c.lat != null) return c;
-    if (r && Number.isFinite(r.lat) && Number.isFinite(r.lng)) return {lat: r.lat, lng: r.lng, ad: c?.ad || null};
+    if (r && Number.isFinite(r.lat) && Number.isFinite(r.lng)) return {lat: r.lat, lng: r.lng, ad: r.ad || c?.ad || null};
+    // Google'da kaydedilmiş yer linki koordinat taşımaz: yer adıyla OpenStreetMap'te ara (tarayıcıdan).
+    if (r && r.ad) return await adlaKonumBul(r.ad);
   }catch(e){}
+  return null;
+}
+async function adlaKonumBul(tamAd){
+  const parca = tamAd.split(',').map(x => x.trim()).filter(Boolean);
+  const son = (parca[parca.length-1] || '').replace(/^\d{5}\s*/, '');
+  const sorgular = [...new Set([tamAd, parca.length > 1 ? parca[0] + ', ' + son : '', parca[0]].filter(Boolean))];
+  for (const q of sorgular){
+    try{
+      const j = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=tr&q=' + encodeURIComponent(q)).then(x => x.json());
+      if (j && j[0]) return {lat: +j[0].lat, lng: +j[0].lon, ad: parca[0] || tamAd};
+    }catch(e){}
+  }
   return null;
 }
 async function haritaLinkiGoster(sorgu, lk){
