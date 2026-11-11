@@ -109,6 +109,7 @@ Android uygulaması web sürümünü sarmalar: web tarafı güncellendiğinde mo
 
 | Sürüm | Öne çıkanlar |
 |-------|--------------|
+| **3.1.3** | Çıkış yapınca bu cihazın bildirim aboneliği hesaptan ayrılıyor; önceki hesabın bildirimleri artık gelmiyor |
 | **3.1.1** | Kendi durum bildirimin kayıt sayfasında iki kez görünüyordu, düzeltildi; önceki bildirimler ayrı açılır |
 | **3.1.0** | Harita araması ve kayıt sihirbazı Google/Apple Haritalar paylaşım linkini (kısa linkler dahil) ya da koordinatı tanıyor. Gezi listesi: kayıtları listeye ekle, en yakın sırayla dizilsin, Google Haritalar'da çok duraklı rota olarak aç. Bir türbenin yakınındaysan ana sayfada Şu an buradasın kartı. Ziyaretçi durum bildirimi: açık/kapalı, restorasyon, yol, otopark gibi etiketler ve kısa not |
 | **3.0.1** | Kayıt sayfası yenilendi: kenardan kenara kapak fotoğrafı, uzaklık · ziyaretçi · fotoğraf kutucukları, küçük harita ve Haritada göster, altta sabit Yol tarifi ve Ziyaret ettim düğmeleri; telefonda tam sayfa. Gönüllü sayısı Silinmiş Kullanıcı hesabını saymıyor |

@@ -1451,7 +1451,7 @@ body.sayfa-acik-kilit .gorunum{overflow:hidden}
 const SUPA_URL = 'https://nzmxjompdipabkvocfio.supabase.co';
 const SUPA_KEY = 'sb_publishable_V2X8E-NSSCxFPHlSVhNtOw_rSD4R3W7';
 const BUCKET = 'turbedar';
-const SURUM = '3.1.2';
+const SURUM = '3.1.3';
 const FOTO_LIMIT = 5;
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -2018,6 +2018,13 @@ function kosullarOnayiIste(){
 }
 async function cikisYap(){
   benimEngellediklerim = new Set();
+  // Bu cihazın web push aboneliğini hesaptan ayır (başka cihazlarınkine dokunmaz) — yoksa
+  // önceki hesabın bildirimleri bu tarayıcıya gelmeye devam eder
+  try{
+    const kayit = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+    const abone = kayit && kayit.pushManager ? await kayit.pushManager.getSubscription() : null;
+    if (abone) await sb.rpc('turbedar_cihaz_push_birak', {p_web_endpoint: abone.endpoint});
+  }catch(e){}
   await sb.auth.signOut();
   bildir('Çıkış yapıldı');
 }
@@ -4017,7 +4024,7 @@ $('#adim1-ileri').addEventListener('click', async () => {
 });
 $('#adim2-geri').addEventListener('click', () => adimaGit(1));
 $('#adim2-ileri').addEventListener('click', () => {
-  if (!taslak.lat){ bildir('Önce haritada konum belirle', true); return; }
+  if (taslak.lat == null){ bildir('Önce haritada konum belirle', true); return; }
   if (!taslak.duzenlenen && !taslak.mukerrerOnay){
     const yakin = yakinYerler(taslak.lat, taslak.lng);
     if (yakin.length){ mukerrerGoster(yakin); return; }
@@ -4560,7 +4567,7 @@ function fotoDosyalariEkle(dosyalar, hazirKonumlar = null){
         const gps = hazirKonumlar ? hazirKonumlar[di] : await exifr.gps(d);
         if (gps && gps.latitude){
           taslak.exifSonuc = 'bulundu';
-          if (!taslak.lat || taslak.konumKaynak === KAYNAK_CIHAZ){
+          if (taslak.lat == null || taslak.konumKaynak === KAYNAK_CIHAZ){
             taslak.lat = gps.latitude; taslak.lng = gps.longitude; taslak.konumKaynak = KAYNAK_EXIF;
             delete taslak.konumDogruluk;
             if (sihirbazHarita){
@@ -4649,7 +4656,7 @@ function sihirbazHaritaHazirla(){
     sihirbazHarita.on('click', e => pinKoy(e.latlng.lat, e.latlng.lng, 'Haritadan seçildi'));
   }
   sihirbazHarita.invalidateSize();
-  if (taslak.lat){ pinKoy(taslak.lat, taslak.lng, taslak.konumKaynak, false); sihirbazHarita.setView([taslak.lat, taslak.lng], 16); }
+  if (taslak.lat != null){ pinKoy(taslak.lat, taslak.lng, taslak.konumKaynak, false); sihirbazHarita.setView([taslak.lat, taslak.lng], 16); }
   else {
     sihirbazHarita.setView([39.2, 35.5], 6);
     if (navigator.geolocation) sihirbazCihazKonumu(false, 16, ()=>{});
@@ -5017,7 +5024,7 @@ $('#btn-kaydet').addEventListener('click', async () => {
   // Alandan çıkılmadan Kaydet'e basılırsa blur'daki büyütme kaçar: kaydederken de uygula.
   const baslik = trBasHarf($('#girdi-baslik').value.trim());
   if (baslik.length < 2) return bildir('Yerin adını yaz', true);
-  if (!taslak.lat) return bildir('Konum eksik', true);
+  if (taslak.lat == null) return bildir('Konum eksik', true);
   kaydetBtn.disabled = true;
   const yurtdisi = taslak.ulkeKodu && taslak.ulkeKodu !== 'tr';
   const alanlar = {
