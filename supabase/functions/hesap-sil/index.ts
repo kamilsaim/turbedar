@@ -25,7 +25,8 @@ function cevap(obj: unknown, durum = 200) {
 }
 
 const ICERIK_TABLOLARI = ['turbedar_yerler', 'turbedar_revizyonlar', 'turbedar_katki_notlari'];
-const PLACEHOLDER_EMAIL = 'silinmis-kullanici@turbedar.internal';
+// "Silinmiş Kullanıcı" sistem hesabı (auth e-postası silinmis-kullanici@turbedar.internal, 21 Eki 2026)
+const SISTEM_PROFIL_ID = Deno.env.get('SISTEM_PROFIL_ID') || '4e80d30b-df42-4a3a-89ce-43984217d3c6';
 // Web akışındaki Apple girişi Services ID ile yapılır; yerel iOS girişi (apple-jeton) bundle id ile.
 // Jeton hangi istemciye aitse iptal de o istemciyle yapılmalı (profil.apple_jeton_istemci).
 const APPLE_WEB_ISTEMCI = Deno.env.get('APPLE_SERVICES_ID') || 'com.kamilsaim.turbedar.web';
@@ -96,28 +97,34 @@ Deno.serve(async (req: Request) => {
       catch (e) { console.log('Apple jeton iptali hatası', String(e)); }
     }
 
-    // Placeholder profili bul, yoksa oluştur
-    const { data: mevcut } = await sb.from('turbedar_profiller').select('id').eq('ad', 'Silinmiş Kullanıcı').maybeSingle();
-    let placeholderId: string;
-    if (mevcut) {
-      placeholderId = mevcut.id;
-    } else {
-      const { data: yeni, error: cErr } = await sb.auth.admin.createUser({
-        email: PLACEHOLDER_EMAIL,
-        email_confirm: true,
-      });
-      if (cErr || !yeni?.user) return cevap({ hata: 'Sistem profili oluşturulamadı: ' + cErr?.message }, 500);
-      placeholderId = yeni.user.id;
-      // handle_new_user tetikleyicisi profil satırını zaten oluşturdu — sadece adını güncelliyoruz
-      await sb.from('turbedar_profiller').update({ ad: 'Silinmiş Kullanıcı', rol: 'uye', kurucu: false }).eq('id', placeholderId);
-    }
+    // Sistem profili SABİT kimlikle bulunur — ada göre aramak tehlikeliydi (kullanıcı adını
+    // "Silinmiş Kullanıcı" yapınca sorgu bozuluyor, hesap silme herkes için kilitleniyordu).
+    const placeholderId = SISTEM_PROFIL_ID;
+    if (uid === placeholderId) return cevap({ hata: 'Sistem hesabı silinemez' }, 403);
+    const { data: sistem, error: sErr } = await sb.from('turbedar_profiller').select('id').eq('id', placeholderId).maybeSingle();
+    if (sErr || !sistem) return cevap({ hata: 'Sistem profili bulunamadı, silme yapılmadı' }, 500);
 
-    // Topluluğa ait katkıları isimsizleştir (içerik KALIR, sadece sahiplik devrolur)
-    for (const tablo of ICERIK_TABLOLARI) {
-      await sb.from(tablo).update({ ekleyen_id: placeholderId }).eq('ekleyen_id', uid);
-      await sb.from(tablo).update({ onaylayan_id: placeholderId }).eq('onaylayan_id', uid);
+    // Topluluğa ait katkıları isimsizleştir (içerik KALIR, sadece sahiplik devrolur).
+    // ekleyen_id FK'leri CASCADE: devir başarısızsa hesabı SİLME, yoksa katkılar da gider.
+    const devirler: [string, string][] = [
+      ...ICERIK_TABLOLARI.flatMap((t) => [[t, 'ekleyen_id'], [t, 'onaylayan_id']] as [string, string][]),
+      ['turbedar_fotograflar', 'ekleyen_id'],
+    ];
+    for (const [tablo, sutun] of devirler) {
+      const { error } = await sb.from(tablo).update({ [sutun]: placeholderId }).eq(sutun, uid);
+      if (error) {
+        console.log('Devir hatası', tablo, sutun, error.message);
+        return cevap({ hata: 'Katkılar devredilemedi, hesap silinmedi. Lütfen tekrar deneyin.' }, 500);
+      }
     }
-    await sb.from('turbedar_fotograflar').update({ ekleyen_id: placeholderId }).eq('ekleyen_id', uid);
+    // Son güvence: kişiye bağlı katkı kalmadığını say
+    for (const [tablo, sutun] of devirler) {
+      const { count, error } = await sb.from(tablo).select('id', { count: 'exact', head: true }).eq(sutun, uid);
+      if (error || (count ?? 0) > 0) {
+        console.log('Devir doğrulanamadı', tablo, sutun, count, error?.message);
+        return cevap({ hata: 'Katkılar devredilemedi, hesap silinmedi. Lütfen tekrar deneyin.' }, 500);
+      }
+    }
 
     // Kişisel verileri ve hesabı tamamen sil (profil + mesaj + bildirim + ziyaret cascade ile gider)
     const { error: delErr } = await sb.auth.admin.deleteUser(uid);
