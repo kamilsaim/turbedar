@@ -38,8 +38,8 @@ function birlestir(...parcalar: Uint8Array[]): Uint8Array {
   return o;
 }
 async function hmac(anahtar: Uint8Array, veri: Uint8Array): Promise<Uint8Array> {
-  const k = await crypto.subtle.importKey('raw', anahtar, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  return new Uint8Array(await crypto.subtle.sign('HMAC', k, veri));
+  const k = await crypto.subtle.importKey('raw', anahtar as BufferSource, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return new Uint8Array(await crypto.subtle.sign('HMAC', k, veri as BufferSource));
 }
 // HKDF (tek turluk çıktı yeterli: en fazla 32 bayt istiyoruz)
 async function hkdf(tuz: Uint8Array, ikm: Uint8Array, bilgi: Uint8Array, uzunluk: number) {
@@ -102,7 +102,7 @@ async function icerikSifrele(metin: string, p256dh: string, auth: string): Promi
   // Gönderici için tek kullanımlık ECDH anahtar çifti
   const cift = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
   const asAcik = new Uint8Array(await crypto.subtle.exportKey('raw', cift.publicKey));
-  const uaAnahtar = await crypto.subtle.importKey('raw', uaAcik, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  const uaAnahtar = await crypto.subtle.importKey('raw', uaAcik as BufferSource, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
   const paylasilan = new Uint8Array(await crypto.subtle.deriveBits(
     { name: 'ECDH', public: uaAnahtar }, cift.privateKey, 256,
   ));
@@ -120,7 +120,7 @@ async function icerikSifrele(metin: string, p256dh: string, auth: string): Promi
 
   const aes = await crypto.subtle.importKey('raw', cek, { name: 'AES-GCM' }, false, ['encrypt']);
   const acikMetin = birlestir(enc.encode(metin), new Uint8Array([2])); // 0x02 = son kayıt ayracı
-  const sifreli = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aes, acikMetin));
+  const sifreli = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aes, acikMetin as BufferSource));
 
   const rs = new Uint8Array(4);
   new DataView(rs.buffer).setUint32(0, 4096);
@@ -145,7 +145,7 @@ async function webPushGonder(abone: { endpoint: string; p256dh: string; auth: st
       TTL: '86400',
       Urgency: 'normal',
     },
-    body: govde,
+    body: govde as BodyInit,
   });
   return { durum: r.status, hata: r.ok ? null : await r.text().catch(() => '') };
 }
@@ -223,30 +223,46 @@ async function apnsGonder(sb: SupabaseClient, token: string, baslik: string, gov
   return { ...r, ortam: 'production' };
 }
 
+// Geçici hata (ağ, 5xx, 429) olursa 800 ms sonra bir kez daha dener
+async function dene<T>(f: () => Promise<T>, geciciMi: (r: T) => boolean): Promise<T> {
+  try {
+    const r = await f();
+    if (!geciciMi(r)) return r;
+  } catch (_) { /* aşağıda tekrar */ }
+  await new Promise((c) => setTimeout(c, 800));
+  return await f();
+}
+const geciciDurum = (d: number) => d === 0 || d === 429 || d >= 500;
+
 /* ===================== ana akış ===================== */
 Deno.serve(async (req: Request) => {
   try {
-    const { bildirim_id } = await req.json().catch(() => ({}));
-    if (!bildirim_id) return cevap({ hata: 'bildirim_id gerekli' }, 400);
-
     const sb = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Bildirimi DB'den oku — içerik dışarıdan gelmez
+    // Çağıran doğrulaması: tetikleyici (turbedar_push_tetikle) DB'deki ortak sırrı
+    // x-push-sir başlığıyla yollar. Sır yalnız service_role'ün okuyabildiği tabloda.
+    const { data: sir } = await sb.from('turbedar_sunucu_onbellek')
+      .select('deger').eq('ad', 'push_sir').maybeSingle();
+    if (!sir?.deger || req.headers.get('x-push-sir') !== sir.deger) return cevap({ hata: 'yetkisiz' }, 401);
+
+    const { bildirim_id } = await req.json().catch(() => ({}));
+    if (!bildirim_id) return cevap({ hata: 'bildirim_id gerekli' }, 400);
+
+    // Bildirimi ATOMİK sahiplen: yalnız push_gonderildi=false iken true yapan çağrı devam eder
+    // (eşzamanlı iki çağrı aynı bildirimi iki kez göndermesin). İçerik DB'den okunur.
     const { data: b } = await sb.from('turbedar_bildirimler')
-      .select('id, kullanici_id, baslik, govde, yer_id, push_gonderildi')
-      .eq('id', bildirim_id).maybeSingle();
-    if (!b) return cevap({ hata: 'bildirim bulunamadı' }, 404);
-    if (b.push_gonderildi) return cevap({ durum: 'zaten gönderilmiş' });
+      .update({ push_gonderildi: true })
+      .eq('id', bildirim_id).eq('push_gonderildi', false)
+      .select('id, kullanici_id, baslik, govde, yer_id')
+      .maybeSingle();
+    if (!b) return cevap({ hata: 'bildirim bulunamadı ya da zaten gönderilmiş' }, 404);
 
     // Kullanıcının cihaz kanalları
     const { data: p } = await sb.from('turbedar_profiller')
       .select('push_token, push_web, push_ios').eq('id', b.kullanici_id).maybeSingle();
-
-    // Tekrar denemeyi önle: kanal olsun olmasın işaretle
-    await sb.from('turbedar_bildirimler').update({ push_gonderildi: true }).eq('id', b.id);
 
     const sonuclar: Record<string, unknown> = {};
 
@@ -257,7 +273,7 @@ Deno.serve(async (req: Request) => {
         if (!saHam) throw new Error('FCM_SERVICE_ACCOUNT secret tanımlı değil');
         const sa = JSON.parse(saHam);
         const erisim = await fcmErisimTokeni(sa);
-        const fcmRes = await fetch(
+        const fcmRes = await dene(() => fetch(
           `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`,
           {
             method: 'POST',
@@ -279,7 +295,7 @@ Deno.serve(async (req: Request) => {
               },
             }),
           },
-        );
+        ), (r) => geciciDurum(r.status));
         const sonuc = await fcmRes.json();
         const kayitsiz =
           sonuc?.error?.status === 'NOT_FOUND' ||
@@ -301,12 +317,12 @@ Deno.serve(async (req: Request) => {
     const w = p?.push_web as { endpoint?: string; p256dh?: string; auth?: string } | null;
     if (w?.endpoint && w.p256dh && w.auth) {
       try {
-        const r = await webPushGonder(w as { endpoint: string; p256dh: string; auth: string }, {
+        const r = await dene(() => webPushGonder(w as { endpoint: string; p256dh: string; auth: string }, {
           baslik: b.baslik,
           govde: b.govde || '',
           yer_id: b.yer_id || null,
           bildirim_id: b.id,
-        });
+        }), (r) => geciciDurum(r.durum));
         // 404/410 = abonelik ölmüş (uygulama silinmiş/izin geri alınmış) → temizle
         if (r.durum === 404 || r.durum === 410) {
           await sb.from('turbedar_profiller').update({ push_web: null }).eq('id', b.kullanici_id);
@@ -329,7 +345,7 @@ Deno.serve(async (req: Request) => {
         const { count: okunmamis } = await sb.from('turbedar_bildirimler')
           .select('id', { count: 'exact', head: true })
           .eq('kullanici_id', b.kullanici_id).eq('okundu', false);
-        const r = await apnsGonder(sb, p.push_ios, b.baslik, b.govde || '', b.yer_id, okunmamis ?? null, b.id);
+        const r = await dene(() => apnsGonder(sb, p.push_ios, b.baslik, b.govde || '', b.yer_id, okunmamis ?? null, b.id), (r) => geciciDurum(r.durum));
         // 410 Unregistered = uygulama silinmiş / bildirim kapatılmış; iki ortamda da
         // BadDeviceToken = jeton bu uygulamaya ait değil → ikisinde de temizle
         if (r.durum === 410 || (r.durum === 400 && r.neden === 'BadDeviceToken')) {
